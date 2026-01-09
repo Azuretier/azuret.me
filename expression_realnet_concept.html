@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表現構築型リアルネット - 本当の自分を見つける</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;500;700;900&family=Noto+Serif+JP:wght@200;300;400;600;900&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0a0c;
+            --text: #e8e8e8;
+            --accent: #c4b5fd;
+            --accent2: #67e8f9;
+            --muted: #6b7280;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .serif { font-family: 'Noto Serif JP', serif; }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(ellipse at 30% 20%, rgba(196, 181, 253, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(103, 232, 249, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+        }
+
+        .hero-label {
+            font-size: 12px;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 40px;
+        }
+
+        .hero-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: clamp(32px, 8vw, 72px);
+            font-weight: 200;
+            line-height: 1.3;
+            margin-bottom: 40px;
+            letter-spacing: 0.05em;
+        }
+
+        .hero-title em {
+            font-style: normal;
+            color: var(--accent);
+        }
+
+        .hero-sub {
+            font-size: 18px;
+            color: var(--muted);
+            max-width: 600px;
+            margin: 0 auto 60px;
+            font-weight: 300;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 3px;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--muted), transparent);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        /* Sections */
+        section {
+            padding: 120px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-size: 11px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: clamp(28px, 5vw, 48px);
+            font-weight: 300;
+            margin-bottom: 40px;
+            line-height: 1.4;
+        }
+
+        .section-text {
+            font-size: 16px;
+            color: var(--muted);
+            max-width: 700px;
+            font-weight: 300;
+        }
+
+        /* Philosophy */
+        .philosophy {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 60px;
+            margin-top: 80px;
+        }
+
+        .philosophy-item {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .philosophy-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        .philosophy-item h3 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 24px;
+            font-weight: 400;
+            margin-bottom: 16px;
+        }
+
+        .philosophy-item p {
+            color: var(--muted);
+            font-size: 15px;
+            font-weight: 300;
+            line-height: 2;
+        }
+
+        /* Quote */
+        .quote-section {
+            text-align: center;
+            padding: 160px 20px;
+            position: relative;
+        }
+
+        .quote-section::before {
+            content: '"';
+            font-family: 'Noto Serif JP', serif;
+            font-size: 200px;
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(196, 181, 253, 0.1);
+            pointer-events: none;
+        }
+
+        .quote {
+            font-family: 'Noto Serif JP', serif;
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 300;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Process */
+        .process {
+            display: flex;
+            flex-direction: column;
+            gap: 80px;
+            margin-top: 80px;
+        }
+
+        .process-step {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .process-number {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 64px;
+            font-weight: 200;
+            color: var(--accent);
+            opacity: 0.5;
+            line-height: 1;
+        }
+
+        .process-content h3 {
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .process-content p {
+            color: var(--muted);
+            font-weight: 300;
+            line-height: 2;
+        }
+
+        /* Visual Break */
+        .visual-break {
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+            margin: 80px 0;
+        }
+
+        .visual-break::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            border: 1px solid rgba(196, 181, 253, 0.2);
+            border-radius: 50%;
+            animation: pulse-ring 4s ease-in-out infinite;
+        }
+
+        .visual-break::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 1px solid rgba(103, 232, 249, 0.2);
+            border-radius: 50%;
+            animation: pulse-ring 4s ease-in-out infinite 1s;
+        }
+
+        @keyframes pulse-ring {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        }
+
+        .visual-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Noto Serif JP', serif;
+            font-size: 14px;
+            letter-spacing: 8px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        /* Manifesto */
+        .manifesto {
+            background: linear-gradient(135deg, rgba(196, 181, 253, 0.05), rgba(103, 232, 249, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 80px 60px;
+            margin: 80px auto;
+            max-width: 900px;
+        }
+
+        .manifesto h2 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 32px;
+            font-weight: 300;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .manifesto-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .manifesto-list li {
+            font-size: 18px;
+            font-weight: 300;
+            padding-left: 40px;
+            position: relative;
+            line-height: 1.8;
+        }
+
+        .manifesto-list li::before {
+            content: '—';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        /* CTA */
+        .cta {
+            text-align: center;
+            padding: 160px 20px;
+        }
+
+        .cta-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: clamp(32px, 6vw, 56px);
+            font-weight: 200;
+            margin-bottom: 30px;
+        }
+
+        .cta-sub {
+            color: var(--muted);
+            font-size: 18px;
+            margin-bottom: 50px;
+            font-weight: 300;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 20px 60px;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-decoration: none;
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            background: var(--accent);
+            color: var(--bg);
+            box-shadow: 0 0 40px rgba(196, 181, 253, 0.3);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 60px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        footer span {
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .process-step {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .process-number {
+                font-size: 48px;
+            }
+
+            .manifesto {
+                padding: 40px 30px;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero -->
+    <header class="hero">
+        <div class="hero-content">
+            <p class="hero-label">Expression Realnet</p>
+            <h1 class="hero-title">
+                表現活動を通して<br>
+                <em>本当の自分</em>を見つける
+            </h1>
+            <p class="hero-sub">
+                私たちは、創造することで自己と出会う。<br>
+                音、色、言葉——すべての表現は、内なる声の翻訳である。
+            </p>
+        </div>
+        <div class="scroll-indicator">
+            <span>SCROLL</span>
+            <div class="scroll-line"></div>
+        </div>
+    </header>
+
+    <!-- Philosophy -->
+    <section class="fade-in">
+        <p class="section-label">Philosophy</p>
+        <h2 class="section-title">なぜ、表現なのか</h2>
+        <p class="section-text">
+            言葉にできない感情がある。論理では説明できない衝動がある。
+            それらは「表現」という行為を通じて、初めて形を持つ。
+            自分自身を知るとは、その形を見つめることである。
+        </p>
+
+        <div class="philosophy">
+            <div class="philosophy-item">
+                <h3>創造は対話</h3>
+                <p>
+                    作品を作ることは、自分との対話である。
+                    何を選び、何を捨てるか——その選択の中に、
+                    あなた自身が映し出される。
+                </p>
+            </div>
+            <div class="philosophy-item">
+                <h3>不完全の美学</h3>
+                <p>
+                    完璧を求める必要はない。
+                    むしろ、揺らぎや迷いの中にこそ、
+                    本当のあなたらしさが宿る。
+                </p>
+            </div>
+            <div class="philosophy-item">
+                <h3>共鳴する孤独</h3>
+                <p>
+                    表現は孤独な行為だが、
+                    その孤独は誰かの孤独と響き合う。
+                    私たちは一人で、同時に繋がっている。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quote -->
+    <div class="quote-section fade-in">
+        <p class="quote">
+            私たちが創り出すものは、<br>
+            私たち自身の<em style="color: var(--accent); font-style: normal;">鏡</em>である。
+        </p>
+    </div>
+
+    <!-- Visual Break -->
+    <div class="visual-break">
+        <span class="visual-text">CREATE · CONNECT · DISCOVER</span>
+    </div>
+
+    <!-- Process -->
+    <section class="fade-in">
+        <p class="section-label">Process</p>
+        <h2 class="section-title">表現から自己発見へ</h2>
+
+        <div class="process">
+            <div class="process-step">
+                <span class="process-number">01</span>
+                <div class="process-content">
+                    <h3>触れる</h3>
+                    <p>
+                        まず、何かに触れてみる。音、色、形、言葉。
+                        正解を求めず、ただ手を動かす。
+                        その瞬間、表現の扉が開く。
+                    </p>
+                </div>
+            </div>
+            <div class="process-step">
+                <span class="process-number">02</span>
+                <div class="process-content">
+                    <h3>構築する</h3>
+                    <p>
+                        断片を組み合わせ、形を作る。
+                        あなたの選択、あなたのリズム、あなたの間。
+                        それらすべてが「あなた」を語り始める。
+                    </p>
+                </div>
+            </div>
+            <div class="process-step">
+                <span class="process-number">03</span>
+                <div class="process-content">
+                    <h3>解放する</h3>
+                    <p>
+                        完成を恐れず、世界に放つ。
+                        誰かの目に触れた瞬間、
+                        作品は新しい命を得る。そしてあなたも。
+                    </p>
+                </div>
+            </div>
+            <div class="process-step">
+                <span class="process-number">04</span>
+                <div class="process-content">
+                    <h3>気づく</h3>
+                    <p>
+                        自分が何を創ったのか、振り返る。
+                        そこに映る自分自身と向き合う。
+                        それが、本当の自己発見。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Manifesto -->
+    <div class="manifesto fade-in">
+        <h2>私たちが信じること</h2>
+        <ul class="manifesto-list">
+            <li>すべての人は、表現者である</li>
+            <li>創造に正解はない。あるのは「あなたらしさ」だけ</li>
+            <li>表現は、自己との最も誠実な対話である</li>
+            <li>不完全さの中にこそ、美と真実がある</li>
+            <li>孤独な創造は、やがて誰かと繋がる</li>
+            <li>本当の自分は、作品の中に現れる</li>
+        </ul>
+    </div>
+
+    <!-- CTA -->
+    <section class="cta fade-in">
+        <h2 class="cta-title">あなたの表現を、始めよう</h2>
+        <p class="cta-sub">
+            Expression Realnet で、本当の自分と出会う旅を。
+        </p>
+        <a href="#" class="cta-button">体験する</a>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p><span>EXPRESSION REALNET</span> — 表現構築型リアルネット</p>
+    </footer>
+
+    <script>
+        // Fade in on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

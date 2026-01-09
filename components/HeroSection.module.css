@@ -1,0 +1,85 @@
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 2rem;
+  background: radial-gradient(ellipse at 50% 50%, var(--bg-primary), var(--bg-secondary));
+}
+
+.heroContent {
+  text-align: center;
+  max-width: 800px;
+  position: relative;
+  z-index: 2;
+}
+
+.mainTitle {
+  font-family: 'Shippori Mincho', serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 800;
+  margin-bottom: 2rem;
+  letter-spacing: 0.02em;
+  position: relative;
+  display: inline-block;
+}
+
+.mainTitle::before {
+  content: '安定した幸せ';
+  position: absolute;
+  top: -0.5rem;
+  left: -0.5rem;
+  opacity: 0.1;
+  font-size: 1.2em;
+  transform: rotate(-2deg);
+  color: var(--accent-warm);
+}
+
+.subtitle {
+  font-family: 'EB Garamond', serif;
+  font-size: 1.5rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  margin-bottom: 3rem;
+  opacity: 0;
+  animation: fadeInUp 1s ease-out 0.5s forwards;
+}
+
+.sectionText {
+  font-size: 1.1rem;
+  line-height: 2;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.sectionText .interactive-element {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.sectionText .interactive-element:hover {
+  color: var(--accent-warm);
+}
+
+.sectionText .interactive-element::after {
+  content: attr(data-hover);
+  position: absolute;
+  top: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.sectionText .interactive-element:hover::after {
+  opacity: 1;
+}
