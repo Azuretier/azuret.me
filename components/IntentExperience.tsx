@@ -95,6 +95,11 @@ export default function IntentExperience({ onComplete }: IntentExperienceProps) 
   }
 
   const webGpuReady = Boolean(webGpuRenderer && webGpuSupported)
+  const badgeText = webGpuReady
+    ? 'WebGPU active'
+    : webGpuSupported
+      ? 'WebGPU loading'
+      : 'WebGL fallback'
   const glRenderer = webGpuRenderer
     ? ((canvas: HTMLCanvasElement | OffscreenCanvas) =>
         new webGpuRenderer({
@@ -162,9 +167,7 @@ export default function IntentExperience({ onComplete }: IntentExperienceProps) 
                   We&apos;ll shape a personalized journey with this focus.
                 </p>
               </div>
-              <div className={styles.webGpuBadge}>
-                {webGpuReady ? 'WebGPU active' : 'WebGPU ready'}
-              </div>
+              <div className={styles.webGpuBadge}>{badgeText}</div>
             </div>
             <button className={styles.enterButton} type="button" onClick={handleComplete}>
               Enter the site
