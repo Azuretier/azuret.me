@@ -8,6 +8,7 @@ A modern personal portfolio website built with Next.js 14, featuring smooth anim
 - ✨ Custom cursor with hover effects
 - 🎭 Floating particle animations
 - 📱 Fully responsive layout
+- 🪐 Personalized intent capture with a WebGPU-ready 3D dialog
 - 🚀 Built with Next.js 14 and React 18
 - 💅 CSS Modules for styling
 - 🎯 Smooth scroll navigation with active section tracking
