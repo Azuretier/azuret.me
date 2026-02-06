@@ -1,19 +1,13 @@
 'use client'
 
 import { Canvas, useFrame } from '@react-three/fiber'
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import type { Mesh, WebGLRenderer } from 'three'
+import { type FormEvent, useRef, useState } from 'react'
+import type { Mesh } from 'three'
 import styles from './IntentExperience.module.css'
 
 type IntentExperienceProps = {
   onComplete?: () => void
 }
-
-type WebGpuRendererType = new (options: {
-  canvas: HTMLCanvasElement
-  antialias?: boolean
-  alpha?: boolean
-}) => { init?: () => Promise<unknown> }
 
 function FloatingDialog() {
   const meshRef = useRef<Mesh>(null)
@@ -50,34 +44,6 @@ export default function IntentExperience({ onComplete }: IntentExperienceProps) 
   const [intent, setIntent] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [dismissed, setDismissed] = useState(false)
-  const [webGpuRenderer, setWebGpuRenderer] = useState<WebGpuRendererType | null>(null)
-
-  const webGpuSupported = useMemo(() => {
-    if (typeof navigator === 'undefined') return false
-    return 'gpu' in navigator
-  }, [])
-
-  useEffect(() => {
-    if (!webGpuSupported) return
-    let active = true
-    import('three/webgpu')
-      .then((module) => {
-        if (!active) return
-        const rendererModule = module as unknown as {
-          WebGPURenderer?: WebGpuRendererType
-          default?: WebGpuRendererType
-        }
-        const renderer = rendererModule.WebGPURenderer ?? rendererModule.default
-        if (renderer) {
-          setWebGpuRenderer(() => renderer)
-        }
-      })
-      .catch(() => null)
-
-    return () => {
-      active = false
-    }
-  }, [webGpuSupported])
 
   if (dismissed) return null
 
@@ -93,21 +59,6 @@ export default function IntentExperience({ onComplete }: IntentExperienceProps) 
     setDismissed(true)
     onComplete?.()
   }
-
-  const webGpuReady = Boolean(webGpuRenderer && webGpuSupported)
-  const badgeText = webGpuReady
-    ? 'WebGPU active'
-    : webGpuSupported
-      ? 'WebGPU loading'
-      : 'WebGL fallback'
-  const glRenderer = webGpuRenderer
-    ? ((canvas: HTMLCanvasElement | OffscreenCanvas) =>
-        new webGpuRenderer({
-          canvas: canvas as HTMLCanvasElement,
-          antialias: true,
-          alpha: true,
-        }) as unknown as WebGLRenderer)
-    : undefined
 
   return (
     <section className={styles.intro} aria-live="polite">
@@ -139,27 +90,16 @@ export default function IntentExperience({ onComplete }: IntentExperienceProps) 
         ) : (
           <div className={styles.result}>
             <div className={styles.canvasWrap}>
-              {webGpuReady ? (
-                <Canvas
-                  className={styles.canvas}
-                  camera={{ position: [0, 0, 4], fov: 35 }}
-                  dpr={[1, 2]}
-                  gl={glRenderer}
-                  onCreated={({ gl }) => {
-                    void (gl as { init?: () => Promise<unknown> }).init?.()
-                  }}
-                >
-                  <ambientLight intensity={0.6} />
-                  <directionalLight position={[2, 2, 3]} intensity={0.8} />
-                  <FloatingDialog />
-                </Canvas>
-              ) : (
-                <Canvas className={styles.canvas} camera={{ position: [0, 0, 4], fov: 35 }} dpr={[1, 2]}>
-                  <ambientLight intensity={0.6} />
-                  <directionalLight position={[2, 2, 3]} intensity={0.8} />
-                  <FloatingDialog />
-                </Canvas>
-              )}
+              <Canvas
+                className={styles.canvas}
+                camera={{ position: [0, 0, 4], fov: 35 }}
+                dpr={[1, 2]}
+                gl={{ antialias: true, alpha: true }}
+              >
+                <ambientLight intensity={0.6} />
+                <directionalLight position={[2, 2, 3]} intensity={0.8} />
+                <FloatingDialog />
+              </Canvas>
               <div className={styles.dialogContent}>
                 <span className={styles.dialogLabel}>Intent detected</span>
                 <p className={styles.dialogTitle}>{trimmedIntent}</p>
@@ -167,7 +107,7 @@ export default function IntentExperience({ onComplete }: IntentExperienceProps) 
                   We&apos;ll shape a personalized journey with this focus.
                 </p>
               </div>
-              <div className={styles.webGpuBadge}>{badgeText}</div>
+              <div className={styles.webGpuBadge}>WebGL active</div>
             </div>
             <button className={styles.enterButton} type="button" onClick={handleComplete}>
               Enter the site
