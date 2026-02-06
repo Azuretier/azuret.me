@@ -3,15 +3,17 @@
 import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import styles from './page.module.css'
-import CustomCursor from '@/components/CustomCursor'
-import FloatingParticles from '@/components/FloatingParticles'
-import NavigationDots from '@/components/NavigationDots'
-import HeroSection from '@/components/HeroSection'
-import AboutSection from '@/components/AboutSection'
-import WorksSection from '@/components/WorksSection'
-import PhilosophySection from '@/components/PhilosophySection'
-import ContactSection from '@/components/ContactSection'
-const IntentExperience = dynamic(() => import('@/components/IntentExperience'), {
+
+import KatanaFairyTypewriter from '@/src/components/stable-happiness-v3.9';
+import CustomCursor from '@/src/components/stable-happiness-v2.5/CustomCursor'
+import FloatingParticles from '@/src/components/stable-happiness-v2.5/FloatingParticles'
+import NavigationDots from '@/src/components/stable-happiness-v2.5/NavigationDots'
+import HeroSection from '@/src/components/stable-happiness-v2.5/HeroSection'
+import AboutSection from '@/src/components/stable-happiness-v2.5/AboutSection'
+import WorksSection from '@/src/components/stable-happiness-v2.5/WorksSection'
+import PhilosophySection from '@/src/components/stable-happiness-v2.5/PhilosophySection'
+import ContactSection from '@/src/components/stable-happiness-v2.5/ContactSection'
+const IntentExperience = dynamic(() => import('@/src/components/stable-happiness-v2.5/IntentExperience'), {
   ssr: false,
 })
 
@@ -32,6 +34,7 @@ export default function Home() {
           <WorksSection />
           <PhilosophySection />
           <ContactSection />
+          <KatanaFairyTypewriter />
         </>
       )}
     </main>
