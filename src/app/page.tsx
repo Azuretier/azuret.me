@@ -34,7 +34,11 @@ export default function Home() {
                 </span>
               </div>
               <p className="text-text-secondary mt-3 text-sm border-l-2 border-accent/30 pl-3">
-                神奈川県横浜市出身、プログラミングが好きです…　ヒマラヤ山脈とタイにいくことがもくひょう
+                神奈川県横浜市出身、プログラミングが好きです…
+                <br />
+                ヒマラヤ山脈とタイにいくことがもくひょう。
+                <br />
+                目標くらい高く持ってもいいでしょ？^. ̫ .^
               </p>
             </div>
 
@@ -44,7 +48,9 @@ export default function Home() {
                 <span className="text-accent mr-1">##</span> $ whoami
               </h2>
               <p className="text-text-primary text-sm leading-relaxed">
-                前世は子猫です
+                前世は子猫です。
+                <br />
+                現世はプログラミングが好きです。
               </p>
             </section>
 
