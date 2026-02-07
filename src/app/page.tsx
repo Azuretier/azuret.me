@@ -74,25 +74,6 @@ export default function Home() {
                     </span>
                   </a>
                 </li>
-                <li>
-                  <a
-                    href="https://azuretier.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center gap-2 text-sm py-1 hover:text-accent transition-colors"
-                  >
-                    <span className="text-text-muted font-mono text-xs">-</span>
-                    <span className="font-mono text-accent-light group-hover:underline underline-offset-2">
-                      azuretier.com
-                    </span>
-                    <span className="text-text-muted text-xs font-mono">
-                      {'//'} portfolio
-                    </span>
-                    <span className="text-text-muted group-hover:text-accent transition-colors ml-auto text-xs">
-                      &#8599;
-                    </span>
-                  </a>
-                </li>
               </ul>
             </section>
 
@@ -130,15 +111,30 @@ export default function Home() {
                   </div>
                   <div className="pl-4">
                     <a
-                      href="https://twitter.com/Azuretier"
+                      href="https://x.com/c2c546"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group inline-flex items-center gap-1 hover:brightness-125 transition"
                     >
-                      <span className="text-green-400">twitter</span>
+                      <span className="text-green-400">x</span>
                       <span className="text-text-muted">:</span>{' '}
                       <span className="text-orange-300 group-hover:underline underline-offset-2">
-                        &quot;@Azuretier&quot;
+                        &quot;@c2c546&quot;
+                      </span>
+                      <span className="text-text-muted">,</span>
+                    </a>
+                  </div>
+                  <div className="pl-4">
+                    <a
+                      href="https://instagram.com/azuqun1"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group inline-flex items-center gap-1 hover:brightness-125 transition"
+                    >
+                      <span className="text-green-400">instagram</span>
+                      <span className="text-text-muted">:</span>{' '}
+                      <span className="text-orange-300 group-hover:underline underline-offset-2">
+                        &quot;@azuqun1&quot;
                       </span>
                       <span className="text-text-muted">,</span>
                     </a>
