@@ -34,7 +34,7 @@ export default function Home() {
                 </span>
               </div>
               <p className="text-text-secondary mt-3 text-sm border-l-2 border-accent/30 pl-3">
-                A life spelled out in code, creativity, and connection.
+                私の人生はプログラミングや
               </p>
             </div>
 
@@ -44,8 +44,7 @@ export default function Home() {
                 <span className="text-accent mr-1">##</span> $ whoami
               </h2>
               <p className="text-text-primary text-sm leading-relaxed">
-                Developer crafting digital experiences. Building things at the
-                intersection of creativity and code, one commit at a time.
+                前世は子猫です
               </p>
             </section>
 
