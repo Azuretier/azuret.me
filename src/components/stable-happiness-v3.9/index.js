@@ -18,6 +18,7 @@ export { default as MainCanvas } from "./MainCanvas";
 // Builders for custom scenes
 export {
     buildVoxelWorld,
+    buildBoardEdgeGlow,
     createSword,
     buildFairyAura,
     buildFairyCore,
@@ -34,6 +35,7 @@ export {
     FAIRY_VERT, FAIRY_FRAG,
     FLOURISH_VERT, FLOURISH_FRAG,
     SPARK_VERT, SPARK_FRAG,
+    EDGE_GLOW_VERT, EDGE_GLOW_FRAG,
     AMB_VERT, AMB_FRAG,
 } from "./shaders";
 

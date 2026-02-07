@@ -217,6 +217,68 @@ export const SPARK_FRAG = `
   }
 `;
 
+// Board edge radiance — soft glow radiating from board perimeter
+export const EDGE_GLOW_VERT = `
+  attribute float aSize;
+  attribute float aPhase;
+  attribute vec3 aDir;
+  attribute float aEdge;
+  uniform float uTime;
+  varying float vAlpha;
+  varying vec3 vColor;
+  void main() {
+    float t = uTime;
+    // Lifecycle: each particle drifts outward then resets
+    float cycle = 6.0;
+    float age = mod(t * 0.4 + aPhase * cycle, cycle);
+    float life = age / cycle;
+    float fadeIn = smoothstep(0.0, 0.15, life);
+    float fadeOut = 1.0 - smoothstep(0.5, 1.0, life);
+    float alpha = fadeIn * fadeOut;
+
+    // Drift outward from edge + gentle rise
+    vec3 pos = position + aDir * age * 1.8;
+    pos.y += age * 0.6 + sin(t * 0.8 + aPhase * 6.28) * 0.3 * alpha;
+
+    // Gentle sway
+    pos.x += sin(t * 0.5 + aPhase * 4.0) * 0.25 * alpha;
+    pos.z += cos(t * 0.4 + aPhase * 3.5) * 0.25 * alpha;
+
+    // Soft pulse
+    float pulse = 0.85 + sin(t * 0.6 + aPhase * 6.28) * 0.15;
+
+    vAlpha = alpha * pulse * 0.55;
+
+    // Warm color blend: gold to soft amber to faint rose
+    vec3 warmGold = vec3(0.79, 0.66, 0.30);
+    vec3 softAmber = vec3(0.85, 0.55, 0.25);
+    vec3 faintRose = vec3(0.75, 0.45, 0.42);
+    float colorMix = sin(aPhase * 6.28 + aEdge * 1.57) * 0.5 + 0.5;
+    float colorMix2 = cos(aPhase * 3.14 + t * 0.1) * 0.5 + 0.5;
+    vColor = mix(mix(warmGold, softAmber, colorMix), faintRose, colorMix2 * 0.25);
+    vColor *= (0.7 + alpha * 0.5);
+
+    vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+    gl_PointSize = aSize * (200.0 / -mv.z) * (0.4 + alpha * 0.6) * pulse;
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+
+export const EDGE_GLOW_FRAG = `
+  varying float vAlpha;
+  varying vec3 vColor;
+  void main() {
+    float d = length(gl_PointCoord - vec2(0.5));
+    if (d > 0.5) discard;
+    // Very soft radial falloff for comfortable glow
+    float core = exp(-d * 5.0);
+    float halo = exp(-d * 2.0) * 0.4;
+    float outer = exp(-d * 1.2) * 0.15;
+    float glow = core + halo + outer;
+    gl_FragColor = vec4(vColor * (1.0 + core * 1.5), glow * vAlpha);
+  }
+`;
+
 // Ambient background particles
 export const AMB_VERT = `
   attribute float aSize; attribute float aPhase; attribute float aType;

@@ -7,6 +7,7 @@ import * as THREE from "three";
 import {
     buildVoxelWorld, createSword, buildFairyAura, buildFairyCore,
     buildFlourish, buildSparkExplosion, buildAmbient, buildTextSystem,
+    buildBoardEdgeGlow,
 } from "./builders";
 
 export default function MainCanvas({ scrollProgress, activeSection, sections }) {
@@ -51,6 +52,7 @@ export default function MainCanvas({ scrollProgress, activeSection, sections }) 
 
         // Build world
         const voxels = buildVoxelWorld(scene);
+        const edgeGlow = buildBoardEdgeGlow(voxels.group);
         const ambient = buildAmbient(scene);
 
         // Build fairy systems + text
@@ -120,6 +122,8 @@ export default function MainCanvas({ scrollProgress, activeSection, sections }) 
             voxels.mesh.instanceMatrix.needsUpdate = true;
             voxels.group.rotation.y = 0.3 + t * 0.001 + sp * 0.35;
             voxels.group.position.y = -9 - sp * 1.5;
+
+            edgeGlow.mat.uniforms.uTime.value = t;
 
             ambient.mat.uniforms.uTime.value = t;
             ambient.mat.uniforms.uScroll.value = sp;

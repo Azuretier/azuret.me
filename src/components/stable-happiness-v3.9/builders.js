@@ -7,6 +7,7 @@ import {
     TEXT_VERT, TEXT_FRAG, KANJI_VERT, KANJI_FRAG,
     FAIRY_VERT, FAIRY_FRAG, FLOURISH_VERT, FLOURISH_FRAG,
     SPARK_VERT, SPARK_FRAG, AMB_VERT, AMB_FRAG,
+    EDGE_GLOW_VERT, EDGE_GLOW_FRAG,
 } from "./shaders";
 import { renderTextToCanvas, renderKanjiCanvas } from "./utils";
 
@@ -45,6 +46,81 @@ export function buildVoxelWorld(scene) {
     group.position.set(0, -9, -10); group.rotation.x = -0.2; group.rotation.y = 0.3;
     scene.add(group);
     return { group, mesh, colData };
+}
+
+export function buildBoardEdgeGlow(voxelGroup) {
+    const G = 32, BS = 0.85, GAP = 0.12, CELL = BS + GAP;
+    const halfExtent = (G / 2) * CELL;
+    const PARTICLES_PER_EDGE = 100;
+    const N = PARTICLES_PER_EDGE * 4;
+
+    const pos = new Float32Array(N * 3);
+    const sizes = new Float32Array(N);
+    const phases = new Float32Array(N);
+    const dirs = new Float32Array(N * 3);
+    const edges = new Float32Array(N);
+
+    let idx = 0;
+    const placeEdge = (edgeIndex, getPos, getDir) => {
+        for (let i = 0; i < PARTICLES_PER_EDGE; i++) {
+            const frac = i / PARTICLES_PER_EDGE;
+            const spread = (Math.random() - 0.5) * 0.8;
+            const p = getPos(frac, spread);
+            const d = getDir();
+
+            pos[idx * 3] = p[0];
+            pos[idx * 3 + 1] = p[1];
+            pos[idx * 3 + 2] = p[2];
+            dirs[idx * 3] = d[0];
+            dirs[idx * 3 + 1] = d[1];
+            dirs[idx * 3 + 2] = d[2];
+            sizes[idx] = Math.random() * 4.0 + 2.0;
+            phases[idx] = Math.random();
+            edges[idx] = edgeIndex;
+            idx++;
+        }
+    };
+
+    // Edge 0: front (z = -halfExtent), radiates toward -z
+    placeEdge(0,
+        (f, s) => [-halfExtent + f * halfExtent * 2, s, -halfExtent + s * 0.3],
+        () => [(Math.random() - 0.5) * 0.3, Math.random() * 0.2, -(0.3 + Math.random() * 0.4)]
+    );
+    // Edge 1: back (z = +halfExtent), radiates toward +z
+    placeEdge(1,
+        (f, s) => [-halfExtent + f * halfExtent * 2, s, halfExtent + s * 0.3],
+        () => [(Math.random() - 0.5) * 0.3, Math.random() * 0.2, 0.3 + Math.random() * 0.4]
+    );
+    // Edge 2: left (x = -halfExtent), radiates toward -x
+    placeEdge(2,
+        (f, s) => [-halfExtent + s * 0.3, s, -halfExtent + f * halfExtent * 2],
+        () => [-(0.3 + Math.random() * 0.4), Math.random() * 0.2, (Math.random() - 0.5) * 0.3]
+    );
+    // Edge 3: right (x = +halfExtent), radiates toward +x
+    placeEdge(3,
+        (f, s) => [halfExtent + s * 0.3, s, -halfExtent + f * halfExtent * 2],
+        () => [0.3 + Math.random() * 0.4, Math.random() * 0.2, (Math.random() - 0.5) * 0.3]
+    );
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
+    geo.setAttribute("aPhase", new THREE.BufferAttribute(phases, 1));
+    geo.setAttribute("aDir", new THREE.BufferAttribute(dirs, 3));
+    geo.setAttribute("aEdge", new THREE.BufferAttribute(edges, 1));
+
+    const mat = new THREE.ShaderMaterial({
+        vertexShader: EDGE_GLOW_VERT,
+        fragmentShader: EDGE_GLOW_FRAG,
+        uniforms: { uTime: { value: 0 } },
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+    });
+
+    const pts = new THREE.Points(geo, mat);
+    voxelGroup.add(pts);
+    return { pts, mat };
 }
 
 export function createSword(color) {
