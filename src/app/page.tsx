@@ -34,7 +34,7 @@ export default function Home() {
                 </span>
               </div>
               <p className="text-text-secondary mt-3 text-sm border-l-2 border-accent/30 pl-3">
-                私の人生はプログラミングや
+                神奈川県横浜市出身、プログラミングが好きです…　ヒマラヤ山脈とタイにいくことがもくひょう
               </p>
             </div>
 
