@@ -1,13 +1,22 @@
-:root {
-  --bg-primary: #FAF7F0;
-  --bg-secondary: #E8DCC7;
-  --text-primary: #3A3A3A;
-  --text-secondary: #6B6B6B;
-  --accent-warm: #D4A574;
-  --accent-soft: #B8A398;
-  --accent-deep: #8B7355;
-  --shadow-soft: rgba(139, 115, 85, 0.08);
-  --shadow-medium: rgba(139, 115, 85, 0.15);
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: #0a0a0f;
+  --color-bg-secondary: #12121a;
+  --color-bg-card: #1a1a25;
+  --color-bg-card-hover: #22222f;
+  --color-border-subtle: #2a2a3a;
+  --color-border-accent: #5b6ee1;
+  --color-text-primary: #e8e8f0;
+  --color-text-secondary: #8888a0;
+  --color-text-muted: #55556a;
+  --color-accent: #5b6ee1;
+  --color-accent-light: #7b8ef1;
+  --color-accent-glow: rgba(91, 110, 225, 0.3);
+  --color-accent-secondary: #e15ba0;
+  --color-accent-secondary-glow: rgba(225, 91, 160, 0.3);
+  --color-gradient-start: #5b6ee1;
+  --color-gradient-end: #e15ba0;
 }
 
 * {
@@ -16,87 +25,63 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: 'Zen Kaku Gothic New', sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
   line-height: 1.6;
   overflow-x: hidden;
-  cursor: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Cursor */
-.cursor {
-  position: fixed;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--accent-warm);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  transition: transform 0.3s cubic-bezier(0.2, 1, 0.3, 1);
-  mix-blend-mode: difference;
+::selection {
+  background: var(--color-accent);
+  color: white;
 }
 
-.cursor-follower {
-  position: fixed;
-  width: 40px;
-  height: 40px;
-  background: var(--accent-warm);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
-  opacity: 0.1;
-  transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-.cursor.hover {
-  transform: scale(1.5);
-  border-color: var(--accent-deep);
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
 }
 
-/* Floating Particles */
-.particle-container {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle);
+  border-radius: 3px;
 }
 
-.particle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: var(--accent-soft);
-  border-radius: 50%;
-  opacity: 0;
-  animation: float 20s infinite;
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
 }
 
-@keyframes float {
-  0% {
-    opacity: 0;
-    transform: translateY(100vh) translateX(0) scale(0);
-  }
-  10% {
-    opacity: 0.4;
-    transform: translateY(90vh) translateX(10px) scale(1);
-  }
-  90% {
-    opacity: 0.4;
-    transform: translateY(-10vh) translateX(-10px) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-20vh) translateX(0) scale(0);
-  }
+/* Section divider line */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-border-subtle) 20%,
+    var(--color-accent) 50%,
+    var(--color-border-subtle) 80%,
+    transparent 100%
+  );
+  opacity: 0.4;
+  max-width: 72rem;
+  margin: 0 auto;
 }
 
+/* Reusable fade-in animation for scroll-triggered reveals */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -104,14 +89,6 @@ body {
   }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  body {
-    cursor: default;
-  }
-
-  .cursor,
-  .cursor-follower {
-    display: none;
-  }
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s ease forwards;
 }
