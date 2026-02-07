@@ -11,17 +11,23 @@ import Footer from '@/src/components/Footer'
 
 export default function Home() {
   return (
-    <>
+    <div className="relative min-h-screen">
       <AnimatedBackground />
       <Navbar />
       <main className="relative z-10">
         <HeroSection />
+        <div className="section-divider" />
         <FeaturesSection />
+        <div className="section-divider" />
         <AboutSection />
+        <div className="section-divider" />
         <DocsSection />
+        <div className="section-divider" />
         <CTASection />
       </main>
-      <Footer />
-    </>
+      <footer className="relative z-10">
+        <Footer />
+      </footer>
+    </div>
   )
 }
