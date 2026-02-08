@@ -14,6 +14,13 @@ Next.js 15とReact 19で構築されたモダンなポートフォリオサイ�
 - 🎮 Three.js + React Three Fiber integration / Three.js + React Three Fiber統合
 - 💅 CSS Modules & Tailwind CSS for styling / CSS ModulesとTailwind CSSによるスタイリング
 
+## Building for Production / 本番ビルド
+
+```bash
+npm run build
+npm start
+```
+
 ## Project Structure / プロジェクト構成
 
 ```
@@ -47,6 +54,19 @@ azuret.me/
 - Tailwind CSS 4
 - CSS Modules
 - WebGL/GLSL Shaders
+
+## Deployment / デプロイ
+
+This site can be deployed to Vercel, Netlify, or any hosting platform that supports Next.js.
+
+このサイトはVercel、Netlify、またはNext.jsをサポートする任意のホスティングプラットフォームにデプロイできます。
+
+### Deploy to Vercel / Vercelへのデプロイ
+
+```bash
+npm install -g vercel
+vercel
+```
 
 ## License / ライセンス
 
