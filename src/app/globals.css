@@ -6,12 +6,15 @@
   --color-bg-card: #1a1a25;
   --color-bg-card-hover: #22222f;
   --color-border-subtle: #2a2a3a;
-  --color-border-accent: #5b6ee1;
+  --color-border-accent: #5865F2;
   --color-text-primary: #e8e8f0;
   --color-text-secondary: #8888a0;
   --color-text-muted: #55556a;
-  --color-accent: #5b6ee1;
-  --color-accent-light: #7b8ef1;
+  --color-accent: #5865F2;
+  --color-accent-light: #7289DA;
+  --color-discord-green: #57F287;
+  --color-discord-yellow: #FEE75C;
+  --color-discord-pink: #EB459E;
 }
 
 * {
@@ -25,10 +28,10 @@ html {
 }
 
 body {
-  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  font-family: 'Inter', 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
-  line-height: 1.6;
+  line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -53,4 +56,30 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-accent);
+}
+
+/* Smooth scroll offset for fixed header */
+section[id] {
+  scroll-margin-top: 80px;
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
