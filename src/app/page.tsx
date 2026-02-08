@@ -1,9 +1,9 @@
-import RainCanvas from '@/src/components/RainCanvas'
+import VoxelTerrainCanvas from '@/src/components/VoxelTerrainCanvas'
 
 export default function Home() {
   return (
     <>
-      <RainCanvas />
+      <VoxelTerrainCanvas />
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative">
         {/* Editor-style card */}
         <div
