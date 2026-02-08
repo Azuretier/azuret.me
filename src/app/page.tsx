@@ -88,6 +88,17 @@ function avatarColor(name: string) {
 
 /* ── component ──────────────────────────────────────────────── */
 
+const MEDIA_FILES = [
+  '/media/1.png',
+  '/media/2.jpg',
+  '/media/3.jpg',
+  '/media/4.jpg',
+  '/media/5.jfif',
+  '/media/6.png',
+  '/media/7.jpg',
+  '/media/8.jpg',
+]
+
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false)
   const [visible, setVisible] = useState(false)
@@ -96,6 +107,15 @@ export default function HomePage() {
   const [content, setContent] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set())
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
+
+  // Slideshow effect - cycle through media every 1 second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMediaIndex((prev) => (prev + 1) % MEDIA_FILES.length)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -175,7 +195,11 @@ export default function HomePage() {
         <div className={styles.heroContainer}>
           <div className={styles.avatarWrapper}>
             <div className={styles.avatar}>
-              <span>A</span>
+              <img
+                src={MEDIA_FILES[currentMediaIndex]}
+                alt="Profile"
+                className={styles.avatarImage}
+              />
             </div>
             <div className={styles.statusDot} />
           </div>
