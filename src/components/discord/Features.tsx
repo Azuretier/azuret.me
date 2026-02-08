@@ -81,7 +81,7 @@ const features = [
 
 export default function Features() {
   return (
-    <section id="features" className="relative py-24 md:py-32">
+    <section id="features" className="relative py-24 md:py-32 overflow-x-clip">
       {/* Background accent */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-[#5865F2]/3 blur-[150px]" />
 

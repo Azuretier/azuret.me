@@ -2,7 +2,7 @@
 
 export default function Community() {
   return (
-    <section id="community" className="relative py-24 md:py-32">
+    <section id="community" className="relative py-24 md:py-32 overflow-x-clip">
       <div className="max-w-[1200px] mx-auto px-6">
         {/* CTA Card */}
         <div className="relative overflow-hidden rounded-2xl border border-[#2a2a3a]">

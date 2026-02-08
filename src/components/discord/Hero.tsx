@@ -98,7 +98,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+    <section className="relative min-h-screen flex items-center justify-center overflow-x-clip overflow-y-visible pt-16">
       {/* Background canvas */}
       <canvas
         ref={canvasRef}

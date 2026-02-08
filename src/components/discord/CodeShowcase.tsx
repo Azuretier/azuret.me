@@ -124,11 +124,11 @@ export default function CodeShowcase() {
   const activeExample = codeExamples.find(e => e.id === activeTab)!
 
   return (
-    <section id="guide" className="relative py-24 md:py-32">
+    <section id="guide" className="relative py-24 md:py-32 overflow-x-clip">
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left - Text */}
-          <div>
+          <div className="min-w-0">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#5865F2]/10 border border-[#5865F2]/20 mb-4">
               <span className="text-xs font-medium text-[#5865F2]">コード例</span>
             </div>
@@ -174,9 +174,9 @@ export default function CodeShowcase() {
           </div>
 
           {/* Right - Code block */}
-          <div className="relative">
+          <div className="relative min-w-0">
             {/* Glow */}
-            <div className="absolute -inset-4 bg-[#5865F2]/5 rounded-2xl blur-xl" />
+            <div className="absolute -inset-4 bg-[#5865F2]/5 rounded-2xl blur-xl pointer-events-none" />
 
             <div className="relative rounded-xl border border-[#2a2a3a] overflow-hidden shadow-2xl">
               {/* Window chrome */}
