@@ -94,6 +94,7 @@ export default function LinksPage() {
 
           <div className={styles.navLinks}>
             <a href="/" className={styles.navLink}>Home</a>
+            <a href="/profiles" className={styles.navLink}>Profiles</a>
             <a href="/links" className={`${styles.navLink} ${styles.navLinkActive}`}>Links</a>
           </div>
         </div>
@@ -182,6 +183,7 @@ export default function LinksPage() {
           <div className={styles.footerCol}>
             <h4 className={styles.footerHeading}>Site</h4>
             <a href="/" className={styles.footerLink}>Home</a>
+            <a href="/profiles" className={styles.footerLink}>Profiles</a>
             <a href="/links" className={styles.footerLink}>Links</a>
           </div>
         </div>
