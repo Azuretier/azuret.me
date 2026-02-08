@@ -2,71 +2,43 @@
 
 A modern personal portfolio website built with Next.js 15 and React 19, featuring interactive 3D visualizations with WebGL shaders and voxel terrain effects.
 
-## Features
+Next.js 15とReact 19で構築されたモダンなポートフォリオサイト。WebGLシェーダーとボクセル地形エフェクトによるインタラクティブな3Dビジュアライゼーションを特徴としています。
 
-- 🎨 Beautiful Japanese-inspired design
-- 🌧️ Rain shader animation with WebGL
-- 🏔️ Interactive voxel terrain visualization
-- 📱 Fully responsive layout
-- 🚀 Built with Next.js 15 and React 19
-- 🎮 Three.js + React Three Fiber integration
-- 💅 CSS Modules & Tailwind CSS for styling
+## Features / 特徴
 
-## Getting Started
+- 🎨 Beautiful Japanese-inspired design / 美しい和風デザイン
+- 🌧️ Rain shader animation with WebGL / WebGLによる雨シェーダーアニメーション
+- 🏔️ Interactive voxel terrain visualization / インタラクティブなボクセル地形ビジュアライゼーション
+- 📱 Fully responsive layout / 完全レスポンシブレイアウト
+- 🚀 Built with Next.js 15 and React 19 / Next.js 15とReact 19で構築
+- 🎮 Three.js + React Three Fiber integration / Three.js + React Three Fiber統合
+- 💅 CSS Modules & Tailwind CSS for styling / CSS ModulesとTailwind CSSによるスタイリング
 
-### Prerequisites
-
-- Node.js 18+ installed
-- npm or yarn package manager
-
-### Installation
-
-1. Install dependencies:
-
-```bash
-npm install
-```
-
-2. Run the development server:
-
-```bash
-npm run dev
-```
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Building for Production
-
-```bash
-npm run build
-npm start
-```
-
-## Project Structure
+## Project Structure / プロジェクト構成
 
 ```
 azuret.me/
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx          # Root layout
-│   │   ├── page.tsx            # Main page component
-│   │   ├── globals.css         # Global styles
-│   │   ├── home.module.css     # Homepage styles
-│   │   ├── api/                # API routes
-│   │   ├── links/              # Links page
-│   │   └── profiles/           # Profile pages
+│   │   ├── layout.tsx          # ルートレイアウト
+│   │   ├── page.tsx            # メインページコンポーネント
+│   │   ├── globals.css         # グローバルスタイル
+│   │   ├── home.module.css     # ホームページスタイル
+│   │   ├── api/                # APIルート
+│   │   ├── links/              # リンクページ
+│   │   └── profiles/           # プロフィールページ
 │   ├── components/
-│   │   ├── RainCanvas.tsx      # WebGL rain shader effect
-│   │   └── VoxelTerrainCanvas.tsx  # 3D voxel terrain visualization
-│   ├── lib/                    # Utility libraries
-│   └── styles/                 # Additional styles
+│   │   ├── RainCanvas.tsx      # WebGL雨シェーダーエフェクト
+│   │   └── VoxelTerrainCanvas.tsx  # 3Dボクセル地形ビジュアライゼーション
+│   ├── lib/                    # ユーティリティライブラリ
+│   └── styles/                 # 追加スタイル
 ├── public/
-│   ├── shaders/                # GLSL shader files
-│   └── media/                  # Media assets
+│   ├── shaders/                # GLSLシェーダーファイル
+│   └── media/                  # メディアアセット
 └── package.json
 ```
 
-## Technologies
+## Technologies / 使用技術
 
 - Next.js 15
 - React 19
@@ -76,17 +48,8 @@ azuret.me/
 - CSS Modules
 - WebGL/GLSL Shaders
 
-## Deployment
-
-This site can be deployed to Vercel, Netlify, or any hosting platform that supports Next.js.
-
-### Deploy to Vercel
-
-```bash
-npm install -g vercel
-vercel
 ```
 
-## License
+## License / ライセンス
 
 MIT
