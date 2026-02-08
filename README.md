@@ -48,8 +48,6 @@ azuret.me/
 - CSS Modules
 - WebGL/GLSL Shaders
 
-```
-
 ## License / ライセンス
 
 MIT
