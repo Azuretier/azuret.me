@@ -1,17 +1,16 @@
-# 安定した幸せ - Personal Portfolio
+# azuret.me - Personal Portfolio
 
-A modern personal portfolio website built with Next.js 14, featuring smooth animations, custom cursor effects, and interactive sections.
+A modern personal portfolio website built with Next.js 15 and React 19, featuring interactive 3D visualizations with WebGL shaders and voxel terrain effects.
 
 ## Features
 
 - 🎨 Beautiful Japanese-inspired design
-- ✨ Custom cursor with hover effects
-- 🎭 Floating particle animations
+- 🌧️ Rain shader animation with WebGL
+- 🏔️ Interactive voxel terrain visualization
 - 📱 Fully responsive layout
-- 🪐 Personalized intent capture with a WebGPU-ready 3D dialog
-- 🚀 Built with Next.js 14 and React 18
-- 💅 CSS Modules for styling
-- 🎯 Smooth scroll navigation with active section tracking
+- 🚀 Built with Next.js 15 and React 19
+- 🎮 Three.js + React Three Fiber integration
+- 💅 CSS Modules & Tailwind CSS for styling
 
 ## Getting Started
 
@@ -46,40 +45,36 @@ npm start
 ## Project Structure
 
 ```
-azuretia.com/
-├── app/
-│   ├── layout.tsx          # Root layout with fonts
-│   ├── page.tsx            # Main page component
-│   ├── globals.css         # Global styles
-│   └── page.module.css     # Page-specific styles
-├── components/
-│   ├── CustomCursor.tsx    # Custom cursor effect
-│   ├── FloatingParticles.tsx
-│   ├── NavigationDots.tsx  # Section navigation
-│   ├── HeroSection.tsx
-│   ├── AboutSection.tsx
-│   ├── WorksSection.tsx
-│   ├── PhilosophySection.tsx
-│   └── ContactSection.tsx
-└── public/                 # Static assets
-
+azuret.me/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx          # Root layout
+│   │   ├── page.tsx            # Main page component
+│   │   ├── globals.css         # Global styles
+│   │   ├── home.module.css     # Homepage styles
+│   │   ├── api/                # API routes
+│   │   ├── links/              # Links page
+│   │   └── profiles/           # Profile pages
+│   ├── components/
+│   │   ├── RainCanvas.tsx      # WebGL rain shader effect
+│   │   └── VoxelTerrainCanvas.tsx  # 3D voxel terrain visualization
+│   ├── lib/                    # Utility libraries
+│   └── styles/                 # Additional styles
+├── public/
+│   ├── shaders/                # GLSL shader files
+│   └── media/                  # Media assets
+└── package.json
 ```
-
-## Sections
-
-- **Home**: Hero section with animated title
-- **About**: Personal introduction with visual element
-- **Works**: Portfolio showcase cards
-- **Philosophy**: Core beliefs and values
-- **Contact**: Social media links
 
 ## Technologies
 
-- Next.js 14
-- React 18
+- Next.js 15
+- React 19
 - TypeScript
+- Three.js with React Three Fiber
+- Tailwind CSS 4
 - CSS Modules
-- Google Fonts (Shippori Mincho, EB Garamond, Zen Kaku Gothic New)
+- WebGL/GLSL Shaders
 
 ## Deployment
 
