@@ -3,10 +3,12 @@
    Intent-aware experience with modular architecture
    ═══════════════════════════════════════════════════════════════════ */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { COLORS, getSectionsForIntent, detectIntentCategory } from "./config";
 import MainCanvas from "./MainCanvas";
 import { BladeRule, TopBar, NavDots, Section, IntentBadge } from "./components";
+import { createAdvancementManager } from "./advancements";
+import AdvancementToast from "./AdvancementToast";
 
 /* ═══════════════════════════════════════════════════════════════════
    INTENT DIALOG - Ask visitor for their intent
@@ -161,16 +163,28 @@ export default function KatanaFairyTypewriter() {
   const [userIntent, setUserIntent] = useState("");
   const [sections, setSections] = useState(() => getSectionsForIntent(""));
 
+  // Advancement system
+  const advManagerRef = useRef(null);
+  if (!advManagerRef.current) {
+    advManagerRef.current = createAdvancementManager((adv) => {
+      if (window.__advancementToast) window.__advancementToast(adv);
+    });
+  }
+
   // Handle intent submission
   const handleIntentSubmit = useCallback((intent) => {
     setUserIntent(intent);
     setSections(getSectionsForIntent(intent));
     setShowIntentDialog(false);
+    const category = detectIntentCategory(intent);
+    advManagerRef.current.onExperienceStart();
+    if (intent) advManagerRef.current.onIntentSubmit(category);
   }, []);
 
   // Skip intent dialog
   const handleIntentSkip = useCallback(() => {
     setShowIntentDialog(false);
+    advManagerRef.current.onExperienceStart();
   }, []);
 
   // Load fonts
@@ -187,12 +201,25 @@ export default function KatanaFairyTypewriter() {
     const onScroll = () => {
       const st = window.scrollY;
       const dh = document.documentElement.scrollHeight - window.innerHeight;
-      setScrollProgress(dh > 0 ? st / dh : 0);
+      const sp = dh > 0 ? st / dh : 0;
+      setScrollProgress(sp);
       setActiveSection(Math.min(sections.length - 1, Math.max(0, Math.round(st / window.innerHeight))));
+      // Advancement: scroll bottom
+      advManagerRef.current.onScrollBottom(sp);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [sections.length]);
+
+  // Advancement: track active section and patient observer timer
+  useEffect(() => {
+    if (showIntentDialog) return;
+    advManagerRef.current.onSectionActive(activeSection);
+    const interval = setInterval(() => {
+      advManagerRef.current.onSectionActive(activeSection);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [activeSection, showIntentDialog]);
 
   // Get current intent category for badge
   const intentCategory = detectIntentCategory(userIntent);
@@ -223,6 +250,8 @@ export default function KatanaFairyTypewriter() {
         pointer-events:none;
         background:radial-gradient(ellipse at center,transparent 28%,rgba(4,4,10,0.9) 100%); }
     `}</style>
+
+    <AdvancementToast />
 
     {showIntentDialog && (
       <IntentDialog onSubmit={handleIntentSubmit} onSkip={handleIntentSkip} />
