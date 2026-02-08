@@ -98,7 +98,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-x-clip overflow-y-visible pt-16">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-x-clip overflow-y-visible pt-24 pb-16">
       {/* Background canvas */}
       <canvas
         ref={canvasRef}
@@ -199,7 +199,7 @@ export default function Hero() {
       </div>
 
       {/* Bottom gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
     </section>
   )
 }

@@ -53,13 +53,13 @@ const packages = [
 
 export default function Stats() {
   return (
-    <section id="docs" className="relative py-24 md:py-32 overflow-x-clip">
+    <section id="docs" className="relative py-12 md:py-16 overflow-x-clip">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#5865F2]/3 to-transparent" />
 
       <div className="relative max-w-[1200px] mx-auto px-6">
         {/* Section header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#5865F2]/10 border border-[#5865F2]/20 mb-4">
             <span className="text-xs font-medium text-[#5865F2]">パッケージ</span>
           </div>
@@ -72,7 +72,7 @@ export default function Stats() {
         </div>
 
         {/* Packages grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {packages.map((pkg, i) => (
             <div
               key={i}

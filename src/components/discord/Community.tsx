@@ -2,7 +2,7 @@
 
 export default function Community() {
   return (
-    <section id="community" className="relative py-24 md:py-32 overflow-x-clip">
+    <section id="community" className="relative py-12 md:py-16 overflow-x-clip">
       <div className="max-w-[1200px] mx-auto px-6">
         {/* CTA Card */}
         <div className="relative overflow-hidden rounded-2xl border border-[#2a2a3a]">
@@ -48,7 +48,7 @@ export default function Community() {
             </div>
 
             {/* Floating online count */}
-            <div className="mt-12 flex flex-wrap gap-6">
+            <div className="mt-8 flex flex-wrap gap-6">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#57F287]" />
                 <span className="text-sm text-[#8888a0]">

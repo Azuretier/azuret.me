@@ -81,13 +81,13 @@ const features = [
 
 export default function Features() {
   return (
-    <section id="features" className="relative py-24 md:py-32 overflow-x-clip">
+    <section id="features" className="relative py-12 md:py-16 overflow-x-clip">
       {/* Background accent */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-[#5865F2]/3 blur-[150px]" />
 
       <div className="relative max-w-[1200px] mx-auto px-6">
         {/* Section header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#5865F2]/10 border border-[#5865F2]/20 mb-4">
             <span className="text-xs font-medium text-[#5865F2]">機能</span>
           </div>
@@ -100,7 +100,7 @@ export default function Features() {
         </div>
 
         {/* Feature grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {features.map((feature, i) => (
             <div
               key={i}

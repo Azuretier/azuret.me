@@ -124,7 +124,7 @@ export default function CodeShowcase() {
   const activeExample = codeExamples.find(e => e.id === activeTab)!
 
   return (
-    <section id="guide" className="relative py-24 md:py-32 overflow-x-clip">
+    <section id="guide" className="relative py-12 md:py-16 overflow-x-clip">
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left - Text */}

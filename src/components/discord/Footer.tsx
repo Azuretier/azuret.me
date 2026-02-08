@@ -1,7 +1,7 @@
 export default function Footer() {
   return (
     <footer className="border-t border-[#1e1e2e]">
-      <div className="max-w-[1200px] mx-auto px-6 py-16">
+      <div className="max-w-[1200px] mx-auto px-6 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
@@ -102,7 +102,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-6 border-t border-[#1e1e2e] flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-10 pt-6 border-t border-[#1e1e2e] flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[#55556a]">
             &copy; {new Date().getFullYear()} discord.js. All rights reserved.
           </p>
