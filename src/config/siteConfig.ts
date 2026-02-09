@@ -103,6 +103,52 @@ export const footerLinks = {
     },
 }
 
+/* ── Social Links (Links Page) ─────────────────────────────── */
+
+export const socialLinks = [
+    {
+        id: 'x',
+        name: 'X (Twitter)',
+        handle: '@c2c546',
+        description: 'Thoughts, updates, and daily musings.',
+        href: 'https://x.com/c2c546',
+        color: '#1d9bf0',
+    },
+    {
+        id: 'github',
+        name: 'GitHub',
+        handle: '@Azuretier',
+        description: 'Open-source projects and contributions.',
+        href: 'https://github.com/Azuretier',
+        color: '#8b5cf6',
+    },
+    {
+        id: 'discord',
+        name: 'Discord',
+        handle: 'Community Server',
+        description: 'Join the community and chat in real-time.',
+        href: 'https://discord.gg/2Q4Cw8fcrv',
+        color: '#5865f2',
+    },
+    {
+        id: 'website',
+        name: 'azuretier.net',
+        handle: 'Game Website',
+        description: 'The main hub for all things Azuretier.',
+        href: 'https://azuretier.net',
+        color: '#10b981',
+    },
+]
+
+/* ── Links Page ────────────────────────────────────────────── */
+
+export const linksPage = {
+    title: 'Connect with me',
+    subtitle: 'Find me across the internet.',
+    avatarLetter: 'A',
+    visitButton: 'Visit',
+}
+
 /* ── Media Slideshow ───────────────────────────────────────── */
 
 export const mediaFiles = [
