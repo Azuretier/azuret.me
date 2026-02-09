@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Nav from '../../components/Nav'
+import Footer from '../../components/Footer'
 import styles from './links.module.css'
 
 /* ── data ───────────────────────────────────────────────────── */
@@ -63,15 +65,8 @@ const socials = [
 /* ── component ──────────────────────────────────────────────── */
 
 export default function LinksPage() {
-  const [scrolled, setScrolled] = useState(false)
   const [visible, setVisible] = useState(false)
   const heroRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   useEffect(() => {
     // stagger-in entrance
@@ -86,19 +81,7 @@ export default function LinksPage() {
       <div className={styles.ambientBottom} />
 
       {/* ── nav ──────────────────────────────────────────────── */}
-      <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
-        <div className={styles.navInner}>
-          <a href="/" className={styles.logo}>
-            <span className={styles.logoAccent}>azuret</span>.me
-          </a>
-
-          <div className={styles.navLinks}>
-            <a href="/" className={styles.navLink}>Home</a>
-            <a href="/profiles" className={styles.navLink}>Profiles</a>
-            <a href="/links" className={`${styles.navLink} ${styles.navLinkActive}`}>Links</a>
-          </div>
-        </div>
-      </nav>
+      <Nav activePage="links" />
 
       {/* ── hero ─────────────────────────────────────────────── */}
       <header
@@ -115,8 +98,6 @@ export default function LinksPage() {
 
           <h1 className={styles.heroTitle}>Connect with me</h1>
           <p className={styles.heroSub}>
-            Developer, creator, and cat-person based in Kanagawa.
-            <br />
             Find me across the internet.
           </p>
         </div>
@@ -168,30 +149,7 @@ export default function LinksPage() {
       </main>
 
       {/* ── footer ───────────────────────────────────────────── */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerCol}>
-            <h4 className={styles.footerHeading}>Resources</h4>
-            <a href="https://azuretier.net" target="_blank" rel="noopener noreferrer" className={styles.footerLink}>azuretier.net</a>
-            <a href="https://github.com/Azuretier" target="_blank" rel="noopener noreferrer" className={styles.footerLink}>GitHub</a>
-          </div>
-          <div className={styles.footerCol}>
-            <h4 className={styles.footerHeading}>Social</h4>
-            <a href="https://x.com/c2c546" target="_blank" rel="noopener noreferrer" className={styles.footerLink}>X (Twitter)</a>
-            <a href="https://discord.gg/azuretier" target="_blank" rel="noopener noreferrer" className={styles.footerLink}>Discord</a>
-          </div>
-          <div className={styles.footerCol}>
-            <h4 className={styles.footerHeading}>Site</h4>
-            <a href="/" className={styles.footerLink}>Home</a>
-            <a href="/profiles" className={styles.footerLink}>Profiles</a>
-            <a href="/links" className={styles.footerLink}>Links</a>
-          </div>
-        </div>
-        <div className={styles.footerBottom}>
-          <p>&copy; {new Date().getFullYear()} azuret.me</p>
-          <p>made with {'<3'}</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
