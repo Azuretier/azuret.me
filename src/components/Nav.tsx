@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import styles from './Nav.module.css'
+import { siteIdentity, navLinks } from '../config/siteConfig'
 
 /* ── types ────────────────────────────────────────────────── */
 
@@ -70,14 +71,20 @@ export default function Nav({ activePage }: { activePage: 'home' | 'profiles' | 
     <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
       <div className={styles.navInner}>
         <a href="/" className={styles.logo}>
-          <span className={styles.logoAccent}>azuret</span>.me
+          <span className={styles.logoAccent}>{siteIdentity.logoAccent}</span>{siteIdentity.logoSuffix}
         </a>
 
         <div className={styles.navRight}>
           <div className={styles.navLinks}>
-            <a href="/" className={`${styles.navLink} ${activePage === 'home' ? styles.navLinkActive : ''}`}>Home</a>
-            <a href="/profiles" className={`${styles.navLink} ${activePage === 'profiles' ? styles.navLinkActive : ''}`}>Profiles</a>
-            <a href="/links" className={`${styles.navLink} ${activePage === 'links' ? styles.navLinkActive : ''}`}>Links</a>
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className={`${styles.navLink} ${activePage === link.href.slice(1) || (activePage === 'home' && link.href === '/') ? styles.navLinkActive : ''}`}
+              >
+                {link.label}
+              </a>
+            ))}
           </div>
 
           {/* advancement widget */}
