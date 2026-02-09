@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 export const metadata: Metadata = {
   title: 'azuret.me - Documentation',
@@ -14,6 +15,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
   return (
     <html lang="en">
       <head>
@@ -24,7 +26,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        {gaId && <GoogleAnalytics gaId={gaId} />}
+      </body>
     </html>
   )
 }
