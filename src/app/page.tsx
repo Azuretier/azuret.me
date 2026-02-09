@@ -1,15 +1,14 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Nav from '../components/Nav'
+import Footer from '../components/Footer'
 import styles from './home.module.css'
 import {
-  siteIdentity,
   hero,
-  navLinks,
   aboutItems,
   commentWall,
   profileBanner,
-  footerLinks,
   mediaFiles,
   slideshowInterval,
 } from '../config/siteConfig'
@@ -80,7 +79,6 @@ function avatarColor(name: string) {
 /* ── component ──────────────────────────────────────────────── */
 
 export default function HomePage() {
-  const [scrolled, setScrolled] = useState(false)
   const [visible, setVisible] = useState(false)
   const [comments, setComments] = useState<Comment[]>([])
   const [author, setAuthor] = useState('')
@@ -95,12 +93,6 @@ export default function HomePage() {
       setCurrentMediaIndex((prev) => (prev + 1) % mediaFiles.length)
     }, slideshowInterval)
     return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   useEffect(() => {
@@ -157,24 +149,7 @@ export default function HomePage() {
       <div className={styles.ambientBottom} />
 
       {/* ── nav ──────────────────────────────────────────────── */}
-      <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
-        <div className={styles.navInner}>
-          <a href="/" className={styles.logo}>
-            <span className={styles.logoAccent}>{siteIdentity.logoAccent}</span>{siteIdentity.logoSuffix}
-          </a>
-          <div className={styles.navLinks}>
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className={`${styles.navLink} ${link.active ? styles.navLinkActive : ''}`}
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        </div>
-      </nav>
+      <Nav activePage="home" />
 
       {/* ── hero ─────────────────────────────────────────────── */}
       <header className={`${styles.hero} ${visible ? styles.heroVisible : ''}`}>
@@ -329,52 +304,7 @@ export default function HomePage() {
       </section>
 
       {/* ── footer ───────────────────────────────────────────── */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerCol}>
-            <h4 className={styles.footerHeading}>{footerLinks.resources.heading}</h4>
-            {footerLinks.resources.links.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                className={styles.footerLink}
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-          <div className={styles.footerCol}>
-            <h4 className={styles.footerHeading}>{footerLinks.social.heading}</h4>
-            {footerLinks.social.links.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                className={styles.footerLink}
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-          <div className={styles.footerCol}>
-            <h4 className={styles.footerHeading}>{footerLinks.site.heading}</h4>
-            {footerLinks.site.links.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className={styles.footerLink}
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        </div>
-        <div className={styles.footerBottom}>
-          <p>&copy; {new Date().getFullYear()} {siteIdentity.copyright}</p>
-          <p>made with {siteIdentity.madeWith}</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
