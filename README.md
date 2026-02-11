@@ -5,9 +5,6 @@ A modern personal portfolio website built with Next.js 15 and React 19, featurin
 Next.js 15とReact 19で構築されたモダンなポートフォリオサイト。インタラクティブな3Dビジュアライゼーション、コミュニティコメントウォール、SQLiteによるプロフィールシステムを特徴としています。
 
 ## Features / 特徴
-
-- Interactive rain shader animation with WebGL / WebGLによる雨シェーダーアニメーション
-- 3D voxel terrain visualization with Three.js / Three.jsによる3Dボクセル地形ビジュアライゼーション
 - Community comment wall with likes / いいね機能付きコミュニティコメントウォール
 - User profile creation and listing / ユーザープロフィール作成・一覧
 - Advancement widget showing community level / コミュニティレベルを表示する進捗ウィジェット
