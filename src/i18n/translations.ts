@@ -1,16 +1,13 @@
-export type Locale = 'en' | 'th' | 'es'
-
-export const localeNames: Record<Locale, string> = {
-  en: 'EN',
-  th: 'TH',
-  es: 'ES',
-}
+export type Locale = 'en' | 'ja' | 'th' | 'es'
 
 export const localeLabels: Record<Locale, string> = {
   en: 'English',
+  ja: '日本語',
   th: 'ไทย',
   es: 'Español',
 }
+
+export const locales: Locale[] = ['en', 'ja', 'th', 'es']
 
 export interface Translations {
   /* ── nav ─────────────────────────────────────────────────── */
@@ -191,6 +188,87 @@ const en: Translations = {
   },
 }
 
+const ja: Translations = {
+  nav: {
+    home: 'ホーム',
+    profiles: 'プロフィール',
+    links: 'リンク',
+  },
+  hero: {
+    subtitle: '神奈川在住のデベロッパー、クリエイター、猫好き。',
+    description: 'コード、創造性、つながりで何かを作る。',
+  },
+  about: {
+    location: '所在地',
+    locationValue: '神奈川県、日本',
+    interests: '興味',
+    interestsValue: 'プログラミング、音楽、人と話すこと',
+    goal: '目標',
+    goalValue: 'ヒマラヤとタイを訪れる',
+    stack: '技術スタック',
+    stackValue: 'TypeScript, React, Next.js, Three.js',
+  },
+  commentWall: {
+    sectionTitle: 'ウォール',
+    messagesLabel: 'メッセージ',
+    namePlaceholder: 'あなたの名前',
+    messagePlaceholder: 'ウォールにメッセージを残す...',
+    sendButton: '送信',
+    sendingButton: '送信中...',
+    emptyMessage: 'まだメッセージがありません。最初に挨拶しよう！',
+  },
+  profileBanner: {
+    title: 'コミュニティプロフィール',
+    subtitle: 'azuret.meでプロフィールを作成してコミュニティに参加しよう',
+  },
+  footer: {
+    resources: 'リソース',
+    social: 'ソーシャル',
+    site: 'サイト',
+    madeWith: 'made with',
+  },
+  linksPage: {
+    title: 'つながろう',
+    subtitle: 'インターネット上で見つけてください。',
+    visitButton: '訪問',
+    xDescription: '日々の考え、アップデート、つぶやき。',
+    githubDescription: 'オープンソースプロジェクトと貢献。',
+    discordDescription: 'コミュニティに参加してリアルタイムでチャット。',
+    websiteDescription: 'Azuretierのすべてが集まるメインハブ。',
+  },
+  profilesPage: {
+    heroTitle: 'コミュニティプロフィール',
+    heroSub: 'あなたの足跡を残し、自分を共有しよう。',
+    createTitle: 'プロフィール作成',
+    yourDetails: 'あなたの情報',
+    formSub: '以下のフィールドを入力してazuret.meにプロフィールを作成',
+    usernameLabel: 'ユーザー名',
+    usernamePlaceholder: 'coolperson',
+    displayNameLabel: '表示名',
+    displayNamePlaceholder: 'Cool Person',
+    bioLabel: '自己紹介',
+    bioPlaceholder: '短い自己紹介を書いてください...',
+    websiteLabel: 'ウェブサイト（任意）',
+    websitePlaceholder: 'https://yoursite.com',
+    createButton: 'プロフィール作成',
+    creatingButton: '作成中...',
+    successMessage: 'プロフィールを作成しました！',
+    networkError: 'ネットワークエラー、もう一度お試しください',
+    membersTitle: 'メンバー',
+    profilesCount: 'プロフィール',
+    emptyProfiles: 'まだプロフィールがありません。最初に参加しよう！',
+    joinedPrefix: '参加日',
+  },
+  widget: {
+    communityProgress: 'コミュニティの進捗',
+    level: 'レベル',
+    toNextLevel: '次のレベルまで',
+    messages: 'メッセージ',
+    likes: 'いいね',
+    members: 'メンバー',
+  },
+}
+
 const th: Translations = {
   nav: {
     home: 'หน้าแรก',
@@ -353,4 +431,4 @@ const es: Translations = {
   },
 }
 
-export const translations: Record<Locale, Translations> = { en, th, es }
+export const translations: Record<Locale, Translations> = { en, ja, th, es }

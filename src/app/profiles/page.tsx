@@ -32,6 +32,7 @@ function avatarColor(name: string) {
 
 const DATE_LOCALES: Record<string, string> = {
   en: 'en-US',
+  ja: 'ja-JP',
   th: 'th-TH',
   es: 'es-ES',
 }
