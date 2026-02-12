@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Nav from '../../components/Nav'
 import Footer from '../../components/Footer'
 import styles from './profiles.module.css'
+import { useLanguage } from '../../i18n/LanguageContext'
 
 /* ── types ────────────────────────────────────────────────── */
 
@@ -29,8 +30,15 @@ function avatarColor(name: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr + 'Z').toLocaleDateString('en-US', {
+const DATE_LOCALES: Record<string, string> = {
+  en: 'en-US',
+  ja: 'ja-JP',
+  th: 'th-TH',
+  es: 'es-ES',
+}
+
+function formatDate(dateStr: string, locale: string) {
+  return new Date(dateStr + 'Z').toLocaleDateString(DATE_LOCALES[locale] || 'en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -49,10 +57,11 @@ export default function ProfilesPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const { t, locale } = useLanguage()
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 80)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setVisible(true), 80)
+    return () => clearTimeout(timer)
   }, [])
 
   const fetchProfiles = useCallback(async () => {
@@ -92,7 +101,7 @@ export default function ProfilesPage() {
         setDisplayName('')
         setBio('')
         setWebsite('')
-        setSuccess('Profile created!')
+        setSuccess(t.profilesPage.successMessage)
         fetchProfiles()
         setTimeout(() => setSuccess(''), 3000)
       } else {
@@ -100,7 +109,7 @@ export default function ProfilesPage() {
         setError(data.error || 'Something went wrong')
       }
     } catch {
-      setError('Network error, please try again')
+      setError(t.profilesPage.networkError)
     }
 
     setSubmitting(false)
@@ -126,41 +135,41 @@ export default function ProfilesPage() {
             </svg>
           </div>
 
-          <h1 className={styles.heroTitle}>Community Profiles</h1>
+          <h1 className={styles.heroTitle}>{t.profilesPage.heroTitle}</h1>
           <p className={styles.heroSub}>
-            Leave your mark, share who you are.
+            {t.profilesPage.heroSub}
           </p>
         </div>
       </header>
 
       {/* ── create profile form ──────────────────────────────── */}
       <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>Create Profile</h2>
+        <h2 className={styles.sectionTitle}>{t.profilesPage.createTitle}</h2>
       </div>
 
       <section className={styles.formSection}>
         <div className={styles.formCard}>
-          <div className={styles.formTitle}>Your Details</div>
-          <div className={styles.formSub}>Fill in the fields below to create your profile on azuret.me</div>
+          <div className={styles.formTitle}>{t.profilesPage.yourDetails}</div>
+          <div className={styles.formSub}>{t.profilesPage.formSub}</div>
 
           <div className={styles.formGrid}>
             <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Username</label>
+              <label className={styles.inputLabel}>{t.profilesPage.usernameLabel}</label>
               <input
                 className={styles.input}
                 type="text"
-                placeholder="coolperson"
+                placeholder={t.profilesPage.usernamePlaceholder}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 maxLength={30}
               />
             </div>
             <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Display Name</label>
+              <label className={styles.inputLabel}>{t.profilesPage.displayNameLabel}</label>
               <input
                 className={styles.input}
                 type="text"
-                placeholder="Cool Person"
+                placeholder={t.profilesPage.displayNamePlaceholder}
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 maxLength={50}
@@ -169,10 +178,10 @@ export default function ProfilesPage() {
           </div>
 
           <div className={styles.inputGroup} style={{ marginBottom: '12px' }}>
-            <label className={styles.inputLabel}>Bio</label>
+            <label className={styles.inputLabel}>{t.profilesPage.bioLabel}</label>
             <textarea
               className={styles.textarea}
-              placeholder="A short bio about yourself..."
+              placeholder={t.profilesPage.bioPlaceholder}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               maxLength={300}
@@ -180,11 +189,11 @@ export default function ProfilesPage() {
           </div>
 
           <div className={styles.inputGroup} style={{ marginBottom: '16px' }}>
-            <label className={styles.inputLabel}>Website (optional)</label>
+            <label className={styles.inputLabel}>{t.profilesPage.websiteLabel}</label>
             <input
               className={styles.input}
               type="text"
-              placeholder="https://yoursite.com"
+              placeholder={t.profilesPage.websitePlaceholder}
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               maxLength={200}
@@ -207,7 +216,7 @@ export default function ProfilesPage() {
                 <line x1="20" y1="8" x2="20" y2="14" />
                 <line x1="23" y1="11" x2="17" y2="11" />
               </svg>
-              {submitting ? 'Creating...' : 'Create Profile'}
+              {submitting ? t.profilesPage.creatingButton : t.profilesPage.createButton}
             </button>
           </div>
         </div>
@@ -215,8 +224,8 @@ export default function ProfilesPage() {
 
       {/* ── profiles grid header ─────────────────────────────── */}
       <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>Members</h2>
-        <span className={styles.sectionBadge}>{profiles.length} profiles</span>
+        <h2 className={styles.sectionTitle}>{t.profilesPage.membersTitle}</h2>
+        <span className={styles.sectionBadge}>{profiles.length} {t.profilesPage.profilesCount}</span>
       </div>
 
       {/* ── profiles grid ────────────────────────────────────── */}
@@ -229,7 +238,7 @@ export default function ProfilesPage() {
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
               </svg>
-              <p className={styles.emptyText}>No profiles yet. Be the first to join!</p>
+              <p className={styles.emptyText}>{t.profilesPage.emptyProfiles}</p>
             </div>
           ) : (
             profiles.map((p, i) => {
@@ -267,7 +276,7 @@ export default function ProfilesPage() {
                   )}
 
                   <div className={styles.profileTime}>
-                    Joined {formatDate(p.created_at)}
+                    {t.profilesPage.joinedPrefix} {formatDate(p.created_at, locale)}
                   </div>
                 </div>
               )
