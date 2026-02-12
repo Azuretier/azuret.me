@@ -1,0 +1,135 @@
+/* ═══════════════════════════════════════════════════════════════
+   LanguageSwitcher — CSS Module
+   ═══════════════════════════════════════════════════════════════ */
+
+.wrapper {
+  position: relative;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(18, 18, 26, 0.6);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  color: var(--color-text-secondary);
+}
+
+.btn:hover {
+  border-color: rgba(91, 110, 225, 0.3);
+  background: rgba(91, 110, 225, 0.08);
+  color: var(--color-text-primary);
+}
+
+.globeIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.btnLabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.chevron {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* ── dropdown ──────────────────────────────────────────────── */
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(18, 18, 26, 0.95);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  padding: 6px;
+  animation: langDropIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 200;
+}
+
+@keyframes langDropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  color: var(--color-text-secondary);
+  text-align: left;
+}
+
+.option:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-primary);
+}
+
+.optionActive {
+  color: var(--color-accent-light);
+}
+
+.optionCode {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 22px;
+}
+
+.optionLabel {
+  font-size: 13px;
+  font-weight: 450;
+  flex: 1;
+}
+
+.checkIcon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-accent-light);
+  flex-shrink: 0;
+}
+
+/* ── responsive ────────────────────────────────────────────── */
+
+@media (max-width: 520px) {
+  .btnLabel {
+    font-size: 10px;
+  }
+
+  .dropdown {
+    min-width: 140px;
+    right: -8px;
+  }
+}

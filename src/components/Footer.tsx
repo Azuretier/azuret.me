@@ -2,13 +2,22 @@
 
 import styles from './Footer.module.css'
 import { siteIdentity, footerLinks } from '../config/siteConfig'
+import { useLanguage } from '../i18n/LanguageContext'
 
 export default function Footer() {
+  const { t } = useLanguage()
+
+  const siteLinks = [
+    { label: t.nav.home, href: '/' },
+    { label: t.nav.profiles, href: '/profiles' },
+    { label: t.nav.links, href: '/links' },
+  ]
+
   return (
     <footer className={styles.footer}>
       <div className={styles.footerInner}>
         <div className={styles.footerCol}>
-          <h4 className={styles.footerHeading}>{footerLinks.resources.heading}</h4>
+          <h4 className={styles.footerHeading}>{t.footer.resources}</h4>
           {footerLinks.resources.links.map((link) => (
             <a
               key={link.href}
@@ -21,7 +30,7 @@ export default function Footer() {
           ))}
         </div>
         <div className={styles.footerCol}>
-          <h4 className={styles.footerHeading}>{footerLinks.social.heading}</h4>
+          <h4 className={styles.footerHeading}>{t.footer.social}</h4>
           {footerLinks.social.links.map((link) => (
             <a
               key={link.href}
@@ -34,8 +43,8 @@ export default function Footer() {
           ))}
         </div>
         <div className={styles.footerCol}>
-          <h4 className={styles.footerHeading}>{footerLinks.site.heading}</h4>
-          {footerLinks.site.links.map((link) => (
+          <h4 className={styles.footerHeading}>{t.footer.site}</h4>
+          {siteLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
@@ -48,7 +57,7 @@ export default function Footer() {
       </div>
       <div className={styles.footerBottom}>
         <p>&copy; {new Date().getFullYear()} {siteIdentity.copyright}</p>
-        <p>made with {siteIdentity.madeWith}</p>
+        <p>{t.footer.madeWith} {siteIdentity.madeWith}</p>
       </div>
     </footer>
   )

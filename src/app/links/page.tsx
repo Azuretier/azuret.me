@@ -5,6 +5,7 @@ import Nav from '../../components/Nav'
 import Footer from '../../components/Footer'
 import styles from './links.module.css'
 import { socialLinks, linksPage } from '../../config/siteConfig'
+import { useLanguage } from '../../i18n/LanguageContext'
 
 /* ── icons ───────────────────────────────────────────────────── */
 
@@ -36,11 +37,19 @@ const socialIcons: Record<string, React.ReactNode> = {
 export default function LinksPage() {
   const [visible, setVisible] = useState(false)
   const heroRef = useRef<HTMLDivElement>(null)
+  const { t } = useLanguage()
+
+  const descriptionMap: Record<string, string> = {
+    x: t.linksPage.xDescription,
+    github: t.linksPage.githubDescription,
+    discord: t.linksPage.discordDescription,
+    website: t.linksPage.websiteDescription,
+  }
 
   useEffect(() => {
     // stagger-in entrance
-    const t = setTimeout(() => setVisible(true), 80)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setVisible(true), 80)
+    return () => clearTimeout(timer)
   }, [])
 
   return (
@@ -65,9 +74,9 @@ export default function LinksPage() {
             <div className={styles.statusDot} />
           </div>
 
-          <h1 className={styles.heroTitle}>{linksPage.title}</h1>
+          <h1 className={styles.heroTitle}>{t.linksPage.title}</h1>
           <p className={styles.heroSub}>
-            {linksPage.subtitle}
+            {t.linksPage.subtitle}
           </p>
         </div>
       </header>
@@ -100,12 +109,12 @@ export default function LinksPage() {
               <div className={styles.cardBody}>
                 <h3 className={styles.cardName}>{s.name}</h3>
                 <span className={styles.cardHandle}>{s.handle}</span>
-                <p className={styles.cardDesc}>{s.description}</p>
+                <p className={styles.cardDesc}>{descriptionMap[s.id] || s.description}</p>
               </div>
 
               <div className={styles.cardFooter}>
                 <span className={styles.cardCta}>
-                  {linksPage.visitButton}
+                  {t.linksPage.visitButton}
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14" />
                     <path d="M12 5l7 7-7 7" />

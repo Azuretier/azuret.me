@@ -6,12 +6,10 @@ import Footer from '../components/Footer'
 import styles from './home.module.css'
 import {
   hero,
-  aboutItems,
-  commentWall,
-  profileBanner,
   mediaFiles,
   slideshowInterval,
 } from '../config/siteConfig'
+import { useLanguage } from '../i18n/LanguageContext'
 
 /* ── types ────────────────────────────────────────────────── */
 
@@ -26,23 +24,23 @@ interface Comment {
 /* ── about icons ──────────────────────────────────────────── */
 
 const aboutIcons: Record<string, React.ReactNode> = {
-  Location: (
+  location: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z" />
       <circle cx="12" cy="10" r="3" />
     </svg>
   ),
-  Interests: (
+  interests: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
     </svg>
   ),
-  Goal: (
+  goal: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 21l5.5-5.5M21 3l-5.5 5.5M12.5 7l-3-3-6 6 3 3M17 11.5l3 3-6 6-3-3" />
     </svg>
   ),
-  Stack: (
+  stack: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M16 18l6-6-6-6M8 6l-6 6 6 6" />
     </svg>
@@ -86,6 +84,14 @@ export default function HomePage() {
   const [submitting, setSubmitting] = useState(false)
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set())
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
+  const { t } = useLanguage()
+
+  const aboutItems = [
+    { key: 'location', label: t.about.location, value: t.about.locationValue, color: '#1d9bf0' },
+    { key: 'interests', label: t.about.interests, value: t.about.interestsValue, color: '#a78bfa' },
+    { key: 'goal', label: t.about.goal, value: t.about.goalValue, color: '#10b981' },
+    { key: 'stack', label: t.about.stack, value: t.about.stackValue, color: '#f59e0b' },
+  ]
 
   // Slideshow effect - cycle through media
   useEffect(() => {
@@ -167,9 +173,9 @@ export default function HomePage() {
 
           <h1 className={styles.heroTitle}>{hero.title}</h1>
           <p className={styles.heroSub}>
-            {hero.subtitle}
+            {t.hero.subtitle}
             <br />
-            {hero.description}
+            {t.hero.description}
             <br />
             <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: '13px', opacity: 0.8, marginTop: '8px', display: 'inline-block' }}>
               {hero.japanese}
@@ -183,11 +189,11 @@ export default function HomePage() {
         <div className={styles.aboutGrid}>
           {aboutItems.map((item, i) => (
             <div
-              key={item.label}
+              key={item.key}
               className={`${styles.aboutCard} ${visible ? styles.aboutCardVisible : ''}`}
               style={{ '--delay': `${i * 80 + 200}ms`, '--accent': item.color } as React.CSSProperties}
             >
-              <div className={styles.aboutIcon}>{aboutIcons[item.label]}</div>
+              <div className={styles.aboutIcon}>{aboutIcons[item.key]}</div>
               <div className={styles.aboutLabel}>{item.label}</div>
               <div className={styles.aboutValue}>{item.value}</div>
             </div>
@@ -197,8 +203,8 @@ export default function HomePage() {
 
       {/* ── comment wall header ──────────────────────────────── */}
       <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>{commentWall.sectionTitle}</h2>
-        <span className={styles.sectionBadge}>{comments.length} {commentWall.messagesLabel}</span>
+        <h2 className={styles.sectionTitle}>{t.commentWall.sectionTitle}</h2>
+        <span className={styles.sectionBadge}>{comments.length} {t.commentWall.messagesLabel}</span>
       </div>
 
       {/* ── comment wall ─────────────────────────────────────── */}
@@ -209,7 +215,7 @@ export default function HomePage() {
             <input
               className={styles.input}
               type="text"
-              placeholder={commentWall.namePlaceholder}
+              placeholder={t.commentWall.namePlaceholder}
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               maxLength={50}
@@ -217,7 +223,7 @@ export default function HomePage() {
           </div>
           <textarea
             className={styles.textarea}
-            placeholder={commentWall.messagePlaceholder}
+            placeholder={t.commentWall.messagePlaceholder}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             maxLength={500}
@@ -235,7 +241,7 @@ export default function HomePage() {
                 <path d="M22 2L11 13" />
                 <path d="M22 2l-7 20-4-9-9-4z" />
               </svg>
-              {submitting ? commentWall.sendingButton : commentWall.sendButton}
+              {submitting ? t.commentWall.sendingButton : t.commentWall.sendButton}
             </button>
           </div>
         </div>
@@ -246,7 +252,7 @@ export default function HomePage() {
             <svg className={styles.emptyIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
             </svg>
-            <p className={styles.emptyText}>{commentWall.emptyMessage}</p>
+            <p className={styles.emptyText}>{t.commentWall.emptyMessage}</p>
           </div>
         ) : (
           <div className={styles.commentList}>
@@ -282,7 +288,7 @@ export default function HomePage() {
 
       {/* ── profiles banner ──────────────────────────────────── */}
       <section className={styles.profileBanner}>
-        <a href={profileBanner.href} className={styles.profileBannerCard}>
+        <a href="/profiles" className={styles.profileBannerCard}>
           <div className={styles.profileBannerInfo}>
             <div className={styles.profileBannerIcon}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -292,8 +298,8 @@ export default function HomePage() {
               </svg>
             </div>
             <div>
-              <div className={styles.profileBannerTitle}>{profileBanner.title}</div>
-              <div className={styles.profileBannerSub}>{profileBanner.subtitle}</div>
+              <div className={styles.profileBannerTitle}>{t.profileBanner.title}</div>
+              <div className={styles.profileBannerSub}>{t.profileBanner.subtitle}</div>
             </div>
           </div>
           <svg className={styles.profileBannerArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
