@@ -1,8 +1,8 @@
-# azuret.me - Personal Portfolio
+# azuret.me - Philosophy Gallery
 
-A modern personal portfolio website built with Next.js 15 and React 19, featuring interactive 3D visualizations, a community comment wall, and profile system backed by SQLite.
+A personal philosophy gallery built with Next.js 15 and React 19, featuring interactive 3D visualizations, a community comment wall, and profile system backed by SQLite.
 
-Next.js 15とReact 19で構築されたモダンなポートフォリオサイト。インタラクティブな3Dビジュアライゼーション、コミュニティコメントウォール、SQLiteによるプロフィールシステムを特徴としています。
+思想発表会として構築されたパーソナルサイト。Next.js 15とReact 19を使用し、インタラクティブな3Dビジュアライゼーション、コミュニティコメントウォール、SQLiteによるプロフィールシステムを特徴としています。
 
 ## Features / 特徴
 - Community comment wall with likes / いいね機能付きコミュニティコメントウォール
