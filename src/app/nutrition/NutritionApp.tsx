@@ -5,6 +5,9 @@ interface Food {
   cal: number; protein: number; fat: number; carb: number;
   fiber: number; na: number; dairy?: boolean;
 }
+interface HamaSushiItem extends Food {
+  category: "nigiri" | "gunkan" | "side";
+}
 interface Exercise {
   id: number; name: string; met: number; unit: string; icon: string;
 }
@@ -92,6 +95,46 @@ const EXERCISE_DB: Exercise[] = [
   { id: 15, name: "ダンス", met: 5.5, unit: "分", icon: "💃" },
 ];
 
+const HAMA_SUSHI_DB: HamaSushiItem[] = [
+  // ── にぎり ──
+  { id: 501, name: "まぐろ", qty: "2貫", cal: 88, protein: 7.8, fat: 0.4, carb: 12.8, fiber: 0, na: 180, category: "nigiri" },
+  { id: 502, name: "サーモン", qty: "2貫", cal: 110, protein: 6.8, fat: 4.2, carb: 12.8, fiber: 0, na: 170, category: "nigiri" },
+  { id: 503, name: "えび", qty: "2貫", cal: 73, protein: 5.8, fat: 0.2, carb: 12.4, fiber: 0, na: 200, category: "nigiri" },
+  { id: 504, name: "はまち", qty: "2貫", cal: 96, protein: 6.4, fat: 2.8, carb: 12.6, fiber: 0, na: 160, category: "nigiri" },
+  { id: 505, name: "えんがわ", qty: "2貫", cal: 102, protein: 4.2, fat: 4.6, carb: 12.6, fiber: 0, na: 160, category: "nigiri" },
+  { id: 506, name: "たまご", qty: "2貫", cal: 104, protein: 4.0, fat: 2.4, carb: 16.8, fiber: 0, na: 220, category: "nigiri" },
+  { id: 507, name: "真いか", qty: "2貫", cal: 71, protein: 5.6, fat: 0.2, carb: 12.4, fiber: 0, na: 140, category: "nigiri" },
+  { id: 508, name: "とろびんちょう", qty: "2貫", cal: 80, protein: 6.2, fat: 1.0, carb: 12.6, fiber: 0, na: 160, category: "nigiri" },
+  { id: 509, name: "大とろサーモン", qty: "2貫", cal: 122, protein: 6.2, fat: 5.8, carb: 12.6, fiber: 0, na: 170, category: "nigiri" },
+  { id: 510, name: "甘えび", qty: "2貫", cal: 72, protein: 5.4, fat: 0.4, carb: 12.4, fiber: 0, na: 180, category: "nigiri" },
+  { id: 511, name: "漬けまぐろ", qty: "2貫", cal: 95, protein: 8.0, fat: 0.5, carb: 13.6, fiber: 0, na: 320, category: "nigiri" },
+  { id: 512, name: "炙りサーモン", qty: "2貫", cal: 118, protein: 6.6, fat: 5.0, carb: 13.0, fiber: 0, na: 190, category: "nigiri" },
+  { id: 513, name: "つぶ貝", qty: "2貫", cal: 68, protein: 5.4, fat: 0.2, carb: 12.2, fiber: 0, na: 160, category: "nigiri" },
+  { id: 514, name: "生えび", qty: "2貫", cal: 72, protein: 5.6, fat: 0.3, carb: 12.4, fiber: 0, na: 170, category: "nigiri" },
+  // ── 軍艦・巻物 ──
+  { id: 551, name: "ネギトロ軍艦", qty: "2貫", cal: 100, protein: 4.0, fat: 2.8, carb: 14.0, fiber: 0.2, na: 200, category: "gunkan" },
+  { id: 552, name: "ツナサラダ軍艦", qty: "2貫", cal: 120, protein: 4.2, fat: 5.0, carb: 14.2, fiber: 0.1, na: 240, category: "gunkan" },
+  { id: 553, name: "コーン軍艦", qty: "2貫", cal: 108, protein: 2.6, fat: 3.0, carb: 17.0, fiber: 0.6, na: 210, category: "gunkan" },
+  { id: 554, name: "納豆軍艦", qty: "2貫", cal: 95, protein: 5.0, fat: 1.8, carb: 14.8, fiber: 1.2, na: 200, category: "gunkan" },
+  { id: 555, name: "いくら軍艦", qty: "2貫", cal: 96, protein: 6.0, fat: 2.4, carb: 12.8, fiber: 0, na: 280, category: "gunkan" },
+  { id: 556, name: "かっぱ巻き", qty: "3切", cal: 82, protein: 1.8, fat: 0.2, carb: 17.8, fiber: 0.6, na: 180, category: "gunkan" },
+  { id: 557, name: "鉄火巻き", qty: "3切", cal: 98, protein: 5.8, fat: 0.3, carb: 17.6, fiber: 0.2, na: 220, category: "gunkan" },
+  // ── サイドメニュー ──
+  { id: 601, name: "鶏唐揚げ", qty: "1人前", cal: 280, protein: 16.0, fat: 18.0, carb: 14.0, fiber: 0.2, na: 500, category: "side" },
+  { id: 602, name: "あさりの味噌汁", qty: "1杯", cal: 42, protein: 3.2, fat: 1.0, carb: 4.2, fiber: 0.4, na: 680, category: "side" },
+  { id: 603, name: "茶碗蒸し", qty: "1個", cal: 98, protein: 7.4, fat: 4.2, carb: 6.8, fiber: 0.1, na: 420, category: "side" },
+  { id: 604, name: "枝豆", qty: "1皿", cal: 70, protein: 6.0, fat: 3.2, carb: 4.6, fiber: 2.4, na: 200, category: "side" },
+  { id: 605, name: "フライドポテト", qty: "1人前", cal: 260, protein: 3.0, fat: 13.0, carb: 33.0, fiber: 2.4, na: 320, category: "side" },
+  { id: 606, name: "たこ焼き", qty: "1人前(6個)", cal: 230, protein: 6.4, fat: 10.0, carb: 28.0, fiber: 0.6, na: 580, category: "side" },
+];
+
+const HAMA_CATEGORIES: { id: HamaSushiItem["category"] | "all"; label: string; icon: string }[] = [
+  { id: "all", label: "すべて", icon: "📋" },
+  { id: "nigiri", label: "にぎり", icon: "🍣" },
+  { id: "gunkan", label: "軍艦・巻物", icon: "🍙" },
+  { id: "side", label: "サイド", icon: "🍟" },
+];
+
 const MEAL_SLOTS = ["朝食", "昼食", "夕食", "間食"];
 const DEFAULT_GOALS: Record<string, number> = { cal: 2000, protein: 80, fat: 55, carb: 250, fiber: 21, na: 2500 };
 
@@ -157,6 +200,9 @@ export default function NutritionApp() {
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const [hamaCategory, setHamaCategory] = useState<HamaSushiItem["category"] | "all">("all");
+  const [hamaQuery, setHamaQuery] = useState("");
+  const [hoverHama, setHoverHama] = useState<number | null>(null);
 
   useEffect(() => {
     try {
@@ -187,6 +233,11 @@ export default function NutritionApp() {
   const filteredDrinks = drinkQuery.trim()
     ? DRINK_DB.filter(d => d.name.includes(drinkQuery))
     : DRINK_DB;
+  const filteredHama = HAMA_SUSHI_DB.filter(h => {
+    const matchCat = hamaCategory === "all" || h.category === hamaCategory;
+    const matchQ = !hamaQuery.trim() || h.name.includes(hamaQuery);
+    return matchCat && matchQ;
+  });
 
   const addFood = (food: Food) => {
     setLogs(p => ({ ...p, [meal]: [...p[meal], { ...food, uid: Date.now() + Math.random() }] }));
@@ -533,6 +584,145 @@ export default function NutritionApp() {
                 color: "#DC2626", fontSize: 13, fontWeight: 700, cursor: "pointer",
                 fontFamily: "inherit", letterSpacing: 0.5,
               }}>🗑 本日の記録をリセット</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── HAMA SUSHI TAB ── */}
+      {tab === "hamasushi" && (
+        <div style={{ animation: "fadeIn 0.25s ease" }}>
+          {/* Current meal indicator */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 16px 0" }}>
+            <span style={{ fontSize: 11, color: "#9CA3AF" }}>追加先：</span>
+            {MEAL_SLOTS.map(m => (
+              <button key={m} onClick={() => setMeal(m)} style={{
+                padding: "4px 12px", borderRadius: 16,
+                border: `1px solid ${meal === m ? "#111827" : "#E5E7EB"}`,
+                background: meal === m ? "#111827" : "#FFFFFF",
+                color: meal === m ? "#FFFFFF" : "#6B7280",
+                fontSize: 11, fontWeight: meal === m ? 700 : 400,
+                cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+                transition: "all 0.15s",
+              }}>{m}</button>
+            ))}
+          </div>
+
+          {/* Category filter chips */}
+          <div style={{ display: "flex", gap: 6, padding: "10px 16px", overflowX: "auto", scrollbarWidth: "none" }}>
+            {HAMA_CATEGORIES.map(c => (
+              <button key={c.id} onClick={() => setHamaCategory(c.id)} style={{
+                padding: "6px 14px", borderRadius: 20,
+                border: `1px solid ${hamaCategory === c.id ? "#EA580C" : "#E5E7EB"}`,
+                background: hamaCategory === c.id ? "#EA580C" : "#FFFFFF",
+                color: hamaCategory === c.id ? "#FFFFFF" : "#6B7280",
+                fontSize: 12, fontWeight: hamaCategory === c.id ? 700 : 400,
+                cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+                transition: "all 0.15s",
+              }}>{c.icon} {c.label}</button>
+            ))}
+          </div>
+
+          {/* Hama sushi menu list */}
+          <div style={panel}>
+            <div style={panelHdr}>
+              <span style={{ ...panelTitle, display: "flex", alignItems: "center", gap: 6 }}>🍣 はま寿司メニュー</span>
+              <span style={{ fontSize: 11, color: "#9CA3AF" }}>{filteredHama.length}品目</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderBottom: "1px solid #E5E7EB", background: "#FDFDFD" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                value={hamaQuery}
+                onChange={e => setHamaQuery(e.target.value)}
+                placeholder="寿司ネタを検索..."
+                style={{ flex: 1, border: "none", outline: "none", fontSize: 14, color: "#111827", background: "transparent", fontFamily: "inherit" }}
+              />
+              {hamaQuery && (
+                <button onClick={() => setHamaQuery("")} style={{ border: "none", background: "none", cursor: "pointer", color: "#9CA3AF", padding: 0, lineHeight: 1, fontSize: 16 }}>×</button>
+              )}
+            </div>
+            <div style={{ maxHeight: 460, overflowY: "auto" }}>
+              {filteredHama.length === 0 && (
+                <div style={{ padding: "24px 0", textAlign: "center", color: "#9CA3AF", fontSize: 13 }}>該当するメニューが見つかりません</div>
+              )}
+              {filteredHama.map(h => (
+                <div key={h.id}
+                  style={{ display: "flex", alignItems: "center", padding: "10px 16px", gap: 10, cursor: "pointer", background: hoverHama === h.id ? "#FFF7ED" : "transparent", transition: "background 0.1s", borderBottom: "1px solid #F3F4F6" }}
+                  onMouseEnter={() => setHoverHama(h.id)}
+                  onMouseLeave={() => setHoverHama(null)}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{h.name}</span>
+                      <span style={{ fontSize: 10, color: "#9CA3AF" }}>{h.qty}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap", alignItems: "center" }}>
+                      {[
+                        { label: `P ${h.protein}g`, col: "#2563EB" },
+                        { label: `F ${h.fat}g`, col: "#D97706" },
+                        { label: `C ${h.carb}g`, col: "#059669" },
+                      ].map(({ label, col }) => (
+                        <span key={label} style={{ display: "inline-block", padding: "1px 7px", borderRadius: 4, background: `${col}18`, color: col, fontSize: 10, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+                          {label}
+                        </span>
+                      ))}
+                      <span style={{
+                        display: "inline-block", padding: "1px 7px", borderRadius: 4,
+                        background: h.category === "nigiri" ? "#EA580C18" : h.category === "gunkan" ? "#7C3AED18" : "#0369A118",
+                        color: h.category === "nigiri" ? "#EA580C" : h.category === "gunkan" ? "#7C3AED" : "#0369A1",
+                        fontSize: 9, fontWeight: 700, letterSpacing: 0.3,
+                      }}>
+                        {h.category === "nigiri" ? "🍣 にぎり" : h.category === "gunkan" ? "🍙 軍艦" : "🍟 サイド"}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: "#111827", fontVariantNumeric: "tabular-nums" }}>{h.cal}</div>
+                      <div style={{ fontSize: 9, color: "#9CA3AF", letterSpacing: 0.5 }}>kcal</div>
+                    </div>
+                    <button onClick={() => addFood(h)} style={{
+                      width: 28, height: 28, borderRadius: 6, background: "#EA580C", border: "none",
+                      color: "#FFFFFF", fontSize: 20, fontWeight: 300, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1, flexShrink: 0,
+                    }}>+</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Show what's been added this session via hama sushi */}
+          {logs[meal].length > 0 && (
+            <div style={panel}>
+              <div style={panelHdr}>
+                <span style={panelTitle}>{meal}の記録</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#374151", fontVariantNumeric: "tabular-nums" }}>
+                  {Math.round(sum(logs[meal], "cal"))} kcal
+                </span>
+              </div>
+              {logs[meal].map(f => (
+                <div key={f.uid}
+                  style={{ display: "flex", alignItems: "center", padding: "10px 16px", gap: 10, borderBottom: "1px solid #F3F4F6" }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: "#111827" }}>{f.name}</span>
+                    <div style={{ fontSize: 10, color: "#9CA3AF" }}>{f.qty}</div>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#374151", fontVariantNumeric: "tabular-nums", minWidth: 56, textAlign: "right" }}>
+                    {f.cal} kcal
+                  </div>
+                  <button onClick={() => removeFood(meal, f.uid)} style={{
+                    width: 24, height: 24, borderRadius: 4,
+                    background: "transparent", border: "1px solid #FCA5A5",
+                    color: "#DC2626", fontSize: 13, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0, marginLeft: 6,
+                  }}>×</button>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -995,15 +1185,24 @@ export default function NutritionApp() {
         {[
           {
             id: "record", label: "記録", icon: (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5" />
                 <path d="M16 3l5 5-9 9H7v-5L16 3z" />
               </svg>
             )
           },
           {
+            id: "hamasushi", label: "はま寿司", icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <ellipse cx="12" cy="14" rx="10" ry="5" />
+                <path d="M6 9c0-3 2.7-6 6-6s6 3 6 6" />
+                <path d="M2 14c0 2.8 4.5 5 10 5s10-2.2 10-5" />
+              </svg>
+            )
+          },
+          {
             id: "summary", label: "集計", icon: (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
                 <path d="M3 9h18M9 21V9" />
               </svg>
@@ -1011,7 +1210,7 @@ export default function NutritionApp() {
           },
           {
             id: "goals", label: "目標", icon: (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="12" cy="12" r="10" />
                 <circle cx="12" cy="12" r="6" />
                 <circle cx="12" cy="12" r="2" />
@@ -1020,14 +1219,14 @@ export default function NutritionApp() {
           },
           {
             id: "exercise", label: "運動", icon: (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M18 3a3 3 0 0 0-3 3l-7 3a3 3 0 0 0-1 0L4 8a1 1 0 0 0 0 2l3 1a3 3 0 0 0 1 0l7 3a3 3 0 1 0 .75-1.911l-7-3a3 3 0 0 0 0-.178l7-3A3 3 0 0 0 18 3z" />
               </svg>
             )
           },
           {
             id: "history", label: "履歴", icon: (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
               </svg>
@@ -1036,13 +1235,14 @@ export default function NutritionApp() {
         ].map(({ id, label, icon }) => (
           <button key={id} onClick={() => setTab(id)} style={{
             display: "flex", flexDirection: "column", alignItems: "center",
-            gap: 2, border: "none", background: "none", cursor: "pointer",
-            color: tab === id ? "#111827" : "#9CA3AF", padding: "4px 12px",
-            transition: "color 0.15s",
+            gap: 1, border: "none", background: "none", cursor: "pointer",
+            color: tab === id ? (id === "hamasushi" ? "#EA580C" : "#111827") : "#9CA3AF",
+            padding: "4px 6px",
+            transition: "color 0.15s", minWidth: 0,
           }}>
             {icon}
-            <span style={{ fontSize: 10, fontWeight: tab === id ? 700 : 400 }}>{label}</span>
-            {tab === id && <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#111827" }} />}
+            <span style={{ fontSize: 9, fontWeight: tab === id ? 700 : 400, whiteSpace: "nowrap" }}>{label}</span>
+            {tab === id && <div style={{ width: 4, height: 4, borderRadius: "50%", background: id === "hamasushi" ? "#EA580C" : "#111827" }} />}
           </button>
         ))}
       </div>
