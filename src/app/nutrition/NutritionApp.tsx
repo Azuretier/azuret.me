@@ -1,4 +1,4 @@
-import { useState, useRef, CSSProperties } from "react";
+import { useState, useRef, useEffect, CSSProperties } from "react";
 
 interface Food {
   id: number; name: string; qty: string;
@@ -11,6 +11,17 @@ interface Exercise {
 interface FoodLog extends Food { uid: number }
 interface ExerciseLog extends Exercise { minutes: number; burned: number; uid: number }
 interface Logs { [key: string]: FoodLog[] }
+interface Drink {
+  id: number; name: string; qty: string; ml: number;
+  cal: number; sugar: number; caffeine: number;
+}
+interface DrinkLog extends Drink { uid: number }
+interface DrinkTotals { ml: number; cal: number; sugar: number; caffeine: number }
+interface NutritionTotals { cal: number; protein: number; fat: number; carb: number; fiber: number; na: number }
+interface HistoryEntry {
+  date: string; logs: Logs; exercises: ExerciseLog[]; drinks: DrinkLog[];
+  totals: NutritionTotals; drinkTotals: DrinkTotals; burnedCal: number;
+}
 
 const FOOD_DB: Food[] = [
   { id: 1, name: "白米", qty: "茶碗1杯(150g)", cal: 252, protein: 3.8, fat: 0.5, carb: 55.7, fiber: 0.5, na: 1 },
@@ -45,6 +56,23 @@ const FOOD_DB: Food[] = [
   { id: 30, name: "おでん", qty: "1人前(約400g)", cal: 230, protein: 18.0, fat: 5.5, carb: 28.0, fiber: 3.5, na: 1200 },
 ];
 
+const DRINK_DB: Drink[] = [
+  { id: 1, name: "水", qty: "コップ1杯(200ml)", ml: 200, cal: 0, sugar: 0, caffeine: 0 },
+  { id: 2, name: "緑茶", qty: "1杯(200ml)", ml: 200, cal: 4, sugar: 0, caffeine: 40 },
+  { id: 3, name: "コーヒー（ブラック）", qty: "1杯(200ml)", ml: 200, cal: 8, sugar: 0, caffeine: 120 },
+  { id: 4, name: "コーヒー（ミルク入り）", qty: "1杯(200ml)", ml: 200, cal: 30, sugar: 3, caffeine: 120 },
+  { id: 5, name: "紅茶", qty: "1杯(200ml)", ml: 200, cal: 2, sugar: 0, caffeine: 50 },
+  { id: 6, name: "オレンジジュース", qty: "1杯(200ml)", ml: 200, cal: 84, sugar: 20, caffeine: 0 },
+  { id: 7, name: "コーラ", qty: "1缶(350ml)", ml: 350, cal: 157, sugar: 39, caffeine: 35 },
+  { id: 8, name: "エナジードリンク", qty: "1缶(250ml)", ml: 250, cal: 115, sugar: 27, caffeine: 80 },
+  { id: 9, name: "豆乳", qty: "1杯(200ml)", ml: 200, cal: 92, sugar: 5.6, caffeine: 0 },
+  { id: 10, name: "スポーツドリンク", qty: "1本(500ml)", ml: 500, cal: 105, sugar: 25, caffeine: 0 },
+  { id: 11, name: "炭酸水", qty: "1杯(200ml)", ml: 200, cal: 0, sugar: 0, caffeine: 0 },
+  { id: 12, name: "ココア", qty: "1杯(200ml)", ml: 200, cal: 130, sugar: 15, caffeine: 12 },
+  { id: 13, name: "味噌汁", qty: "1杯(180ml)", ml: 180, cal: 29, sugar: 2, caffeine: 0 },
+  { id: 14, name: "ほうじ茶", qty: "1杯(200ml)", ml: 200, cal: 0, sugar: 0, caffeine: 30 },
+  { id: 15, name: "麦茶", qty: "1杯(200ml)", ml: 200, cal: 2, sugar: 0, caffeine: 0 },
+];
 
 const EXERCISE_DB: Exercise[] = [
   { id: 1, name: "ウォーキング", met: 3.5, unit: "分", icon: "🚶" },
@@ -121,7 +149,21 @@ export default function NutritionApp() {
   const [hoverEx, setHoverEx] = useState<number | null>(null);
   const [hoverExLog, setHoverExLog] = useState<number | null>(null);
   const [exMinutes, setExMinutes] = useState<Record<number, number>>({});
+  const [drinks, setDrinks] = useState<DrinkLog[]>([]);
+  const [drinkQuery, setDrinkQuery] = useState("");
+  const [hoverDrink, setHoverDrink] = useState<number | null>(null);
+  const [hoverDrinkLog, setHoverDrinkLog] = useState<number | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [expandedDate, setExpandedDate] = useState<string | null>(null);
+  const [toast, setToast] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("nutrition-history");
+      if (saved) setHistory(JSON.parse(saved));
+    } catch { /* ignore */ }
+  }, []);
 
   const allItems = Object.values(logs).flat();
   const totals = {
@@ -132,10 +174,19 @@ export default function NutritionApp() {
     fiber: sum(allItems, "fiber"),
     na: sum(allItems, "na"),
   };
+  const drinkTotals: DrinkTotals = {
+    ml: drinks.reduce((a, d) => a + d.ml, 0),
+    cal: drinks.reduce((a, d) => a + d.cal, 0),
+    sugar: drinks.reduce((a, d) => a + d.sugar, 0),
+    caffeine: drinks.reduce((a, d) => a + d.caffeine, 0),
+  };
 
   const filtered = query.trim()
     ? FOOD_DB.filter(f => f.name.includes(query) || f.qty.includes(query))
     : FOOD_DB;
+  const filteredDrinks = drinkQuery.trim()
+    ? DRINK_DB.filter(d => d.name.includes(drinkQuery))
+    : DRINK_DB;
 
   const addFood = (food: Food) => {
     setLogs(p => ({ ...p, [meal]: [...p[meal], { ...food, uid: Date.now() + Math.random() }] }));
@@ -144,8 +195,42 @@ export default function NutritionApp() {
   };
   const removeFood = (slot: string, uid: number) =>
     setLogs(p => ({ ...p, [slot]: p[slot].filter(f => f.uid !== uid) }));
+  const addDrink = (d: Drink) => {
+    setDrinks(p => [...p, { ...d, uid: Date.now() + Math.random() }]);
+    setDrinkQuery("");
+  };
+  const removeDrink = (uid: number) => setDrinks(p => p.filter(d => d.uid !== uid));
 
   const burnedCal = exercises.reduce((a: number, e: ExerciseLog) => a + e.burned, 0);
+
+  const saveToHistory = () => {
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const entry: HistoryEntry = {
+      date: dateStr, logs: { ...logs }, exercises: [...exercises],
+      drinks: [...drinks], totals: { ...totals }, drinkTotals: { ...drinkTotals }, burnedCal,
+    };
+    const newHistory = [entry, ...history.filter(h => h.date !== dateStr)];
+    setHistory(newHistory);
+    try { localStorage.setItem("nutrition-history", JSON.stringify(newHistory)); } catch { /* ignore */ }
+    setToast("✅ 保存しました");
+    setTimeout(() => setToast(""), 2500);
+  };
+
+  const resetAll = () => {
+    if (confirm("本日の記録をすべてリセットしますか？")) {
+      setLogs({ 朝食: [], 昼食: [], 夕食: [], 間食: [] });
+      setExercises([]);
+      setDrinks([]);
+    }
+  };
+
+  const deleteHistoryEntry = (date: string) => {
+    if (confirm(`${date} の記録を削除しますか？`)) {
+      const newHistory = history.filter(h => h.date !== date);
+      setHistory(newHistory);
+      try { localStorage.setItem("nutrition-history", JSON.stringify(newHistory)); } catch { /* ignore */ }
+    }
+  };
   const netCal = totals.cal - burnedCal;
   const remaining = goals.cal - netCal;
   const over = remaining < 0;
@@ -346,10 +431,108 @@ export default function NutritionApp() {
             </div>
           ))}
 
-          {allItems.length === 0 && (
+          {allItems.length === 0 && drinks.length === 0 && (
             <div style={{ textAlign: "center", padding: "48px 0 24px", color: "#9CA3AF", fontSize: 12 }}>
               <div style={{ fontSize: 10, letterSpacing: 2, marginBottom: 6 }}>NO RECORDS</div>
               上記の検索から食品を追加してください
+            </div>
+          )}
+
+          {/* Drink search */}
+          <div style={panel}>
+            <div style={panelHdr}>
+              <span style={panelTitle}>🥤 飲み物データベース</span>
+              <span style={{ fontSize: 11, color: "#9CA3AF" }}>{DRINK_DB.length}品目</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderBottom: "1px solid #E5E7EB", background: "#FDFDFD" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                value={drinkQuery}
+                onChange={e => setDrinkQuery(e.target.value)}
+                placeholder="飲み物を検索..."
+                style={{ flex: 1, border: "none", outline: "none", fontSize: 14, color: "#111827", background: "transparent", fontFamily: "inherit" }}
+              />
+              {drinkQuery && (
+                <button onClick={() => setDrinkQuery("")} style={{ border: "none", background: "none", cursor: "pointer", color: "#9CA3AF", padding: 0, lineHeight: 1, fontSize: 16 }}>×</button>
+              )}
+            </div>
+            <div style={{ maxHeight: 220, overflowY: "auto" }}>
+              {filteredDrinks.length === 0 && (
+                <div style={{ padding: "24px 0", textAlign: "center", color: "#9CA3AF", fontSize: 13 }}>該当する飲み物が見つかりません</div>
+              )}
+              {filteredDrinks.map(d => (
+                <div key={d.id}
+                  style={{ display: "flex", alignItems: "center", padding: "10px 16px", gap: 10, cursor: "pointer", background: hoverDrink === d.id ? "#F9FAFB" : "transparent", transition: "background 0.1s", borderBottom: "1px solid #F3F4F6" }}
+                  onMouseEnter={() => setHoverDrink(d.id)}
+                  onMouseLeave={() => setHoverDrink(null)}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{d.name}</span>
+                      <span style={{ fontSize: 10, color: "#9CA3AF" }}>{d.qty}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
+                      <span style={{ display: "inline-block", padding: "1px 7px", borderRadius: 4, background: "#2563EB18", color: "#2563EB", fontSize: 10, fontWeight: 700 }}>{d.ml}ml</span>
+                      {d.cal > 0 && <span style={{ display: "inline-block", padding: "1px 7px", borderRadius: 4, background: "#D9770618", color: "#D97706", fontSize: 10, fontWeight: 700 }}>{d.cal}kcal</span>}
+                      {d.caffeine > 0 && <span style={{ display: "inline-block", padding: "1px 7px", borderRadius: 4, background: "#7C3AED18", color: "#7C3AED", fontSize: 10, fontWeight: 700 }}>☕{d.caffeine}mg</span>}
+                      {d.sugar > 0 && <span style={{ display: "inline-block", padding: "1px 7px", borderRadius: 4, background: "#DC262618", color: "#DC2626", fontSize: 10, fontWeight: 700 }}>糖{d.sugar}g</span>}
+                    </div>
+                  </div>
+                  <button onClick={() => addDrink(d)} style={{
+                    width: 28, height: 28, borderRadius: 6, background: "#111827", border: "none",
+                    color: "#FFFFFF", fontSize: 20, fontWeight: 300, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1, flexShrink: 0,
+                  }}>+</button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Logged drinks */}
+          {drinks.length > 0 && (
+            <div style={panel}>
+              <div style={panelHdr}>
+                <span style={panelTitle}>飲み物記録</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#2563EB", fontVariantNumeric: "tabular-nums" }}>
+                  💧{drinkTotals.ml}ml
+                </span>
+              </div>
+              {drinks.map(d => (
+                <div key={d.uid}
+                  style={{ display: "flex", alignItems: "center", padding: "10px 16px", gap: 10, background: hoverDrinkLog === d.uid ? "#EFF6FF" : "transparent", transition: "background 0.1s", borderBottom: "1px solid #F3F4F6" }}
+                  onMouseEnter={() => setHoverDrinkLog(d.uid)}
+                  onMouseLeave={() => setHoverDrinkLog(null)}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: "#111827" }}>{d.name}</span>
+                    <div style={{ fontSize: 10, color: "#9CA3AF" }}>{d.qty}</div>
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#2563EB", fontVariantNumeric: "tabular-nums", minWidth: 50, textAlign: "right" }}>
+                    {d.ml}ml
+                  </div>
+                  <button onClick={() => removeDrink(d.uid)} style={{
+                    width: 24, height: 24, borderRadius: 4,
+                    background: "transparent", border: "1px solid #FCA5A5",
+                    color: "#DC2626", fontSize: 13, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0, marginLeft: 6,
+                  }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Reset button */}
+          {(allItems.length > 0 || drinks.length > 0 || exercises.length > 0) && (
+            <div style={{ padding: "12px 16px" }}>
+              <button onClick={resetAll} style={{
+                width: "100%", padding: "12px", borderRadius: 10,
+                border: "1px solid #FCA5A5", background: "#FEF2F2",
+                color: "#DC2626", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                fontFamily: "inherit", letterSpacing: 0.5,
+              }}>🗑 本日の記録をリセット</button>
             </div>
           )}
         </div>
@@ -460,6 +643,37 @@ export default function NutritionApp() {
                 </table>
               </div>
             )}
+          </div>
+
+          {/* Drink summary */}
+          {drinks.length > 0 && (
+            <div style={panel}>
+              <div style={panelHdr}><span style={panelTitle}>💧 飲み物サマリー</span></div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1, background: "#E5E7EB" }}>
+                {[
+                  { label: "水分量", val: `${drinkTotals.ml}`, unit: "ml", col: "#2563EB" },
+                  { label: "カフェイン", val: `${fmt(drinkTotals.caffeine)}`, unit: "mg", col: "#7C3AED" },
+                  { label: "糖分", val: `${fmt(drinkTotals.sugar)}`, unit: "g", col: "#DC2626" },
+                ].map(({ label, val, unit, col }) => (
+                  <div key={label} style={{ background: "#FFFFFF", padding: "10px 8px", textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: "#9CA3AF", letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>{label}</div>
+                    <div style={{ fontSize: 17, fontWeight: 800, color: col, fontVariantNumeric: "tabular-nums" }}>{val}</div>
+                    <div style={{ fontSize: 9, color: "#CBD5E1" }}>{unit}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Save button */}
+          <div style={{ padding: "12px 16px" }}>
+            <button onClick={saveToHistory} style={{
+              width: "100%", padding: "14px", borderRadius: 10,
+              border: "none", background: "#111827",
+              color: "#FFFFFF", fontSize: 14, fontWeight: 700, cursor: "pointer",
+              fontFamily: "inherit", letterSpacing: 0.5,
+              transition: "opacity 0.15s",
+            }}>📥 本日のデータを保存</button>
           </div>
         </div>
       )}
@@ -671,6 +885,105 @@ export default function NutritionApp() {
         </div>
       )}
 
+      {/* ── HISTORY TAB ── */}
+      {tab === "history" && (
+        <div style={{ animation: "fadeIn 0.25s ease" }}>
+          <div style={panel}>
+            <div style={panelHdr}>
+              <span style={panelTitle}>📋 保存済み記録</span>
+              <span style={{ fontSize: 11, color: "#9CA3AF" }}>{history.length}件</span>
+            </div>
+            {history.length === 0 ? (
+              <div style={{ padding: "40px 0", textAlign: "center", color: "#9CA3AF", fontSize: 12 }}>
+                <div style={{ fontSize: 10, letterSpacing: 2, marginBottom: 6 }}>NO HISTORY</div>
+                集計タブから記録を保存してください
+              </div>
+            ) : (
+              history.map(entry => {
+                const isExpanded = expandedDate === entry.date;
+                const netC = entry.totals.cal - entry.burnedCal;
+                return (
+                  <div key={entry.date} style={{ borderBottom: "1px solid #F3F4F6" }}>
+                    <div
+                      onClick={() => setExpandedDate(isExpanded ? null : entry.date)}
+                      style={{ display: "flex", alignItems: "center", padding: "12px 16px", gap: 10, cursor: "pointer", background: isExpanded ? "#F9FAFB" : "transparent", transition: "background 0.1s" }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>{entry.date}</div>
+                        <div style={{ display: "flex", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#374151", background: "#F3F4F6", padding: "1px 7px", borderRadius: 4 }}>{Math.round(entry.totals.cal)} kcal</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#2563EB", background: "#2563EB18", padding: "1px 7px", borderRadius: 4 }}>P{fmt(entry.totals.protein)}g</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#D97706", background: "#D9770618", padding: "1px 7px", borderRadius: 4 }}>F{fmt(entry.totals.fat)}g</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#059669", background: "#05966918", padding: "1px 7px", borderRadius: 4 }}>C{fmt(entry.totals.carb)}g</span>
+                          {entry.drinkTotals.ml > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: "#2563EB", background: "#EFF6FF", padding: "1px 7px", borderRadius: 4 }}>💧{entry.drinkTotals.ml}ml</span>}
+                        </div>
+                      </div>
+                      <span style={{ fontSize: 16, color: "#9CA3AF", flexShrink: 0, transition: "transform 0.2s", transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
+                    </div>
+                    {isExpanded && (
+                      <div style={{ padding: "0 16px 12px", background: "#FAFAFA" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1, background: "#E5E7EB", borderRadius: 6, overflow: "hidden", marginBottom: 10 }}>
+                          {[
+                            { label: "摂取", val: Math.round(entry.totals.cal), unit: "kcal" },
+                            { label: "消費", val: Math.round(entry.burnedCal), unit: "kcal" },
+                            { label: "純収支", val: Math.round(netC), unit: "kcal" },
+                          ].map(({ label, val, unit }) => (
+                            <div key={label} style={{ background: "#FFFFFF", padding: "8px", textAlign: "center" }}>
+                              <div style={{ fontSize: 9, color: "#9CA3AF", letterSpacing: 1 }}>{label}</div>
+                              <div style={{ fontSize: 14, fontWeight: 800, color: "#111827" }}>{val}</div>
+                              <div style={{ fontSize: 9, color: "#CBD5E1" }}>{unit}</div>
+                            </div>
+                          ))}
+                        </div>
+                        {MEAL_SLOTS.filter(s => entry.logs[s]?.length > 0).map(slot => (
+                          <div key={slot} style={{ marginBottom: 6 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: "#6B7280", letterSpacing: 1, marginBottom: 2, textTransform: "uppercase" }}>{slot}</div>
+                            {entry.logs[slot].map((f, i) => (
+                              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: 12, color: "#374151" }}>
+                                <span>{f.name}</span>
+                                <span style={{ fontVariantNumeric: "tabular-nums", color: "#6B7280" }}>{f.cal}kcal</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                        {entry.drinks.length > 0 && (
+                          <div style={{ marginBottom: 6 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: "#2563EB", letterSpacing: 1, marginBottom: 2 }}>💧 飲み物</div>
+                            {entry.drinks.map((d, i) => (
+                              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: 12, color: "#374151" }}>
+                                <span>{d.name}</span>
+                                <span style={{ fontVariantNumeric: "tabular-nums", color: "#6B7280" }}>{d.ml}ml</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {entry.exercises.length > 0 && (
+                          <div style={{ marginBottom: 6 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: "#059669", letterSpacing: 1, marginBottom: 2 }}>🏃 運動</div>
+                            {entry.exercises.map((e, i) => (
+                              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: 12, color: "#374151" }}>
+                                <span>{e.icon} {e.name} ({e.minutes}分)</span>
+                                <span style={{ fontVariantNumeric: "tabular-nums", color: "#059669" }}>−{e.burned}kcal</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <button onClick={() => deleteHistoryEntry(entry.date)} style={{
+                          width: "100%", padding: "8px", borderRadius: 6,
+                          border: "1px solid #FCA5A5", background: "#FEF2F2",
+                          color: "#DC2626", fontSize: 11, fontWeight: 700, cursor: "pointer",
+                          fontFamily: "inherit", marginTop: 6,
+                        }}>🗑 この記録を削除</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Bottom Nav */}
       <div style={{
         position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
@@ -712,11 +1025,19 @@ export default function NutritionApp() {
               </svg>
             )
           },
+          {
+            id: "history", label: "履歴", icon: (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            )
+          },
         ].map(({ id, label, icon }) => (
           <button key={id} onClick={() => setTab(id)} style={{
             display: "flex", flexDirection: "column", alignItems: "center",
             gap: 2, border: "none", background: "none", cursor: "pointer",
-            color: tab === id ? "#111827" : "#9CA3AF", padding: "4px 20px",
+            color: tab === id ? "#111827" : "#9CA3AF", padding: "4px 12px",
             transition: "color 0.15s",
           }}>
             {icon}
@@ -725,6 +1046,16 @@ export default function NutritionApp() {
           </button>
         ))}
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div style={{
+          position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
+          background: "#111827", color: "#FFFFFF", padding: "10px 24px",
+          borderRadius: 10, fontSize: 13, fontWeight: 600, zIndex: 50,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.15)", animation: "fadeIn 0.25s ease",
+        }}>{toast}</div>
+      )}
 
       <style>{`
         @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
