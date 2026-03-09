@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://azuret.me
+
+# Sitemaps
+Sitemap: https://azuret.me/sitemap.xml
