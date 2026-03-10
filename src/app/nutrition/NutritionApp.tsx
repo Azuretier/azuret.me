@@ -1,30 +1,11 @@
-import { useState, useRef, useEffect, CSSProperties } from "react";
-
-interface Food {
-  id: number; name: string; qty: string;
-  cal: number; protein: number; fat: number; carb: number;
-  fiber: number; na: number; dairy?: boolean;
-}
-interface HamaSushiItem extends Food {
-  category: "nigiri" | "gunkan" | "side";
-}
-interface Exercise {
-  id: number; name: string; met: number; unit: string; icon: string;
-}
-interface FoodLog extends Food { uid: number }
-interface ExerciseLog extends Exercise { minutes: number; burned: number; uid: number }
-interface Logs { [key: string]: FoodLog[] }
-interface Drink {
-  id: number; name: string; qty: string; ml: number;
-  cal: number; sugar: number; caffeine: number;
-}
-interface DrinkLog extends Drink { uid: number }
-interface DrinkTotals { ml: number; cal: number; sugar: number; caffeine: number }
-interface NutritionTotals { cal: number; protein: number; fat: number; carb: number; fiber: number; na: number }
-interface HistoryEntry {
-  date: string; logs: Logs; exercises: ExerciseLog[]; drinks: DrinkLog[];
-  totals: NutritionTotals; drinkTotals: DrinkTotals; burnedCal: number;
-}
+import { useState, useRef, useEffect, useCallback, CSSProperties } from "react";
+import {
+  type Food, type FoodLog, type Logs,
+  type Exercise, type ExerciseLog,
+  type Drink, type DrinkLog, type DrinkTotals,
+  type HistoryEntry, type HamaSushiItem,
+  storage,
+} from "./storage";
 
 const FOOD_DB: Food[] = [
   { id: 1, name: "白米", qty: "茶碗1杯(150g)", cal: 252, protein: 3.8, fat: 0.5, carb: 55.7, fiber: 0.5, na: 1 },
@@ -172,44 +153,59 @@ export default function NutritionApp() {
   const [tab, setTab] = useState("record");
   const [meal, setMeal] = useState("朝食");
   const [query, setQuery] = useState("");
-  const [logs, setLogs] = useState<Logs>({
-    朝食: [
-      { id: 25, name: "納豆卵かけごはん（ネギ入り）", qty: "1杯(約270g)", cal: 391, protein: 17.8, fat: 9.8, carb: 55.2, fiber: 3.1, na: 290, uid: 1 },
-      { id: 26, name: "コーンフレーク", qty: "1杯(40g)", cal: 152, protein: 2.8, fat: 0.4, carb: 34.6, fiber: 0.9, na: 260, uid: 2 },
-      { id: 27, name: "カカオニブ", qty: "大さじ1(10g)", cal: 57, protein: 1.4, fat: 4.0, carb: 4.0, fiber: 2.7, na: 1, uid: 3 },
-      { id: 28, name: "プロテイン（アイソレート）", qty: "1杯(30g)", cal: 110, protein: 25.0, fat: 0.5, carb: 1.5, fiber: 0, na: 60, dairy: true, uid: 4 },
-    ],
-    昼食: [], 夕食: [], 間食: [],
-  });
+  const EMPTY_LOGS: Logs = { 朝食: [], 昼食: [], 夕食: [], 間食: [] };
+
+  // ── Persistent state ──
+  const [logs, setLogs] = useState<Logs>(EMPTY_LOGS);
   const [goals, setGoals] = useState<Record<string, number>>(DEFAULT_GOALS);
+  const [exercises, setExercises] = useState<ExerciseLog[]>([]);
+  const [drinks, setDrinks] = useState<DrinkLog[]>([]);
+  const [bodyWeight, setBodyWeight] = useState(65);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  // ── Ephemeral UI state ──
   const [editGoals, setEditGoals] = useState(false);
   const [tmpGoals, setTmpGoals] = useState<Record<string, number>>(DEFAULT_GOALS);
   const [hoverFood, setHoverFood] = useState<number | null>(null);
   const [hoverLog, setHoverLog] = useState<number | null>(null);
-  const [exercises, setExercises] = useState<ExerciseLog[]>([]);
   const [exQuery, setExQuery] = useState("");
-  const [bodyWeight, setBodyWeight] = useState(65);
   const [hoverEx, setHoverEx] = useState<number | null>(null);
   const [hoverExLog, setHoverExLog] = useState<number | null>(null);
   const [exMinutes, setExMinutes] = useState<Record<number, number>>({});
-  const [drinks, setDrinks] = useState<DrinkLog[]>([]);
   const [drinkQuery, setDrinkQuery] = useState("");
   const [hoverDrink, setHoverDrink] = useState<number | null>(null);
   const [hoverDrinkLog, setHoverDrinkLog] = useState<number | null>(null);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [hamaCategory, setHamaCategory] = useState<HamaSushiItem["category"] | "all">("all");
   const [hamaQuery, setHamaQuery] = useState("");
   const [hoverHama, setHoverHama] = useState<number | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // ── Load persisted data on mount ──
+  useEffect(() => {
+    const session = storage.loadSession();
+    if (session) {
+      setLogs(session.logs);
+      setExercises(session.exercises);
+      setDrinks(session.drinks);
+      setGoals(session.goals);
+      setBodyWeight(session.bodyWeight);
+    }
+    setHistory(storage.loadHistory());
+    setLoaded(true);
+  }, []);
+
+  // ── Auto-save session on every persistent state change ──
+  const saveSession = useCallback(() => {
+    if (!loaded) return;
+    storage.saveSession({ logs, exercises, drinks, goals, bodyWeight });
+  }, [logs, exercises, drinks, goals, bodyWeight, loaded]);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("nutrition-history");
-      if (saved) setHistory(JSON.parse(saved));
-    } catch { /* ignore */ }
-  }, []);
+    saveSession();
+  }, [saveSession]);
 
   const allItems = Object.values(logs).flat();
   const totals = {
@@ -262,7 +258,7 @@ export default function NutritionApp() {
     };
     const newHistory = [entry, ...history.filter(h => h.date !== dateStr)];
     setHistory(newHistory);
-    try { localStorage.setItem("nutrition-history", JSON.stringify(newHistory)); } catch { /* ignore */ }
+    storage.saveHistory(newHistory);
     setToast("✅ 保存しました");
     setTimeout(() => setToast(""), 2500);
   };
@@ -279,7 +275,7 @@ export default function NutritionApp() {
     if (confirm(`${date} の記録を削除しますか？`)) {
       const newHistory = history.filter(h => h.date !== date);
       setHistory(newHistory);
-      try { localStorage.setItem("nutrition-history", JSON.stringify(newHistory)); } catch { /* ignore */ }
+      storage.saveHistory(newHistory);
     }
   };
   const netCal = totals.cal - burnedCal;
