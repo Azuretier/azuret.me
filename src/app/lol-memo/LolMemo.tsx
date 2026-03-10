@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import './lol-memo.css'
 
 /* ── Constants ── */
-const MERAKI_URL = 'https://cdn.merakianalytics.com/riot/lol/resources/latest/en-US/champions.json'
+const MERAKI_URL = '/api/lol-champions'
 const HN = 16
 const SK = 'lol_notes_v3'
 const CK = 'lol_cats_v3'
@@ -287,19 +287,19 @@ export default function LolMemo() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [notes, cats, activeCat])
 
-    const curCatLabel = activeCat === 'all' ? 'ALL NOTES' : (cats.find(x => x.id === activeCat)?.name.toUpperCase() || '')
+
 
     /* ──────── RENDER ──────── */
     return (
         <div className="container">
-            <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet" />
+            <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet" />
 
             {/* HEADER */}
             <header className="header">
                 <div className="logo">
                     <div className="logoIcon">⚔</div>
                     <div>
-                        <div className="logoText">RIFT NOTES</div>
+                        <div className="logoText">Rift Notes</div>
                         <div className="logoSub">LEAGUE OF LEGENDS MEMO</div>
                     </div>
                 </div>
@@ -308,16 +308,16 @@ export default function LolMemo() {
 
             {/* NAV TABS */}
             <div className="navTabs">
-                <button className={`navTab ${tab === 'memo' ? 'navTabActive' : ''}`} onClick={() => setTab('memo')}>📝 MEMO</button>
-                <button className={`navTab ${tab === 'cd' ? 'navTabActive' : ''}`} onClick={() => setTab('cd')}>⏱ CHAMPION CD</button>
+                <button className={`navTab ${tab === 'memo' ? 'navTabActive' : ''}`} onClick={() => setTab('memo')}>📝 メモ</button>
+                <button className={`navTab ${tab === 'cd' ? 'navTabActive' : ''}`} onClick={() => setTab('cd')}>⏱ チャンプCD</button>
             </div>
 
             <div className="app">
-                {/* SIDEBAR */}
-                <aside className="sidebar">
+                {/* FILTER CHIPS (replaces sidebar) */}
+                <div className="sidebar">
                     {tab === 'memo' ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-                            <div className="catHeader">CATEGORIES <button className="btnAddCat" onClick={() => setShowAddCat(!showAddCat)}>+</button></div>
+                        <>
+                            <div className="catHeader">カテゴリ <button className="btnAddCat" onClick={() => setShowAddCat(!showAddCat)}>+</button></div>
                             {showAddCat && (
                                 <div className="addCatRow addCatRowShow">
                                     <input className="addCatInput" value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="カテゴリ名..." maxLength={20} onKeyDown={e => e.key === 'Enter' && addCat()} />
@@ -326,7 +326,7 @@ export default function LolMemo() {
                             )}
                             <div className="catList">
                                 <div className={`catItem ${activeCat === 'all' ? 'catItemActive' : ''}`} onClick={() => setActiveCat('all')}>
-                                    <span className="catDot" style={{ background: 'var(--gold)' }} /><span className="catName">すべてのメモ</span><span className="catCount">{notes.length}</span>
+                                    <span className="catName">すべて</span><span className="catCount">{notes.length}</span>
                                 </div>
                                 {cats.map(c => {
                                     const col = COLS[c.ci % COLS.length]
@@ -339,10 +339,10 @@ export default function LolMemo() {
                                     )
                                 })}
                             </div>
-                        </div>
+                        </>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-                            <div className="catHeader">FILTER BY ROLE</div>
+                        <>
+                            <div className="catHeader">ロールフィルター</div>
                             <div className="catList">
                                 {ROLES_SIDEBAR.map(r => (
                                     <div key={r.role} className={`catItem ${curRole === r.role ? 'catItemActive' : ''}`}
@@ -352,42 +352,40 @@ export default function LolMemo() {
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </>
                     )}
-                    <div className="sidebarFoot">THE RIFT AWAITS · SEASON 2025</div>
-                </aside>
+                </div>
 
                 {/* MEMO PANEL */}
                 <div className={`panel ${tab === 'memo' ? 'panelActive' : ''}`}>
                     <div className="toolbar">
-                        <div className="sw"><span className="si">⚜</span>
+                        <div className="sw"><span className="si">🔍</span>
                             <input className="searchInput" value={memoSearch} onChange={e => setMemoSearch(e.target.value)} placeholder="メモを検索..." />
                         </div>
                         <select className="sortSel" value={sortMode} onChange={e => setSortMode(e.target.value)}>
                             <option value="newest">新しい順</option><option value="oldest">古い順</option><option value="title">タイトル順</option>
                         </select>
-                        <button className="btnNew" onClick={() => openModal()}>＋ NEW NOTE</button>
-                        <span className="curCat">{curCatLabel}</span>
+                        <button className="btnNew" onClick={() => openModal()}>＋ NEW</button>
                     </div>
                     <div className="notesArea">
                         <div className="notesGrid">
                             {filteredNotes.length === 0 ? (
-                                <div className="empty"><div className="emptyHex">📝</div><div className="emptyTxt">NO NOTES FOUND</div></div>
+                                <div className="empty"><div className="emptyHex">📝</div><div className="emptyTxt">メモがありません</div></div>
                             ) : filteredNotes.map(n => {
                                 const cat = cats.find(c => c.id === n.cid)
                                 const p = PC[n.pri || 'med']
-                                const col = cat ? COLS[cat.ci % COLS.length] : { c: 'var(--gold-dim)', r: '200,155,60' }
+                                const col = cat ? COLS[cat.ci % COLS.length] : { c: '#9CA3AF', r: '156,163,175' }
                                 const d = new Date(n.ts).toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' })
                                 const prev = n.body.replace(/\n/g, ' ').substring(0, 100)
                                 return (
-                                    <div key={n.id} className="noteCard" style={{ borderTopColor: col.c } as React.CSSProperties}
+                                    <div key={n.id} className="noteCard"
                                         onClick={() => openModal(n.id)}>
                                         <button className="noteDel" onClick={e => { e.stopPropagation(); deleteNote(n.id) }}>✕</button>
                                         <div className="noteTitle"><span className="pdot" style={{ background: p.c }} />{n.title || '無題'}</div>
                                         <div className="notePrev">{prev || '(内容なし)'}</div>
                                         <div className="noteMeta">
                                             <span className="noteDate">{d}</span>
-                                            {cat && <span className="noteBadge" style={{ background: `rgba(${col.r},.15)`, color: col.c }}>{cat.name}</span>}
+                                            {cat && <span className="noteBadge" style={{ background: `rgba(${col.r},.1)`, color: col.c }}>{cat.name}</span>}
                                         </div>
                                     </div>
                                 )
@@ -432,13 +430,13 @@ export default function LolMemo() {
                         {cdState === 'done' && !curChamp && (
                             <div className="champGrid">
                                 {filteredChamps.length === 0 ? (
-                                    <div className="empty" style={{ gridColumn: '1/-1' }}><div className="emptyHex">🔍</div><div className="emptyTxt">NOT FOUND</div></div>
+                                    <div className="empty" style={{ gridColumn: '1/-1' }}><div className="emptyHex">🔍</div><div className="emptyTxt">見つかりません</div></div>
                                 ) : filteredChamps.map(c => {
                                     const img = champImg(c)
                                     return (
                                         <div key={c.id} className="champCard" onClick={() => setCurChamp(c)}>
                                             {img ? <img src={img} alt={c.name} loading="lazy" onError={e => { (e.target as HTMLImageElement).style.opacity = '.15' }} />
-                                                : <div style={{ width: 48, height: 48, margin: '0 auto 5px', background: 'rgba(200,155,60,.1)', border: '1px solid rgba(200,155,60,.2)' }} />}
+                                                : <div style={{ width: 48, height: 48, margin: '0 auto 5px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: 8 }} />}
                                             <div className="champCardName">{c.name}</div>
                                             <div className="champCardTags">{c.roles.join('·')}</div>
                                         </div>
@@ -460,7 +458,7 @@ export default function LolMemo() {
                                             <div className="heroTitle">{curChamp.title || ''}</div>
                                             <div className="heroTags">
                                                 {curChamp.roles.map(r => (
-                                                    <span key={r} className="heroTag" style={{ borderColor: `${TC[r.toLowerCase()] || '#785A28'}50`, color: TC[r.toLowerCase()] || '#C89B3C' }}>{r}</span>
+                                                    <span key={r} className="heroTag" style={{ borderColor: `${TC[r.toLowerCase()] || '#D1D5DB'}`, color: TC[r.toLowerCase()] || '#6B7280' }}>{r}</span>
                                                 ))}
                                             </div>
                                         </div>
@@ -469,7 +467,7 @@ export default function LolMemo() {
                                     <table className="spellTbl">
                                         <thead><tr>
                                             <th style={{ width: 34 }}>KEY</th><th>スキル名</th>
-                                            <th className="thCenter">クールダウン（秒）</th>
+                                            <th className="thCenter">CD（秒）</th>
                                             <th className="thCenter">射程</th><th className="thCenter">コスト</th>
                                         </tr></thead>
                                         <tbody>
@@ -489,7 +487,7 @@ export default function LolMemo() {
                                                 if (!slot) return (
                                                     <tr key={key} className="spellRow">
                                                         <td><div className={`keyBadge ${SLOT_CLS[i]}`}>{key}</div></td>
-                                                        <td colSpan={4} style={{ color: 'var(--gold-dim)', fontSize: 11, padding: 9 }}>—</td>
+                                                        <td colSpan={4} style={{ color: '#9CA3AF', fontSize: 11, padding: 9 }}>—</td>
                                                     </tr>
                                                 )
                                                 const isR = i === 3
@@ -549,8 +547,8 @@ export default function LolMemo() {
                     <div className="modalFt">
                         <span className="modalInfo">{editId ? new Date(notes.find(n => n.id === editId)?.ts || 0).toLocaleString('ja-JP') : 'NEW NOTE'}</span>
                         <div className="modalActs">
-                            <button className="btnCancel" onClick={() => setModalOpen(false)}>CANCEL</button>
-                            <button className="btnSave" onClick={saveNote}>SAVE</button>
+                            <button className="btnCancel" onClick={() => setModalOpen(false)}>キャンセル</button>
+                            <button className="btnSave" onClick={saveNote}>保存</button>
                         </div>
                     </div>
                 </div>
