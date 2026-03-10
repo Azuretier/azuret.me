@@ -38,6 +38,7 @@ const FOOD_DB: Food[] = [
   { id: 28, name: "プロテイン（アイソレート）", qty: "1杯(30g)", cal: 110, protein: 25.0, fat: 0.5, carb: 1.5, fiber: 0, na: 60, dairy: true },
   { id: 29, name: "納豆", qty: "1パック(45g)", cal: 90, protein: 7.4, fat: 4.5, carb: 5.4, fiber: 3.0, na: 2 },
   { id: 30, name: "おでん", qty: "1人前(約400g)", cal: 230, protein: 18.0, fat: 5.5, carb: 28.0, fiber: 3.5, na: 1200 },
+  { id: 31, name: "お茶漬け", qty: "1杯(約250g)", cal: 270, protein: 5.5, fat: 0.8, carb: 58.0, fiber: 0.5, na: 900 },
 ];
 
 const DRINK_DB: Drink[] = [
