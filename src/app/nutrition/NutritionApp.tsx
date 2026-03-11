@@ -3,7 +3,7 @@ import {
   type Food, type FoodLog, type Logs,
   type Exercise, type ExerciseLog,
   type Drink, type DrinkLog, type DrinkTotals,
-  type HistoryEntry, type HamaSushiItem,
+  type HistoryEntry, type HamaSushiItem, type TondenItem,
   storage,
 } from "./storage";
 
@@ -113,6 +113,43 @@ const HAMA_SUSHI_DB: HamaSushiItem[] = [
   { id: 606, name: "たこ焼き", qty: "1人前(6個)", cal: 230, protein: 6.4, fat: 10.0, carb: 28.0, fiber: 0.6, na: 580, category: "side" },
 ];
 
+const TONDEN_DB: TondenItem[] = [
+  // ── 御膳 (Set Meals) ──
+  { id: 701, name: "とんでん御膳", qty: "1人前", cal: 557, protein: 21.9, fat: 20.1, carb: 70.4, fiber: 3.0, na: 1575, category: "gozen" },
+  { id: 702, name: "北海刺身天ぷら膳", qty: "1人前", cal: 683, protein: 29.9, fat: 26.0, carb: 77.7, fiber: 3.5, na: 1457, category: "gozen" },
+  { id: 703, name: "刺身天ぷら膳", qty: "1人前", cal: 724, protein: 29.8, fat: 27.4, carb: 85.3, fiber: 3.5, na: 1575, category: "gozen" },
+  { id: 704, name: "旨いわし巴膳", qty: "1人前", cal: 774, protein: 30.3, fat: 28.4, carb: 95.6, fiber: 4.0, na: 2559, category: "gozen" },
+  { id: 705, name: "旨いわしお楽しみ膳", qty: "1人前", cal: 911, protein: 32.2, fat: 32.3, carb: 117.2, fiber: 4.5, na: 2913, category: "gozen" },
+  // ── 寿司 (Sushi) ──
+  { id: 721, name: "握り上鮨", qty: "1人前", cal: 450, protein: 22.0, fat: 8.5, carb: 70.0, fiber: 1.0, na: 1100, category: "sushi" },
+  { id: 722, name: "大漁鮨", qty: "1人前", cal: 760, protein: 35.0, fat: 16.0, carb: 110.0, fiber: 2.0, na: 1800, category: "sushi" },
+  { id: 723, name: "活ほっき貝のにぎり鮨", qty: "1人前", cal: 181, protein: 9.0, fat: 1.5, carb: 34.6, fiber: 0.5, na: 500, category: "sushi" },
+  // ── 丼 (Rice Bowls) ──
+  { id: 741, name: "うな重", qty: "1人前", cal: 860, protein: 39.1, fat: 27.8, carb: 108.0, fiber: 2.0, na: 1811, category: "don" },
+  { id: 742, name: "鰻のひつまぶし", qty: "1人前", cal: 894, protein: 41.0, fat: 28.0, carb: 114.6, fiber: 2.5, na: 2598, category: "don" },
+  { id: 743, name: "ミニかに丼・北海道ざるそば", qty: "1セット", cal: 625, protein: 25.8, fat: 7.6, carb: 108.9, fiber: 3.0, na: 1811, category: "don" },
+  { id: 744, name: "ミニいくら丼・北海道ざるそば", qty: "1セット", cal: 676, protein: 29.3, fat: 11.7, carb: 109.3, fiber: 3.0, na: 1850, category: "don" },
+  { id: 745, name: "ミニ本まぐろ丼・北海道ざるそば", qty: "1セット", cal: 789, protein: 28.3, fat: 25.3, carb: 106.2, fiber: 3.0, na: 1220, category: "don" },
+  { id: 746, name: "ミニひれかつ丼・北海道ざるそば", qty: "1セット", cal: 696, protein: 26.0, fat: 16.0, carb: 108.0, fiber: 3.5, na: 1800, category: "don" },
+  // ── そば・うどん (Noodles) ──
+  { id: 761, name: "北海道ざるそば", qty: "1人前", cal: 340, protein: 14.0, fat: 2.5, carb: 65.0, fiber: 3.0, na: 800, category: "soba_udon" },
+  { id: 762, name: "ざるうどん", qty: "1人前", cal: 213, protein: 7.0, fat: 1.0, carb: 41.9, fiber: 1.5, na: 700, category: "soba_udon" },
+  { id: 763, name: "ランチ天丼・北海道ざるそば", qty: "1セット", cal: 1034, protein: 26.8, fat: 32.0, carb: 153.1, fiber: 4.0, na: 1850, category: "soba_udon" },
+  { id: 764, name: "ランチにぎり鮨・ざるうどん", qty: "1セット", cal: 563, protein: 22.0, fat: 8.0, carb: 96.0, fiber: 2.0, na: 1500, category: "soba_udon" },
+  // ── 単品 (À la carte) ──
+  { id: 781, name: "富良野産ロースかつ", qty: "1人前", cal: 559, protein: 28.0, fat: 35.0, carb: 20.8, fiber: 1.0, na: 900, category: "single" },
+  { id: 782, name: "CP持・うな重", qty: "1人前", cal: 843, protein: 35.2, fat: 26.0, carb: 111.9, fiber: 2.0, na: 1496, category: "single" },
+];
+
+const TONDEN_CATEGORIES: { id: TondenItem["category"] | "all"; label: string; icon: string }[] = [
+  { id: "all", label: "すべて", icon: "📋" },
+  { id: "gozen", label: "御膳", icon: "🍱" },
+  { id: "sushi", label: "寿司", icon: "🍣" },
+  { id: "don", label: "丼", icon: "🍚" },
+  { id: "soba_udon", label: "そば・うどん", icon: "🍜" },
+  { id: "single", label: "単品", icon: "🍽️" },
+];
+
 const HAMA_CATEGORIES: { id: HamaSushiItem["category"] | "all"; label: string; icon: string }[] = [
   { id: "all", label: "すべて", icon: "📋" },
   { id: "nigiri", label: "にぎり", icon: "🍣" },
@@ -185,6 +222,9 @@ export default function NutritionApp() {
   const [hamaCategory, setHamaCategory] = useState<HamaSushiItem["category"] | "all">("all");
   const [hamaQuery, setHamaQuery] = useState("");
   const [hoverHama, setHoverHama] = useState<number | null>(null);
+  const [tondenCategory, setTondenCategory] = useState<TondenItem["category"] | "all">("all");
+  const [tondenQuery, setTondenQuery] = useState("");
+  const [hoverTonden, setHoverTonden] = useState<number | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   // ── Load persisted data on mount ──
@@ -236,6 +276,11 @@ export default function NutritionApp() {
   const filteredHama = HAMA_SUSHI_DB.filter(h => {
     const matchCat = hamaCategory === "all" || h.category === hamaCategory;
     const matchQ = !hamaQuery.trim() || h.name.includes(hamaQuery);
+    return matchCat && matchQ;
+  });
+  const filteredTonden = TONDEN_DB.filter(t => {
+    const matchCat = tondenCategory === "all" || t.category === tondenCategory;
+    const matchQ = !tondenQuery.trim() || t.name.includes(tondenQuery);
     return matchCat && matchQ;
   });
 
@@ -695,6 +740,158 @@ export default function NutritionApp() {
           </div>
 
           {/* Show what's been added this session via hama sushi */}
+          {logs[meal].length > 0 && (
+            <div style={panel}>
+              <div style={panelHdr}>
+                <span style={panelTitle}>{meal}の記録</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#374151", fontVariantNumeric: "tabular-nums" }}>
+                  {Math.round(sum(logs[meal], "cal"))} kcal
+                </span>
+              </div>
+              {logs[meal].map(f => (
+                <div key={f.uid}
+                  style={{ display: "flex", alignItems: "center", padding: "10px 16px", gap: 10, borderBottom: "1px solid #F3F4F6" }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: "#111827" }}>{f.name}</span>
+                    <div style={{ fontSize: 10, color: "#9CA3AF" }}>{f.qty}</div>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#374151", fontVariantNumeric: "tabular-nums", minWidth: 56, textAlign: "right" }}>
+                    {f.cal} kcal
+                  </div>
+                  <button onClick={() => removeFood(meal, f.uid)} style={{
+                    width: 24, height: 24, borderRadius: 4,
+                    background: "transparent", border: "1px solid #FCA5A5",
+                    color: "#DC2626", fontSize: 13, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0, marginLeft: 6,
+                  }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TONDEN TAB ── */}
+      {tab === "tonden" && (
+        <div style={{ animation: "fadeIn 0.25s ease" }}>
+          {/* Current meal indicator */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 16px 0" }}>
+            <span style={{ fontSize: 11, color: "#9CA3AF" }}>追加先：</span>
+            {MEAL_SLOTS.map(m => (
+              <button key={m} onClick={() => setMeal(m)} style={{
+                padding: "4px 12px", borderRadius: 16,
+                border: `1px solid ${meal === m ? "#111827" : "#E5E7EB"}`,
+                background: meal === m ? "#111827" : "#FFFFFF",
+                color: meal === m ? "#FFFFFF" : "#6B7280",
+                fontSize: 11, fontWeight: meal === m ? 700 : 400,
+                cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+                transition: "all 0.15s",
+              }}>{m}</button>
+            ))}
+          </div>
+
+          {/* Category filter chips */}
+          <div style={{ display: "flex", gap: 6, padding: "10px 16px", overflowX: "auto", scrollbarWidth: "none" }}>
+            {TONDEN_CATEGORIES.map(c => (
+              <button key={c.id} onClick={() => setTondenCategory(c.id)} style={{
+                padding: "6px 14px", borderRadius: 20,
+                border: `1px solid ${tondenCategory === c.id ? "#1B5E20" : "#E5E7EB"}`,
+                background: tondenCategory === c.id ? "#1B5E20" : "#FFFFFF",
+                color: tondenCategory === c.id ? "#FFFFFF" : "#6B7280",
+                fontSize: 12, fontWeight: tondenCategory === c.id ? 700 : 400,
+                cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+                transition: "all 0.15s",
+              }}>{c.icon} {c.label}</button>
+            ))}
+          </div>
+
+          {/* Sodium warning */}
+          <div style={{ margin: "0 16px 8px", padding: "8px 12px", borderRadius: 8, background: "#FFF8E1", border: "1px solid #FFE082", display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 14 }}>⚠️</span>
+            <span style={{ fontSize: 10, color: "#6D4C00", lineHeight: 1.4 }}>とんでんの御膳・セットメニューは食塩相当量が高めです。味噌汁のスープを残す等で塩分を調整してください。</span>
+          </div>
+
+          {/* Tonden menu list */}
+          <div style={panel}>
+            <div style={panelHdr}>
+              <span style={{ ...panelTitle, display: "flex", alignItems: "center", gap: 6 }}>🍱 とんでんメニュー</span>
+              <span style={{ fontSize: 11, color: "#9CA3AF" }}>{filteredTonden.length}品目</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderBottom: "1px solid #E5E7EB", background: "#FDFDFD" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                value={tondenQuery}
+                onChange={e => setTondenQuery(e.target.value)}
+                placeholder="メニューを検索..."
+                style={{ flex: 1, border: "none", outline: "none", fontSize: 14, color: "#111827", background: "transparent", fontFamily: "inherit" }}
+              />
+              {tondenQuery && (
+                <button onClick={() => setTondenQuery("")} style={{ border: "none", background: "none", cursor: "pointer", color: "#9CA3AF", padding: 0, lineHeight: 1, fontSize: 16 }}>×</button>
+              )}
+            </div>
+            <div style={{ maxHeight: 460, overflowY: "auto" }}>
+              {filteredTonden.length === 0 && (
+                <div style={{ padding: "24px 0", textAlign: "center", color: "#9CA3AF", fontSize: 13 }}>該当するメニューが見つかりません</div>
+              )}
+              {filteredTonden.map(t => {
+                const saltG = (t.na / 1000 * 2.54);
+                const catLabel = t.category === "gozen" ? "🍱 御膳" : t.category === "sushi" ? "🍣 寿司" : t.category === "don" ? "🍚 丼" : t.category === "soba_udon" ? "🍜 麺" : "🍽️ 単品";
+                const catCol = t.category === "gozen" ? "#1B5E20" : t.category === "sushi" ? "#E65100" : t.category === "don" ? "#4E342E" : t.category === "soba_udon" ? "#1565C0" : "#6A1B9A";
+                return (
+                  <div key={t.id}
+                    style={{ display: "flex", alignItems: "center", padding: "10px 16px", gap: 10, cursor: "pointer", background: hoverTonden === t.id ? "#E8F5E9" : "transparent", transition: "background 0.1s", borderBottom: "1px solid #F3F4F6" }}
+                    onMouseEnter={() => setHoverTonden(t.id)}
+                    onMouseLeave={() => setHoverTonden(null)}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{t.name}</span>
+                        <span style={{ fontSize: 10, color: "#9CA3AF" }}>{t.qty}</span>
+                      </div>
+                      <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap", alignItems: "center" }}>
+                        {[
+                          { label: `P ${t.protein}g`, col: "#2563EB" },
+                          { label: `F ${t.fat}g`, col: "#D97706" },
+                          { label: `C ${t.carb}g`, col: "#059669" },
+                        ].map(({ label, col }) => (
+                          <span key={label} style={{ display: "inline-block", padding: "1px 7px", borderRadius: 4, background: `${col}18`, color: col, fontSize: 10, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+                            {label}
+                          </span>
+                        ))}
+                        <span style={{ display: "inline-block", padding: "1px 7px", borderRadius: 4, background: saltG > 4 ? "#DC262618" : "#9CA3AF18", color: saltG > 4 ? "#DC2626" : "#6B7280", fontSize: 9, fontWeight: 700, letterSpacing: 0.3 }}>
+                          🧂 {saltG.toFixed(1)}g
+                        </span>
+                        <span style={{
+                          display: "inline-block", padding: "1px 7px", borderRadius: 4,
+                          background: `${catCol}18`, color: catCol,
+                          fontSize: 9, fontWeight: 700, letterSpacing: 0.3,
+                        }}>
+                          {catLabel}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: "#111827", fontVariantNumeric: "tabular-nums" }}>{t.cal}</div>
+                        <div style={{ fontSize: 9, color: "#9CA3AF", letterSpacing: 0.5 }}>kcal</div>
+                      </div>
+                      <button onClick={() => addFood(t)} style={{
+                        width: 28, height: 28, borderRadius: 6, background: "#1B5E20", border: "none",
+                        color: "#FFFFFF", fontSize: 20, fontWeight: 300, cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1, flexShrink: 0,
+                      }}>+</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Show what's been added this session */}
           {logs[meal].length > 0 && (
             <div style={panel}>
               <div style={panelHdr}>
@@ -1201,6 +1398,16 @@ export default function NutritionApp() {
             )
           },
           {
+            id: "tonden", label: "とんでん", icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M3 20h18" />
+                <path d="M5 20V8l7-5 7 5v12" />
+                <path d="M9 20v-6h6v6" />
+                <path d="M9 11h1" /><path d="M14 11h1" />
+              </svg>
+            )
+          },
+          {
             id: "summary", label: "集計", icon: (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -1236,13 +1443,13 @@ export default function NutritionApp() {
           <button key={id} onClick={() => setTab(id)} style={{
             display: "flex", flexDirection: "column", alignItems: "center",
             gap: 1, border: "none", background: "none", cursor: "pointer",
-            color: tab === id ? (id === "hamasushi" ? "#EA580C" : "#111827") : "#9CA3AF",
+            color: tab === id ? (id === "hamasushi" ? "#EA580C" : id === "tonden" ? "#1B5E20" : "#111827") : "#9CA3AF",
             padding: "4px 6px",
             transition: "color 0.15s", minWidth: 0,
           }}>
             {icon}
             <span style={{ fontSize: 9, fontWeight: tab === id ? 700 : 400, whiteSpace: "nowrap" }}>{label}</span>
-            {tab === id && <div style={{ width: 4, height: 4, borderRadius: "50%", background: id === "hamasushi" ? "#EA580C" : "#111827" }} />}
+            {tab === id && <div style={{ width: 4, height: 4, borderRadius: "50%", background: id === "hamasushi" ? "#EA580C" : id === "tonden" ? "#1B5E20" : "#111827" }} />}
           </button>
         ))}
       </div>

@@ -40,6 +40,10 @@ export interface HamaSushiItem extends Food {
     category: "nigiri" | "gunkan" | "side";
 }
 
+export interface TondenItem extends Food {
+    category: "gozen" | "sushi" | "don" | "soba_udon" | "single";
+}
+
 // ─── Session state shape ───
 
 export interface NutritionSessionData {
