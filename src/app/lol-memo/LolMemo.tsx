@@ -41,7 +41,8 @@ const ROLES_SIDEBAR = [
 ]
 
 /* ── Types ── */
-interface Note { id: string; title: string; body: string; cid: string; pri: string; ts: number }
+interface Message { id: string; text: string; ts: number }
+interface Note { id: string; title: string; messages: Message[]; cid: string; pri: string; ts: number }
 interface Cat { id: string; name: string; ci: number }
 interface Champ {
     id: string; name: string; title: string; tags: string[]; roles: string[]
@@ -59,15 +60,17 @@ export default function LolMemo() {
     const [sortMode, setSortMode] = useState('newest')
     const [showAddCat, setShowAddCat] = useState(false)
     const [newCatName, setNewCatName] = useState('')
-    const [modalOpen, setModalOpen] = useState(false)
-    const [editId, setEditId] = useState<string | null>(null)
+    const [chatOpen, setChatOpen] = useState(false)
+    const [chatNoteId, setChatNoteId] = useState<string | null>(null)
+    const [chatInput, setChatInput] = useState('')
     const [mTitle, setMTitle] = useState('')
-    const [mContent, setMContent] = useState('')
     const [mCatId, setMCatId] = useState('')
     const [selPri, setSelPri] = useState('med')
     const [toastMsg, setToastMsg] = useState('')
     const [toastVisible, setToastVisible] = useState(false)
     const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const chatEndRef = useRef<HTMLDivElement>(null)
+    const chatInputRef = useRef<HTMLInputElement>(null)
 
     /* ── CD state ── */
     const [cdLoaded, setCdLoaded] = useState(false)
@@ -84,11 +87,27 @@ export default function LolMemo() {
     const [ddVer, setDdVer] = useState('')
     const [headerTime, setHeaderTime] = useState('')
 
-    /* ── Init ── */
+    /* ── Init (with migration from old body format) ── */
     useEffect(() => {
         const savedNotes = localStorage.getItem(SK)
         const savedCats = localStorage.getItem(CK)
-        setNotes(savedNotes ? JSON.parse(savedNotes) : [])
+        if (savedNotes) {
+            const parsed = JSON.parse(savedNotes)
+            // Migrate old notes: body string → messages array
+            const migrated = parsed.map((n: any) => {
+                if (n.body !== undefined && !n.messages) {
+                    const msgs: Message[] = n.body ? [{ id: 'm' + n.ts, text: n.body, ts: n.ts }] : []
+                    const { body: _, ...rest } = n
+                    return { ...rest, messages: msgs }
+                }
+                return n
+            })
+            setNotes(migrated)
+            // Save migrated data back
+            if (JSON.stringify(parsed) !== JSON.stringify(migrated)) {
+                localStorage.setItem(SK, JSON.stringify(migrated))
+            }
+        }
         const c = savedCats ? JSON.parse(savedCats) : null
         if (c && c.length > 0) setCats(c)
         else { setCats(DEFAULT_CATS); localStorage.setItem(CK, JSON.stringify(DEFAULT_CATS)) }
@@ -122,40 +141,60 @@ export default function LolMemo() {
         if (activeCat === id) setActiveCat('all')
         saveCats(newCats); saveNotes(newNotes); toast('カテゴリを削除しました')
     }
-    const openModal = (id: string | null = null) => {
-        setEditId(id)
+    const openChat = (id: string | null = null) => {
+        setChatNoteId(id)
+        setChatInput('')
         if (id) {
             const n = notes.find(x => x.id === id)!
-            setMTitle(n.title); setMContent(n.body); setMCatId(n.cid || cats[0]?.id || '')
+            setMTitle(n.title); setMCatId(n.cid || cats[0]?.id || '')
             setSelPri(n.pri || 'med')
         } else {
-            setMTitle(''); setMContent(''); setMCatId(activeCat !== 'all' ? activeCat : cats[0]?.id || '')
-            setSelPri('med')
+            // Create a new note immediately
+            const newId = Date.now().toString()
+            const catId = activeCat !== 'all' ? activeCat : cats[0]?.id || ''
+            const newNote: Note = { id: newId, title: '無題', messages: [], cid: catId, pri: 'med', ts: Date.now() }
+            const newNotes = [newNote, ...notes]
+            saveNotes(newNotes)
+            setChatNoteId(newId)
+            setMTitle('無題'); setMCatId(catId); setSelPri('med')
         }
-        setModalOpen(true)
+        setChatOpen(true)
+        setTimeout(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); chatInputRef.current?.focus() }, 100)
     }
-    const saveNote = () => {
-        const t = mTitle.trim(), b = mContent.trim()
-        if (!t && !b) { toast('タイトルまたは内容を入力してください'); return }
-        let newNotes: Note[]
-        if (editId) {
-            newNotes = notes.map(n => n.id === editId ? { ...n, title: t || '無題', body: b, cid: mCatId, pri: selPri, ts: Date.now() } : n)
-        } else {
-            newNotes = [{ id: Date.now().toString(), title: t || '無題', body: b, cid: mCatId, pri: selPri, ts: Date.now() }, ...notes]
-        }
-        saveNotes(newNotes); setModalOpen(false); toast(editId ? 'メモを更新しました' : 'メモを保存しました')
+    const sendMessage = () => {
+        const text = chatInput.trim()
+        if (!text || !chatNoteId) return
+        const msg: Message = { id: 'm' + Date.now() + Math.random(), text, ts: Date.now() }
+        const newNotes = notes.map(n => n.id === chatNoteId ? { ...n, messages: [...n.messages, msg], ts: Date.now() } : n)
+        saveNotes(newNotes); setChatInput('')
+        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+    }
+    const updateChatMeta = () => {
+        if (!chatNoteId) return
+        const t = mTitle.trim()
+        const newNotes = notes.map(n => n.id === chatNoteId ? { ...n, title: t || '無題', cid: mCatId, pri: selPri } : n)
+        saveNotes(newNotes)
     }
     const deleteNote = (id: string) => { saveNotes(notes.filter(n => n.id !== id)); toast('メモを削除しました') }
+    const deleteMessage = (noteId: string, msgId: string) => {
+        const newNotes = notes.map(n => n.id === noteId ? { ...n, messages: n.messages.filter(m => m.id !== msgId) } : n)
+        saveNotes(newNotes)
+    }
 
     /* ── Filtered & sorted notes ── */
     const filteredNotes = (() => {
         const q = memoSearch.toLowerCase()
-        let fl = notes.filter(n => (activeCat === 'all' || n.cid === activeCat) && (!q || n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q)))
+        let fl = notes.filter(n => {
+            const matchCat = activeCat === 'all' || n.cid === activeCat
+            const allText = [n.title, ...n.messages.map(m => m.text)].join(' ').toLowerCase()
+            return matchCat && (!q || allText.includes(q))
+        })
         if (sortMode === 'newest') fl.sort((a, b) => b.ts - a.ts)
         else if (sortMode === 'oldest') fl.sort((a, b) => a.ts - b.ts)
         else fl.sort((a, b) => a.title.localeCompare(b.title, 'ja'))
         return fl
     })()
+    const chatNote = chatNoteId ? notes.find(n => n.id === chatNoteId) : null
 
     /* ── CD Browser ── */
     const matchRole = (c: Champ, role: string) => c.roles.some(r => r.toLowerCase() === role.toLowerCase())
@@ -279,8 +318,8 @@ export default function LolMemo() {
     /* ── Keyboard shortcuts ── */
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setModalOpen(false)
-            if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); openModal() }
+            if (e.key === 'Escape') setChatOpen(false)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); openChat() }
         }
         document.addEventListener('keydown', handler)
         return () => document.removeEventListener('keydown', handler)
@@ -365,7 +404,7 @@ export default function LolMemo() {
                         <select className="sortSel" value={sortMode} onChange={e => setSortMode(e.target.value)}>
                             <option value="newest">新しい順</option><option value="oldest">古い順</option><option value="title">タイトル順</option>
                         </select>
-                        <button className="btnNew" onClick={() => openModal()}>＋ NEW</button>
+                        <button className="btnNew" onClick={() => openChat()}>＋ NEW</button>
                     </div>
                     <div className="notesArea">
                         <div className="notesGrid">
@@ -376,15 +415,16 @@ export default function LolMemo() {
                                 const p = PC[n.pri || 'med']
                                 const col = cat ? COLS[cat.ci % COLS.length] : { c: '#9CA3AF', r: '156,163,175' }
                                 const d = new Date(n.ts).toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' })
-                                const prev = n.body.replace(/\n/g, ' ').substring(0, 100)
+                                const lastMsg = n.messages[n.messages.length - 1]
+                                const prev = lastMsg ? lastMsg.text.replace(/\n/g, ' ').substring(0, 80) : ''
                                 return (
                                     <div key={n.id} className="noteCard"
-                                        onClick={() => openModal(n.id)}>
+                                        onClick={() => openChat(n.id)}>
                                         <button className="noteDel" onClick={e => { e.stopPropagation(); deleteNote(n.id) }}>✕</button>
                                         <div className="noteTitle"><span className="pdot" style={{ background: p.c }} />{n.title || '無題'}</div>
-                                        <div className="notePrev">{prev || '(内容なし)'}</div>
+                                        <div className="notePrev">{prev || '(メッセージなし)'}</div>
                                         <div className="noteMeta">
-                                            <span className="noteDate">{d}</span>
+                                            <span className="noteDate">{n.messages.length} 件 · {d}</span>
                                             {cat && <span className="noteBadge" style={{ background: `rgba(${col.r},.1)`, color: col.c }}>{cat.name}</span>}
                                         </div>
                                     </div>
@@ -524,32 +564,61 @@ export default function LolMemo() {
                 </div>
             </div>
 
-            {/* MODAL */}
-            <div className={`modalBg ${modalOpen ? 'modalBgShow' : ''}`} onClick={e => { if (e.target === e.currentTarget) setModalOpen(false) }}>
-                <div className="modal">
+            {/* CHAT MODAL */}
+            <div className={`modalBg ${chatOpen ? 'modalBgShow' : ''}`} onClick={e => { if (e.target === e.currentTarget) { updateChatMeta(); setChatOpen(false) } }}>
+                <div className="modal chatModal">
                     <div className="modalHd">
-                        <input className="modalTitle" value={mTitle} onChange={e => setMTitle(e.target.value)} placeholder="タイトルを入力..." />
-                        <select className="modalCat" value={mCatId} onChange={e => setMCatId(e.target.value)}>
+                        <input className="modalTitle" value={mTitle} onChange={e => setMTitle(e.target.value)} onBlur={updateChatMeta} placeholder="スレッドタイトル..." />
+                        <select className="modalCat" value={mCatId} onChange={e => { setMCatId(e.target.value); setTimeout(updateChatMeta, 0) }}>
                             {cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     </div>
-                    <div className="modalBd">
-                        <div className="tagsRow">
-                            {(['high', 'med', 'low'] as const).map(p => (
-                                <button key={p} className={`tagBtn ${p === 'high' ? 'tagBtnHigh' : p === 'med' ? 'tagBtnMed' : 'tagBtnLow'} ${selPri === p ? (p === 'high' ? 'tagBtnActiveHigh' : p === 'med' ? 'tagBtnActiveMed' : 'tagBtnActiveLow') : ''}`}
-                                    onClick={() => setSelPri(p)}>
-                                    {p === 'high' ? '▲ HIGH' : p === 'med' ? '◆ NORMAL' : '▼ LOW'}
-                                </button>
-                            ))}
-                        </div>
-                        <textarea className="noteTa" value={mContent} onChange={e => setMContent(e.target.value)} placeholder="メモを入力..." />
+                    <div className="chatTagsBar">
+                        {(['high', 'med', 'low'] as const).map(p => (
+                            <button key={p} className={`tagBtn ${p === 'high' ? 'tagBtnHigh' : p === 'med' ? 'tagBtnMed' : 'tagBtnLow'} ${selPri === p ? (p === 'high' ? 'tagBtnActiveHigh' : p === 'med' ? 'tagBtnActiveMed' : 'tagBtnActiveLow') : ''}`}
+                                onClick={() => { setSelPri(p); setTimeout(updateChatMeta, 0) }}>
+                                {p === 'high' ? '▲ HIGH' : p === 'med' ? '◆ NORMAL' : '▼ LOW'}
+                            </button>
+                        ))}
+                        <span className="chatMsgCount">{chatNote?.messages.length || 0} 件のメッセージ</span>
                     </div>
-                    <div className="modalFt">
-                        <span className="modalInfo">{editId ? new Date(notes.find(n => n.id === editId)?.ts || 0).toLocaleString('ja-JP') : 'NEW NOTE'}</span>
-                        <div className="modalActs">
-                            <button className="btnCancel" onClick={() => setModalOpen(false)}>キャンセル</button>
-                            <button className="btnSave" onClick={saveNote}>保存</button>
-                        </div>
+                    <div className="chatMessages">
+                        {chatNote && chatNote.messages.length === 0 && (
+                            <div className="chatEmpty">💬 メッセージを送信して会話を始めましょう</div>
+                        )}
+                        {chatNote?.messages.map((msg, i) => {
+                            const time = new Date(msg.ts).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+                            const prevMsg = i > 0 ? chatNote.messages[i - 1] : null
+                            const showDateSep = !prevMsg || new Date(msg.ts).toDateString() !== new Date(prevMsg.ts).toDateString()
+                            return (
+                                <div key={msg.id}>
+                                    {showDateSep && (
+                                        <div className="chatDateSep">
+                                            <span>{new Date(msg.ts).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                        </div>
+                                    )}
+                                    <div className="chatBubble">
+                                        <div className="chatBubbleText">{msg.text}</div>
+                                        <div className="chatBubbleMeta">
+                                            <span className="chatTime">{time}</span>
+                                            <button className="chatMsgDel" onClick={() => deleteMessage(chatNoteId!, msg.id)}>✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                        <div ref={chatEndRef} />
+                    </div>
+                    <div className="chatInputBar">
+                        <input
+                            ref={chatInputRef}
+                            className="chatInputField"
+                            value={chatInput}
+                            onChange={e => setChatInput(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
+                            placeholder="メッセージを入力..."
+                        />
+                        <button className="chatSendBtn" onClick={sendMessage} disabled={!chatInput.trim()}>送信</button>
                     </div>
                 </div>
             </div>
