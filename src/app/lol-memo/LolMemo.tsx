@@ -44,10 +44,11 @@ const ROLES_SIDEBAR = [
 interface Message { id: string; text: string; ts: number }
 interface Note { id: string; title: string; messages: Message[]; cid: string; pri: string; ts: number }
 interface Cat { id: string; name: string; ci: number }
+interface ChampStats { ad: number; as: number; hp: number; armor: number; mr: number; range: number; ms: number; attackType: string }
 interface Champ {
     id: string; name: string; title: string; tags: string[]; roles: string[]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    abilities: any; icon: string
+    abilities: any; icon: string; stats: ChampStats
 }
 
 export default function LolMemo() {
@@ -222,6 +223,16 @@ export default function LolMemo() {
                 roles: c.roles || [],
                 abilities: c.abilities || {},
                 icon: c.icon || '',
+                stats: {
+                    ad: c.stats?.attackDamage?.flat || 0,
+                    as: c.stats?.attackSpeed?.flat || 0,
+                    hp: c.stats?.health?.flat || 0,
+                    armor: c.stats?.armor?.flat || 0,
+                    mr: c.stats?.magicResistance?.flat || 0,
+                    range: c.stats?.attackRange?.flat || 0,
+                    ms: c.stats?.movespeed?.flat || 0,
+                    attackType: c.attackType || '',
+                },
             })).sort((a: Champ, b: Champ) => a.name.localeCompare(b.name, 'ja'))
 
             try {
@@ -502,6 +513,17 @@ export default function LolMemo() {
                                                 ))}
                                             </div>
                                         </div>
+                                    </div>
+                                    <div className="secTitle">LV.1 ステータス</div>
+                                    <div className="statsGrid">
+                                        <div className="statItem"><span className="statLabel">⚔ AD</span><span className="statVal">{curChamp.stats.ad}</span></div>
+                                        <div className="statItem"><span className="statLabel">⚡ AS</span><span className="statVal">{curChamp.stats.as.toFixed(3)}</span></div>
+                                        <div className="statItem"><span className="statLabel">❤ HP</span><span className="statVal">{curChamp.stats.hp}</span></div>
+                                        <div className="statItem"><span className="statLabel">🛡 AR</span><span className="statVal">{curChamp.stats.armor}</span></div>
+                                        <div className="statItem"><span className="statLabel">🔮 MR</span><span className="statVal">{curChamp.stats.mr}</span></div>
+                                        <div className="statItem"><span className="statLabel">📏 射程</span><span className="statVal">{curChamp.stats.range}</span></div>
+                                        <div className="statItem"><span className="statLabel">👟 MS</span><span className="statVal">{curChamp.stats.ms}</span></div>
+                                        <div className="statItem"><span className="statLabel">🗡 DPS</span><span className="statVal">{(curChamp.stats.ad * curChamp.stats.as).toFixed(1)}</span></div>
                                     </div>
                                     <div className="secTitle">SKILL COOLDOWNS</div>
                                     <table className="spellTbl">

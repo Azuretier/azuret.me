@@ -1385,3 +1385,22 @@
 }
 .chatSendBtn:hover { background: #374151; }
 .chatSendBtn:disabled { background: #D1D5DB; cursor: not-allowed; }
+
+/* ── Stats Grid ── */
+.statsGrid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  padding: 10px 0 6px;
+}
+.statItem {
+  background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px;
+  padding: 10px 8px; text-align: center; display: flex;
+  flex-direction: column; gap: 4px;
+}
+.statLabel {
+  font-size: 10px; color: #9CA3AF; font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.statVal {
+  font-size: 16px; font-weight: 800; color: #111827;
+  font-variant-numeric: tabular-nums;
+}
