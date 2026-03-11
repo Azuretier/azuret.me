@@ -41,6 +41,7 @@ const FOOD_DB: Food[] = [
   { id: 31, name: "お茶漬け", qty: "1杯(約250g)", cal: 270, protein: 5.5, fat: 0.8, carb: 58.0, fiber: 0.5, na: 900 },
   { id: 32, name: "しょうが焼き", qty: "1人前(約150g)", cal: 330, protein: 22.0, fat: 20.0, carb: 12.0, fiber: 0.5, na: 680 },
   { id: 33, name: "のり", qty: "1枚(約3g)", cal: 6, protein: 1.2, fat: 0.1, carb: 0.5, fiber: 1.1, na: 48 },
+  { id: 34, name: "やきいも", qty: "1本(約200g)", cal: 326, protein: 2.8, fat: 0.4, carb: 78.0, fiber: 4.6, na: 22 },
 ];
 
 const DRINK_DB: Drink[] = [
