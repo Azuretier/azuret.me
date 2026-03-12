@@ -42,6 +42,7 @@ const FOOD_DB: Food[] = [
   { id: 32, name: "しょうが焼き", qty: "1人前(約150g)", cal: 330, protein: 22.0, fat: 20.0, carb: 12.0, fiber: 0.5, na: 680 },
   { id: 33, name: "のり", qty: "1枚(約3g)", cal: 6, protein: 1.2, fat: 0.1, carb: 0.5, fiber: 1.1, na: 48 },
   { id: 34, name: "やきいも", qty: "1本(約200g)", cal: 326, protein: 2.8, fat: 0.4, carb: 78.0, fiber: 4.6, na: 22 },
+  { id: 35, name: "パスタ（茹）", qty: "1人前(250g)", cal: 373, protein: 13.0, fat: 2.3, carb: 71.3, fiber: 4.3, na: 3 },
 ];
 
 const DRINK_DB: Drink[] = [
