@@ -56,7 +56,7 @@ export default function LolMemo() {
     const [notes, setNotes] = useState<Note[]>([])
     const [cats, setCats] = useState<Cat[]>([])
     const [activeCat, setActiveCat] = useState('all')
-    const [tab, setTab] = useState<'memo' | 'cd'>('memo')
+    const [tab, setTab] = useState<'memo' | 'cd' | 'calc'>('memo')
     const [memoSearch, setMemoSearch] = useState('')
     const [sortMode, setSortMode] = useState('newest')
     const [showAddCat, setShowAddCat] = useState(false)
@@ -87,6 +87,10 @@ export default function LolMemo() {
     const [errDetail, setErrDetail] = useState('')
     const [ddVer, setDdVer] = useState('')
     const [headerTime, setHeaderTime] = useState('')
+
+    /* ── Calc state ── */
+    const [calcAH, setCalcAH] = useState(0)
+    const [calcBaseCD, setCalcBaseCD] = useState(10)
 
     /* ── Init (with migration from old body format) ── */
     useEffect(() => {
@@ -237,7 +241,15 @@ export default function LolMemo() {
 
             try {
                 const vRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json')
-                if (vRes.ok) { const v = await vRes.json(); setDdVer(v[0]); setCdVer('PATCH ' + v[0]) }
+                if (vRes.ok) {
+                    const v = await vRes.json()
+                    setDdVer(v[0])
+                    // Convert DD version (e.g. "16.5.1") to game patch (e.g. "26.05")
+                    const parts = v[0].split('.')
+                    const major = parseInt(parts[0]) + 10
+                    const minor = parts[1].padStart(2, '0')
+                    setCdVer(`PATCH ${major}.${minor}`)
+                }
             } catch { /* ignore */ }
 
             setProgPct(100); setLoadSub('完了！')
@@ -360,6 +372,7 @@ export default function LolMemo() {
             <div className="navTabs">
                 <button className={`navTab ${tab === 'memo' ? 'navTabActive' : ''}`} onClick={() => setTab('memo')}>📝 メモ</button>
                 <button className={`navTab ${tab === 'cd' ? 'navTabActive' : ''}`} onClick={() => setTab('cd')}>⏱ チャンプCD</button>
+                <button className={`navTab ${tab === 'calc' ? 'navTabActive' : ''}`} onClick={() => setTab('calc')}>🧮 CD計算</button>
             </div>
 
             <div className="app">
@@ -582,6 +595,95 @@ export default function LolMemo() {
                                 </div>
                             )
                         })()}
+                    </div>
+                </div>
+
+                {/* CALC PANEL */}
+                <div className={`panel ${tab === 'calc' ? 'panelActive' : ''}`}>
+                    <div className="calcWrap">
+                        <div className="calcSection">
+                            <div className="calcSectionTitle">⚡ スキルヘイスト (AH)</div>
+                            <div className="calcSliderRow">
+                                <input
+                                    type="range" min={0} max={500} step={1}
+                                    value={calcAH}
+                                    onChange={e => setCalcAH(Number(e.target.value))}
+                                    className="calcSlider"
+                                />
+                                <div className="calcInputWrap">
+                                    <input
+                                        type="number" min={0} max={500}
+                                        value={calcAH}
+                                        onChange={e => setCalcAH(Math.max(0, Math.min(500, Number(e.target.value) || 0)))}
+                                        className="calcNumInput"
+                                    />
+                                    <span className="calcNumUnit">AH</span>
+                                </div>
+                            </div>
+                            <div className="calcPresets">
+                                {[10, 20, 40, 60, 80, 100, 120, 150].map(v => (
+                                    <button key={v} className={`calcPresetBtn ${calcAH === v ? 'calcPresetActive' : ''}`} onClick={() => setCalcAH(v)}>{v}</button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="calcSection">
+                            <div className="calcSectionTitle">🔄 基礎クールダウン</div>
+                            <div className="calcBaseCDRow">
+                                <input
+                                    type="number" min={0} max={999} step={0.5}
+                                    value={calcBaseCD}
+                                    onChange={e => setCalcBaseCD(Math.max(0, Number(e.target.value) || 0))}
+                                    className="calcBaseCDInput"
+                                />
+                                <span className="calcBaseCDUnit">秒</span>
+                            </div>
+                        </div>
+
+                        <div className="calcResults">
+                            <div className="calcResultCard calcResultMain">
+                                <div className="calcResultLabel">実質 CD</div>
+                                <div className="calcResultValue">{(calcBaseCD * (100 / (100 + calcAH))).toFixed(2)}<span className="calcResultSuffix">秒</span></div>
+                            </div>
+                            <div className="calcResultCard">
+                                <div className="calcResultLabel">CDR</div>
+                                <div className="calcResultValue">{(calcAH / (calcAH + 100) * 100).toFixed(1)}<span className="calcResultSuffix">%</span></div>
+                            </div>
+                            <div className="calcResultCard">
+                                <div className="calcResultLabel">カット量</div>
+                                <div className="calcResultValue">{(calcBaseCD - calcBaseCD * (100 / (100 + calcAH))).toFixed(2)}<span className="calcResultSuffix">秒</span></div>
+                            </div>
+                        </div>
+
+                        <div className="calcSection">
+                            <div className="calcSectionTitle">📊 AH 換算テーブル</div>
+                            <div className="calcTableWrap">
+                                <table className="calcTable">
+                                    <thead>
+                                        <tr>
+                                            <th>AH</th><th>CDR%</th><th>CD（{calcBaseCD}s）</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {[0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 120, 150, 200, 300, 500].map(ah => {
+                                            const cdr = ah / (ah + 100) * 100
+                                            const cd = calcBaseCD * (100 / (100 + ah))
+                                            return (
+                                                <tr key={ah} className={calcAH === ah ? 'calcTableActive' : ''}>
+                                                    <td className="calcTableAH">{ah}</td>
+                                                    <td>{cdr.toFixed(1)}%</td>
+                                                    <td>{cd.toFixed(2)}s</td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="calcFormula">
+                                <span className="calcFormulaLabel">計算式</span>
+                                <code>実質CD = 基礎CD × 100 ÷ (100 + AH)</code>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

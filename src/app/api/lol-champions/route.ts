@@ -4,7 +4,7 @@ const MERAKI_URL = 'https://cdn.merakianalytics.com/riot/lol/resources/latest/en
 
 export async function GET() {
     try {
-        const res = await fetch(MERAKI_URL, { next: { revalidate: 3600 } })
+        const res = await fetch(MERAKI_URL, { next: { revalidate: 1800 } })
         if (!res.ok) {
             return NextResponse.json(
                 { error: `Upstream error: ${res.status} ${res.statusText}` },
