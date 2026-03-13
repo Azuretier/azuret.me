@@ -1,0 +1,283 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import styles from '../../app/home.module.css'
+import {
+  hero,
+  mediaFiles,
+  slideshowInterval,
+} from '../../config/siteConfig'
+import { useLanguage } from '../../i18n/LanguageContext'
+import { avatarColor, timeAgo } from '../../utils/helpers'
+import type { Comment } from '../../types'
+
+/* ── about icons ──────────────────────────────────────────── */
+
+const aboutIcons: Record<string, React.ReactNode> = {
+  location: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  ),
+  interests: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+    </svg>
+  ),
+  goal: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21l5.5-5.5M21 3l-5.5 5.5M12.5 7l-3-3-6 6 3 3M17 11.5l3 3-6 6-3-3" />
+    </svg>
+  ),
+  stack: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 18l6-6-6-6M8 6l-6 6 6 6" />
+    </svg>
+  ),
+}
+
+/* ── component ──────────────────────────────────────────────── */
+
+interface HomeTabProps {
+  visible: boolean
+}
+
+export default function HomeTab({ visible }: HomeTabProps) {
+  const { t } = useLanguage()
+
+  /* ── slideshow ────────────────────────────────────────────── */
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMediaIndex((prev) => (prev + 1) % mediaFiles.length)
+    }, slideshowInterval)
+    return () => clearInterval(interval)
+  }, [])
+
+  /* ── comments state ───────────────────────────────────────── */
+  const [comments, setComments] = useState<Comment[]>([])
+  const [author, setAuthor] = useState('')
+  const [content, setContent] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [likedIds, setLikedIds] = useState<Set<number>>(new Set())
+
+  const fetchComments = useCallback(async () => {
+    try {
+      const res = await fetch('/api/comments')
+      if (res.ok) setComments(await res.json())
+    } catch { /* silent */ }
+  }, [])
+
+  useEffect(() => { fetchComments() }, [fetchComments])
+
+  const handleSubmit = async () => {
+    if (!author.trim() || !content.trim() || submitting) return
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ author: author.trim(), content: content.trim() }),
+      })
+      if (res.ok) { setContent(''); fetchComments() }
+    } catch { /* silent */ }
+    setSubmitting(false)
+  }
+
+  const handleLike = async (id: number) => {
+    if (likedIds.has(id)) return
+    setLikedIds((prev) => new Set(prev).add(id))
+    setComments((prev) => prev.map((c) => (c.id === id ? { ...c, likes: c.likes + 1 } : c)))
+    try { await fetch(`/api/comments/${id}/like`, { method: 'POST' }) } catch { /* silent */ }
+  }
+
+  /* ── about items ──────────────────────────────────────────── */
+  const aboutItems = [
+    { key: 'location', label: t.about.location, value: t.about.locationValue, color: '#1d9bf0' },
+    { key: 'interests', label: t.about.interests, value: t.about.interestsValue, color: '#a78bfa' },
+    { key: 'goal', label: t.about.goal, value: t.about.goalValue, color: '#10b981' },
+    { key: 'stack', label: t.about.stack, value: t.about.stackValue, color: '#f59e0b' },
+  ]
+
+  /* ── render ─────────────────────────────────────────────── */
+
+  return (
+    <>
+      {/* ── hero ─────────────────────────────────────────── */}
+      <header className={`${styles.hero} ${visible ? styles.heroVisible : ''}`}>
+        <div className={styles.heroContainer}>
+          <div className={styles.avatarWrapper}>
+            <div className={styles.avatar}>
+              <img
+                src={mediaFiles[currentMediaIndex]}
+                alt={hero.avatarAlt}
+                className={styles.avatarImage}
+              />
+            </div>
+            <div className={styles.statusDot} />
+          </div>
+
+          <h1 className={styles.heroTitle}>{hero.title}</h1>
+          <p className={styles.heroSub}>
+            {t.hero.subtitle}
+            <br />
+            {t.hero.description}
+            <br />
+            <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: '13px', opacity: 0.8, marginTop: '8px', display: 'inline-block' }}>
+              {hero.japanese}
+            </span>
+          </p>
+        </div>
+      </header>
+
+      {/* ── about cards ──────────────────────────────────── */}
+      <section className={styles.aboutSection}>
+        <div className={styles.aboutGrid}>
+          {aboutItems.map((item, i) => (
+            <div
+              key={item.key}
+              className={`${styles.aboutCard} ${visible ? styles.aboutCardVisible : ''}`}
+              style={{ '--delay': `${i * 80 + 200}ms`, '--accent': item.color } as React.CSSProperties}
+            >
+              <div className={styles.aboutIcon}>{aboutIcons[item.key]}</div>
+              <div className={styles.aboutLabel}>{item.label}</div>
+              <div className={styles.aboutValue}>{item.value}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── projects ─────────────────────────────────────── */}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>{t.projects.sectionTitle}</h2>
+      </div>
+
+      <section className={styles.projectsSection}>
+        <div className={styles.projectsGrid}>
+          <a href="/lol-memo" className={styles.projectCard} style={{ '--project-accent': '#e84057' } as React.CSSProperties}>
+            <div className={styles.projectIconWrapper}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <div className={styles.projectInfo}>
+              <div className={styles.projectTitle}>{t.projects.lolMemoTitle}</div>
+              <div className={styles.projectDesc}>{t.projects.lolMemoDescription}</div>
+            </div>
+            <div className={styles.projectAction}>
+              <span className={styles.projectOpenBtn}>{t.projects.openButton}</span>
+              <svg className={styles.projectArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+              </svg>
+            </div>
+          </a>
+
+          <a href="/nutrition" className={styles.projectCard} style={{ '--project-accent': '#10b981' } as React.CSSProperties}>
+            <div className={styles.projectIconWrapper}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8h1a4 4 0 010 8h-1" />
+                <path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" />
+                <line x1="6" y1="1" x2="6" y2="4" />
+                <line x1="10" y1="1" x2="10" y2="4" />
+                <line x1="14" y1="1" x2="14" y2="4" />
+              </svg>
+            </div>
+            <div className={styles.projectInfo}>
+              <div className={styles.projectTitle}>{t.projects.nutritionTitle}</div>
+              <div className={styles.projectDesc}>{t.projects.nutritionDescription}</div>
+            </div>
+            <div className={styles.projectAction}>
+              <span className={styles.projectOpenBtn}>{t.projects.openButton}</span>
+              <svg className={styles.projectArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+              </svg>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      {/* ── comment wall header ──────────────────────────── */}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>{t.commentWall.sectionTitle}</h2>
+        <span className={styles.sectionBadge}>{comments.length} {t.commentWall.messagesLabel}</span>
+      </div>
+
+      {/* ── comment wall ─────────────────────────────────── */}
+      <section className={styles.wallSection}>
+        <div className={styles.compose}>
+          <div className={styles.composeRow}>
+            <input
+              className={styles.input}
+              type="text"
+              placeholder={t.commentWall.namePlaceholder}
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              maxLength={50}
+            />
+          </div>
+          <textarea
+            className={styles.textarea}
+            placeholder={t.commentWall.messagePlaceholder}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            maxLength={500}
+          />
+          <div className={styles.composeFooter}>
+            <span className={`${styles.charCount} ${content.length > 450 ? styles.charCountWarn : ''}`}>
+              {content.length}/500
+            </span>
+            <button
+              className={styles.submitBtn}
+              onClick={handleSubmit}
+              disabled={!author.trim() || !content.trim() || submitting}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4z" />
+              </svg>
+              {submitting ? t.commentWall.sendingButton : t.commentWall.sendButton}
+            </button>
+          </div>
+        </div>
+
+        {comments.length === 0 ? (
+          <div className={styles.emptyState}>
+            <svg className={styles.emptyIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg>
+            <p className={styles.emptyText}>{t.commentWall.emptyMessage}</p>
+          </div>
+        ) : (
+          <div className={styles.commentList}>
+            {comments.map((c) => (
+              <div key={c.id} className={styles.comment}>
+                <div className={styles.commentHeader}>
+                  <div className={styles.commentAvatar} style={{ background: avatarColor(c.author) }}>
+                    {c.author[0].toUpperCase()}
+                  </div>
+                  <span className={styles.commentAuthor}>{c.author}</span>
+                  <span className={styles.commentTime}>{timeAgo(c.created_at)}</span>
+                </div>
+                <p className={styles.commentBody}>{c.content}</p>
+                <div className={styles.commentActions}>
+                  <button
+                    className={`${styles.likeBtn} ${likedIds.has(c.id) ? styles.likeBtnLiked : ''}`}
+                    onClick={() => handleLike(c.id)}
+                  >
+                    <svg viewBox="0 0 24 24" fill={likedIds.has(c.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                    </svg>
+                    {c.likes > 0 && c.likes}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </>
+  )
+}

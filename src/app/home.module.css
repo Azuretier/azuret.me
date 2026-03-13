@@ -628,9 +628,148 @@
   }
 }
 
-/* ── profile link banner ──────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   Profiles Tab — CSS
+   ═══════════════════════════════════════════════════════════════ */
 
-.profileBanner {
+.profilesHeroIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  margin: 0 auto 24px;
+}
+
+.profilesHeroIcon svg {
+  width: 32px;
+  height: 32px;
+  color: #10b981;
+}
+
+/* ── create profile form ──────────────────────────────────── */
+
+.formSection {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+
+.formCard {
+  border-radius: 14px;
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(18, 18, 26, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 28px;
+}
+
+.formTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.formSub {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 20px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 580px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inputLabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.formError {
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.formSuccess {
+  font-size: 12px;
+  color: #10b981;
+}
+
+.profileSubmitBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.profileSubmitBtn:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.profileSubmitBtn:active {
+  transform: scale(0.97);
+}
+
+.profileSubmitBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── profiles badge ──────────────────────────────────────── */
+
+.profilesBadge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* ── profiles grid ────────────────────────────────────────── */
+
+.profilesGridSection {
   position: relative;
   z-index: 1;
   max-width: 800px;
@@ -638,73 +777,326 @@
   padding: 0 24px 80px;
 }
 
-.profileBannerCard {
-  padding: 28px;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, #10b981 25%, var(--color-border-subtle));
-  background: rgba(18, 18, 26, 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  text-decoration: none;
-  color: inherit;
-  transition: border-color 0.3s ease, transform 0.2s ease;
-}
-
-.profileBannerCard:hover {
-  border-color: color-mix(in srgb, #10b981 50%, var(--color-border-subtle));
-  transform: translateY(-2px);
-}
-
-.profileBannerInfo {
-  display: flex;
-  align-items: center;
+.profilesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 
-.profileBannerIcon {
-  width: 48px;
-  height: 48px;
+@media (max-width: 780px) {
+  .profilesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .profilesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── profile card ─────────────────────────────────────────── */
+
+.profileCard {
+  position: relative;
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(18, 18, 26, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: border-color 0.3s ease, transform 0.2s ease;
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.profileCardVisible {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms),
+    border-color 0.3s ease;
+}
+
+.profileCard:hover {
+  border-color: color-mix(in srgb, var(--accent, #10b981) 30%, transparent);
+  transform: translateY(-2px);
+}
+
+.profileCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.profileAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  flex-shrink: 0;
+}
+
+.profileDisplayName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.profileUsername {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--accent, #10b981);
+}
+
+.profileBio {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+}
+
+.profileWebsite {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--color-accent-light);
+  text-decoration: none;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(91, 110, 225, 0.08);
+  transition: background 0.2s ease;
+}
+
+.profileWebsite:hover {
+  background: rgba(91, 110, 225, 0.15);
+}
+
+.profileWebsite svg {
+  width: 12px;
+  height: 12px;
+}
+
+.profileTime {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Links Tab — CSS
+   ═══════════════════════════════════════════════════════════════ */
+
+.linksMain {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px 120px;
+}
+
+.linksGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 680px) {
+  .linksGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── link card ────────────────────────────────────────────── */
+
+.linkCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(18, 18, 26, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    border-color 0.3s ease,
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s ease;
+
+  /* entrance animation */
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.linkCardVisible {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.linkCard:hover {
+  border-color: color-mix(in srgb, var(--accent, #5b6ee1) 40%, transparent);
+  transform: translateY(-4px);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.3),
+    0 0 0 1px color-mix(in srgb, var(--accent, #5b6ee1) 15%, transparent);
+}
+
+/* glow layer */
+.linkCardGlow {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  opacity: 0;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    color-mix(in srgb, var(--accent, #5b6ee1) 8%, transparent),
+    transparent 40%
+  );
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.linkCard:hover .linkCardGlow {
+  opacity: 1;
+}
+
+/* card header */
+.linkCardHeader {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.linkCardIcon {
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  flex-shrink: 0;
+  background: color-mix(in srgb, var(--accent, #5b6ee1) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #5b6ee1) 18%, transparent);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
-.profileBannerIcon svg {
-  width: 24px;
-  height: 24px;
-  color: #10b981;
+.linkCardIcon svg {
+  width: 22px;
+  height: 22px;
+  color: var(--accent, #5b6ee1);
+  transition: color 0.3s ease;
 }
 
-.profileBannerTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-bottom: 2px;
+.linkCard:hover .linkCardIcon {
+  background: color-mix(in srgb, var(--accent, #5b6ee1) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent, #5b6ee1) 30%, transparent);
 }
 
-.profileBannerSub {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-.profileBannerArrow {
-  width: 20px;
-  height: 20px;
+.linkCardArrow {
+  width: 18px;
+  height: 18px;
   color: var(--color-text-muted);
-  flex-shrink: 0;
   transition: color 0.2s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.profileBannerCard:hover .profileBannerArrow {
-  color: #10b981;
-  transform: translateX(4px);
+.linkCard:hover .linkCardArrow {
+  color: var(--accent, #5b6ee1);
+  transform: translate(2px, -2px);
+}
+
+/* card body */
+.linkCardBody {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.linkCardName {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+  transition: color 0.2s ease;
+}
+
+.linkCard:hover .linkCardName {
+  color: white;
+}
+
+.linkCardHandle {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--accent, var(--color-accent-light));
+  background: color-mix(in srgb, var(--accent, #5b6ee1) 8%, transparent);
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.linkCardDesc {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/* card footer */
+.linkCardFooter {
+  position: relative;
+  z-index: 1;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.linkCardCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  transition: color 0.2s ease, gap 0.3s ease;
+}
+
+.linkCardCta svg {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.linkCard:hover .linkCardCta {
+  color: var(--accent, #5b6ee1);
+}
+
+.linkCard:hover .linkCardCta svg {
+  transform: translateX(3px);
 }
 

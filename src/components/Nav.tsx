@@ -14,16 +14,26 @@ interface SiteStats {
   profiles: number
 }
 
+type TabKey = 'home' | 'profiles' | 'links'
+
 /* ── component ──────────────────────────────────────────────── */
 
-export default function Nav({ activePage }: { activePage: 'home' | 'profiles' | 'links' }) {
+export default function Nav({
+  activeTab = 'home',
+  onTabChange,
+}: {
+  activeTab?: TabKey
+  onTabChange?: (tab: TabKey) => void
+}) {
   const [scrolled, setScrolled] = useState(false)
   const [stats, setStats] = useState<SiteStats>({ comments: 0, likes: 0, profiles: 0 })
   const [widgetOpen, setWidgetOpen] = useState(false)
   const { t } = useLanguage()
 
-  const navLinks = [
-    { label: t.nav.home, href: '/' },
+  const navTabs: { label: string; key: TabKey }[] = [
+    { label: t.nav.home, key: 'home' },
+    { label: t.nav.profiles, key: 'profiles' },
+    { label: t.nav.links, key: 'links' },
   ]
 
   useEffect(() => {
@@ -77,20 +87,25 @@ export default function Nav({ activePage }: { activePage: 'home' | 'profiles' | 
   return (
     <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
       <div className={styles.navInner}>
-        <a href="/" className={styles.logo}>
+        <button
+          onClick={() => { onTabChange?.('home'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+          className={styles.logo}
+          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+        >
           <span className={styles.logoAccent}>{siteIdentity.logoAccent}</span>{siteIdentity.logoSuffix}
-        </a>
+        </button>
 
         <div className={styles.navRight}>
           <div className={styles.navLinks}>
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className={`${styles.navLink} ${activePage === link.href.slice(1) || (activePage === 'home' && link.href === '/') ? styles.navLinkActive : ''}`}
+            {navTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => { onTabChange?.(tab.key); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                className={`${styles.navLink} ${activeTab === tab.key ? styles.navLinkActive : ''}`}
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
               >
-                {link.label}
-              </a>
+                {tab.label}
+              </button>
             ))}
           </div>
 

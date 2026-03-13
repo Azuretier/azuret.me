@@ -1,54 +1,21 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import Nav from '../../components/Nav'
-import Footer from '../../components/Footer'
-import styles from './profiles.module.css'
+import { useState, useEffect, useCallback } from 'react'
+import styles from '../../app/home.module.css'
 import { useLanguage } from '../../i18n/LanguageContext'
-
-/* ── types ────────────────────────────────────────────────── */
-
-interface Profile {
-  id: number
-  username: string
-  display_name: string
-  bio: string
-  website: string
-  created_at: string
-}
-
-/* ── helpers ───────────────────────────────────────────────── */
-
-const AVATAR_COLORS = [
-  '#10b981', '#5b6ee1', '#8b5cf6', '#1d9bf0',
-  '#f59e0b', '#f43f5e', '#ec4899', '#6366f1',
-]
-
-function avatarColor(name: string) {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
-}
-
-const DATE_LOCALES: Record<string, string> = {
-  en: 'en-US',
-  ja: 'ja-JP',
-  th: 'th-TH',
-  es: 'es-ES',
-}
-
-function formatDate(dateStr: string, locale: string) {
-  return new Date(dateStr + 'Z').toLocaleDateString(DATE_LOCALES[locale] || 'en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
+import { avatarColor, formatDate } from '../../utils/helpers'
+import type { Profile } from '../../types'
 
 /* ── component ──────────────────────────────────────────────── */
 
-export default function ProfilesPage() {
-  const [visible, setVisible] = useState(false)
+interface ProfilesTabProps {
+  visible: boolean
+}
+
+export default function ProfilesTab({ visible }: ProfilesTabProps) {
+  const { t, locale } = useLanguage()
+
+  /* ── profiles state ───────────────────────────────────────── */
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -57,26 +24,15 @@ export default function ProfilesPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const { t, locale } = useLanguage()
-
-  useEffect(() => {
-    const timer = setTimeout(() => setVisible(true), 80)
-    return () => clearTimeout(timer)
-  }, [])
 
   const fetchProfiles = useCallback(async () => {
     try {
       const res = await fetch('/api/profiles')
-      if (res.ok) {
-        const data = await res.json()
-        setProfiles(data)
-      }
+      if (res.ok) setProfiles(await res.json())
     } catch { /* silent */ }
   }, [])
 
-  useEffect(() => {
-    fetchProfiles()
-  }, [fetchProfiles])
+  useEffect(() => { fetchProfiles() }, [fetchProfiles])
 
   const handleSubmit = async () => {
     if (!username.trim() || !displayName.trim() || submitting) return
@@ -115,34 +71,28 @@ export default function ProfilesPage() {
     setSubmitting(false)
   }
 
+  /* ── render ─────────────────────────────────────────────── */
+
   return (
-    <div className={styles.page}>
-      {/* ── ambient glow ─────────────────────────────────────── */}
-      <div className={styles.ambientTop} />
-      <div className={styles.ambientBottom} />
-
-      {/* ── nav ──────────────────────────────────────────────── */}
-      <Nav activeTab="profiles" />
-
-      {/* ── hero ─────────────────────────────────────────────── */}
+    <>
+      {/* ── hero ─────────────────────────────────────────── */}
       <header className={`${styles.hero} ${visible ? styles.heroVisible : ''}`}>
         <div className={styles.heroContainer}>
-          <div className={styles.heroIcon}>
+          <div className={styles.profilesHeroIcon}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
             </svg>
           </div>
-
-          <h1 className={styles.heroTitle}>{t.profilesPage.heroTitle}</h1>
-          <p className={styles.heroSub}>
-            {t.profilesPage.heroSub}
-          </p>
+          <h1 className={styles.heroTitle} style={{ background: 'none', WebkitTextFillColor: 'var(--color-text-primary)', animation: 'none' }}>
+            {t.profilesPage.heroTitle}
+          </h1>
+          <p className={styles.heroSub}>{t.profilesPage.heroSub}</p>
         </div>
       </header>
 
-      {/* ── create profile form ──────────────────────────────── */}
+      {/* ── create form ──────────────────────────────────── */}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>{t.profilesPage.createTitle}</h2>
       </div>
@@ -206,7 +156,7 @@ export default function ProfilesPage() {
               {success && <span className={styles.formSuccess}>{success}</span>}
             </div>
             <button
-              className={styles.submitBtn}
+              className={styles.profileSubmitBtn}
               onClick={handleSubmit}
               disabled={!username.trim() || !displayName.trim() || submitting}
             >
@@ -222,14 +172,13 @@ export default function ProfilesPage() {
         </div>
       </section>
 
-      {/* ── profiles grid header ─────────────────────────────── */}
+      {/* ── members grid ─────────────────────────────────── */}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>{t.profilesPage.membersTitle}</h2>
-        <span className={styles.sectionBadge}>{profiles.length} {t.profilesPage.profilesCount}</span>
+        <span className={styles.profilesBadge}>{profiles.length} {t.profilesPage.profilesCount}</span>
       </div>
 
-      {/* ── profiles grid ────────────────────────────────────── */}
-      <section className={styles.profilesSection}>
+      <section className={styles.profilesGridSection}>
         <div className={styles.profilesGrid}>
           {profiles.length === 0 ? (
             <div className={styles.emptyState}>
@@ -262,12 +211,7 @@ export default function ProfilesPage() {
                   {p.bio && <p className={styles.profileBio}>{p.bio}</p>}
 
                   {p.website && (
-                    <a
-                      href={p.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.profileWebsite}
-                    >
+                    <a href={p.website} target="_blank" rel="noopener noreferrer" className={styles.profileWebsite}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
                       </svg>
@@ -284,9 +228,6 @@ export default function ProfilesPage() {
           )}
         </div>
       </section>
-
-      {/* ── footer ───────────────────────────────────────────── */}
-      <Footer />
-    </div>
+    </>
   )
 }

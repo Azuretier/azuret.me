@@ -4,11 +4,15 @@ import styles from './Footer.module.css'
 import { siteIdentity, footerLinks } from '../config/siteConfig'
 import { useLanguage } from '../i18n/LanguageContext'
 
-export default function Footer() {
+type TabKey = 'home' | 'profiles' | 'links'
+
+export default function Footer({ onTabChange }: { onTabChange?: (tab: TabKey) => void }) {
   const { t } = useLanguage()
 
-  const siteLinks = [
-    { label: t.nav.home, href: '/' },
+  const siteLinks: { label: string; tab: TabKey }[] = [
+    { label: t.nav.home, tab: 'home' },
+    { label: t.nav.profiles, tab: 'profiles' },
+    { label: t.nav.links, tab: 'links' },
   ]
 
   return (
@@ -43,13 +47,14 @@ export default function Footer() {
         <div className={styles.footerCol}>
           <h4 className={styles.footerHeading}>{t.footer.site}</h4>
           {siteLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
+            <button
+              key={link.tab}
+              onClick={() => { onTabChange?.(link.tab); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
               className={styles.footerLink}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}
             >
               {link.label}
-            </a>
+            </button>
           ))}
         </div>
       </div>

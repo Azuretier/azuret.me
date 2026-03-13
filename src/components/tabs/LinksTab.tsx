@@ -1,13 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import Nav from '../../components/Nav'
-import Footer from '../../components/Footer'
-import styles from './links.module.css'
+import styles from '../../app/home.module.css'
 import { socialLinks, linksPage } from '../../config/siteConfig'
 import { useLanguage } from '../../i18n/LanguageContext'
 
-/* ── icons ───────────────────────────────────────────────────── */
+/* ── social icons ────────────────────────────────────────── */
 
 const socialIcons: Record<string, React.ReactNode> = {
   x: (
@@ -34,9 +31,11 @@ const socialIcons: Record<string, React.ReactNode> = {
 
 /* ── component ──────────────────────────────────────────────── */
 
-export default function LinksPage() {
-  const [visible, setVisible] = useState(false)
-  const heroRef = useRef<HTMLDivElement>(null)
+interface LinksTabProps {
+  visible: boolean
+}
+
+export default function LinksTab({ visible }: LinksTabProps) {
   const { t } = useLanguage()
 
   const descriptionMap: Record<string, string> = {
@@ -46,88 +45,66 @@ export default function LinksPage() {
     website: t.linksPage.websiteDescription,
   }
 
-  useEffect(() => {
-    // stagger-in entrance
-    const timer = setTimeout(() => setVisible(true), 80)
-    return () => clearTimeout(timer)
-  }, [])
-
   return (
-    <div className={styles.page}>
-      {/* ── ambient glow ─────────────────────────────────────── */}
-      <div className={styles.ambientTop} />
-      <div className={styles.ambientBottom} />
-
-      {/* ── nav ──────────────────────────────────────────────── */}
-      <Nav activeTab="links" />
-
-      {/* ── hero ─────────────────────────────────────────────── */}
-      <header
-        ref={heroRef}
-        className={`${styles.hero} ${visible ? styles.heroVisible : ''}`}
-      >
+    <>
+      {/* ── hero ─────────────────────────────────────────── */}
+      <header className={`${styles.hero} ${visible ? styles.heroVisible : ''}`}>
         <div className={styles.heroContainer}>
           <div className={styles.avatarWrapper}>
             <div className={styles.avatar}>
-              <span>{linksPage.avatarLetter}</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '32px', fontWeight: 600 }}>
+                {linksPage.avatarLetter}
+              </span>
             </div>
             <div className={styles.statusDot} />
           </div>
 
           <h1 className={styles.heroTitle}>{t.linksPage.title}</h1>
-          <p className={styles.heroSub}>
-            {t.linksPage.subtitle}
-          </p>
+          <p className={styles.heroSub}>{t.linksPage.subtitle}</p>
         </div>
       </header>
 
-      {/* ── cards grid ───────────────────────────────────────── */}
-      <main className={styles.main}>
-        <div className={styles.grid}>
+      {/* ── cards grid ───────────────────────────────────── */}
+      <section className={styles.linksMain}>
+        <div className={styles.linksGrid}>
           {socialLinks.map((s, i) => (
             <a
               key={s.id}
               href={s.href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`${styles.card} ${visible ? styles.cardVisible : ''}`}
+              className={`${styles.linkCard} ${visible ? styles.linkCardVisible : ''}`}
               style={{ '--delay': `${i * 80 + 200}ms`, '--accent': s.color } as React.CSSProperties}
             >
-              {/* glow */}
-              <div className={styles.cardGlow} />
+              <div className={styles.linkCardGlow} />
 
-              <div className={styles.cardHeader}>
-                <div className={styles.cardIcon}>
+              <div className={styles.linkCardHeader}>
+                <div className={styles.linkCardIcon}>
                   {socialIcons[s.id]}
                 </div>
-                <svg className={styles.cardArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M7 17L17 7" />
-                  <path d="M7 7h10v10" />
+                <svg className={styles.linkCardArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 17L17 7" /><path d="M7 7h10v10" />
                 </svg>
               </div>
 
-              <div className={styles.cardBody}>
-                <h3 className={styles.cardName}>{s.name}</h3>
-                <span className={styles.cardHandle}>{s.handle}</span>
-                <p className={styles.cardDesc}>{descriptionMap[s.id] || s.description}</p>
+              <div className={styles.linkCardBody}>
+                <h3 className={styles.linkCardName}>{s.name}</h3>
+                <span className={styles.linkCardHandle}>{s.handle}</span>
+                <p className={styles.linkCardDesc}>{descriptionMap[s.id] || s.description}</p>
               </div>
 
-              <div className={styles.cardFooter}>
-                <span className={styles.cardCta}>
+              <div className={styles.linkCardFooter}>
+                <span className={styles.linkCardCta}>
                   {t.linksPage.visitButton}
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14" />
-                    <path d="M12 5l7 7-7 7" />
+                    <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
                   </svg>
                 </span>
               </div>
             </a>
           ))}
         </div>
-      </main>
-
-      {/* ── footer ───────────────────────────────────────────── */}
-      <Footer />
-    </div>
+      </section>
+    </>
   )
 }

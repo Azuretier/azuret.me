@@ -27,6 +27,8 @@ export const hero = {
 
 export const navLinks = [
     { label: 'Home', href: '/', active: true },
+    { label: 'Profiles', href: '/profiles' },
+    { label: 'Links', href: '/links' },
 ]
 
 /* ── About Me Cards ────────────────────────────────────────── */
@@ -95,6 +97,8 @@ export const footerLinks = {
         heading: 'Site',
         links: [
             { label: 'Home', href: '/' },
+            { label: 'Profiles', href: '/profiles' },
+            { label: 'Links', href: '/links' },
         ],
     },
 }
