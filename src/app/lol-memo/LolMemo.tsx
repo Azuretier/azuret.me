@@ -88,6 +88,10 @@ export default function LolMemo() {
     const [ddVer, setDdVer] = useState('')
     const [headerTime, setHeaderTime] = useState('')
 
+    /* ── Fullscreen state ── */
+    const [isFullscreen, setIsFullscreen] = useState(false)
+    const containerRef = useRef<HTMLDivElement>(null)
+
     /* ── Calc state ── */
     const [calcAH, setCalcAH] = useState(0)
     const [calcBaseCD, setCalcBaseCD] = useState(10)
@@ -340,10 +344,25 @@ export default function LolMemo() {
     }, [notes, cats, activeCat])
 
 
+    /* ── Fullscreen toggle ── */
+    const toggleFullscreen = useCallback(() => {
+        if (!document.fullscreenElement) {
+            containerRef.current?.requestFullscreen().catch(() => {})
+        } else {
+            document.exitFullscreen().catch(() => {})
+        }
+    }, [])
+
+    useEffect(() => {
+        const handler = () => setIsFullscreen(!!document.fullscreenElement)
+        document.addEventListener('fullscreenchange', handler)
+        return () => document.removeEventListener('fullscreenchange', handler)
+    }, [])
+
 
     /* ──────── RENDER ──────── */
     return (
-        <div className="container">
+        <div className={`container ${isFullscreen ? 'containerFullscreen' : ''}`} ref={containerRef}>
             <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet" />
 
             {/* HEADER */}
@@ -355,7 +374,12 @@ export default function LolMemo() {
                         <div className="logoSub">LEAGUE OF LEGENDS MEMO</div>
                     </div>
                 </div>
-                <div className="headerTime">{headerTime}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div className="headerTime">{headerTime}</div>
+                    <button className="btnFullscreen" onClick={toggleFullscreen} title={isFullscreen ? '全画面を終了' : '全画面表示'}>
+                        {isFullscreen ? '⊠' : '⛶'}
+                    </button>
+                </div>
             </header>
 
             {/* NAV TABS */}
@@ -540,7 +564,7 @@ export default function LolMemo() {
                                             <tr className="spellRow">
                                                 <td><div className="keyBadge keyP">PAS</div></td>
                                                 <td><div className="spellNameCell">
-                                                    {passive?.icon ? <img className="spellIconImg" src={passive.icon} alt="" onError={e => { (e.target as HTMLImageElement).style.opacity = '.2' }} /> : <div className="spellIconImg" />}
+                                                    {passive?.image?.full && ddVer ? <img className="spellIconImg" src={`https://ddragon.leagueoflegends.com/cdn/${ddVer}/img/passive/${passive.image.full}`} alt="" onError={e => { (e.target as HTMLImageElement).style.opacity = '.2' }} /> : <div className="spellIconImg" />}
                                                     <span className="spellName">{passive?.name || 'Passive'}</span>
                                                 </div></td>
                                                 <td className="cdCell"><span className="noCd">— パッシブ</span></td>
@@ -565,7 +589,7 @@ export default function LolMemo() {
                                                     <tr key={key} className="spellRow">
                                                         <td><div className={`keyBadge ${SLOT_CLS[i]}`}>{key}</div></td>
                                                         <td><div className="spellNameCell">
-                                                            {slot.icon ? <img className="spellIconImg" src={slot.icon} alt="" onError={e => { (e.target as HTMLImageElement).style.opacity = '.2' }} /> : <div className="spellIconImg" />}
+                                                            {slot.image?.full && ddVer ? <img className="spellIconImg" src={`https://ddragon.leagueoflegends.com/cdn/${ddVer}/img/spell/${slot.image.full}`} alt="" onError={e => { (e.target as HTMLImageElement).style.opacity = '.2' }} /> : <div className="spellIconImg" />}
                                                             <span className="spellName">{slot.name || key}</span>
                                                         </div></td>
                                                         <td className="cdCell">

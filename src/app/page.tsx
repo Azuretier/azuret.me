@@ -201,6 +201,60 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── projects header ──────────────────────────────────── */}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>{t.projects.sectionTitle}</h2>
+      </div>
+
+      {/* ── projects section ─────────────────────────────────── */}
+      <section className={styles.projectsSection}>
+        <div className={styles.projectsGrid}>
+          <a href="/lol-memo" className={styles.projectCard} style={{ '--project-accent': '#e84057' } as React.CSSProperties}>
+            <div className={styles.projectIconWrapper}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <div className={styles.projectInfo}>
+              <div className={styles.projectTitle}>{t.projects.lolMemoTitle}</div>
+              <div className={styles.projectDesc}>{t.projects.lolMemoDescription}</div>
+            </div>
+            <div className={styles.projectAction}>
+              <span className={styles.projectOpenBtn}>{t.projects.openButton}</span>
+              <svg className={styles.projectArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14" />
+                <path d="M12 5l7 7-7 7" />
+              </svg>
+            </div>
+          </a>
+
+          <a href="/nutrition" className={styles.projectCard} style={{ '--project-accent': '#10b981' } as React.CSSProperties}>
+            <div className={styles.projectIconWrapper}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8h1a4 4 0 010 8h-1" />
+                <path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" />
+                <line x1="6" y1="1" x2="6" y2="4" />
+                <line x1="10" y1="1" x2="10" y2="4" />
+                <line x1="14" y1="1" x2="14" y2="4" />
+              </svg>
+            </div>
+            <div className={styles.projectInfo}>
+              <div className={styles.projectTitle}>{t.projects.nutritionTitle}</div>
+              <div className={styles.projectDesc}>{t.projects.nutritionDescription}</div>
+            </div>
+            <div className={styles.projectAction}>
+              <span className={styles.projectOpenBtn}>{t.projects.openButton}</span>
+              <svg className={styles.projectArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14" />
+                <path d="M12 5l7 7-7 7" />
+              </svg>
+            </div>
+          </a>
+        </div>
+      </section>
+
       {/* ── comment wall header ──────────────────────────────── */}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>{t.commentWall.sectionTitle}</h2>
@@ -284,29 +338,6 @@ export default function HomePage() {
             ))}
           </div>
         )}
-      </section>
-
-      {/* ── profiles banner ──────────────────────────────────── */}
-      <section className={styles.profileBanner}>
-        <a href="/profiles" className={styles.profileBannerCard}>
-          <div className={styles.profileBannerInfo}>
-            <div className={styles.profileBannerIcon}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-              </svg>
-            </div>
-            <div>
-              <div className={styles.profileBannerTitle}>{t.profileBanner.title}</div>
-              <div className={styles.profileBannerSub}>{t.profileBanner.subtitle}</div>
-            </div>
-          </div>
-          <svg className={styles.profileBannerArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14" />
-            <path d="M12 5l7 7-7 7" />
-          </svg>
-        </a>
       </section>
 
       {/* ── footer ───────────────────────────────────────────── */}

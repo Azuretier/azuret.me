@@ -24,8 +24,6 @@ export default function Nav({ activePage }: { activePage: 'home' | 'profiles' | 
 
   const navLinks = [
     { label: t.nav.home, href: '/' },
-    { label: t.nav.profiles, href: '/profiles' },
-    { label: t.nav.links, href: '/links' },
   ]
 
   useEffect(() => {

@@ -9,8 +9,6 @@ export default function Footer() {
 
   const siteLinks = [
     { label: t.nav.home, href: '/' },
-    { label: t.nav.profiles, href: '/profiles' },
-    { label: t.nav.links, href: '/links' },
   ]
 
   return (

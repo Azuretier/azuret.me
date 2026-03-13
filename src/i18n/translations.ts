@@ -96,6 +96,16 @@ export interface Translations {
     joinedPrefix: string
   }
 
+  /* ── projects ────────────────────────────────────────────── */
+  projects: {
+    sectionTitle: string
+    lolMemoTitle: string
+    lolMemoDescription: string
+    nutritionTitle: string
+    nutritionDescription: string
+    openButton: string
+  }
+
   /* ── advancement widget ──────────────────────────────────── */
   widget: {
     communityProgress: string
@@ -178,6 +188,14 @@ const en: Translations = {
     emptyProfiles: 'No profiles yet. Be the first to join!',
     joinedPrefix: 'Joined',
   },
+  projects: {
+    sectionTitle: 'Projects',
+    lolMemoTitle: 'LoL Memo',
+    lolMemoDescription: 'Champion ability reference tool for League of Legends.',
+    nutritionTitle: 'Nutrition Tracker',
+    nutritionDescription: 'Daily food & drink intake tracker with nutritional analysis.',
+    openButton: 'Open',
+  },
   widget: {
     communityProgress: 'Community Progress',
     level: 'Level',
@@ -258,6 +276,14 @@ const ja: Translations = {
     profilesCount: 'プロフィール',
     emptyProfiles: 'まだプロフィールがありません。最初に参加しよう！',
     joinedPrefix: '参加日',
+  },
+  projects: {
+    sectionTitle: 'プロジェクト',
+    lolMemoTitle: 'LoL Memo',
+    lolMemoDescription: 'League of Legendsのチャンピオンアビリティリファレンスツール。',
+    nutritionTitle: '栄養トラッカー',
+    nutritionDescription: '毎日の食事・飲料の摂取量と栄養分析トラッカー。',
+    openButton: '開く',
   },
   widget: {
     communityProgress: 'コミュニティの進捗',
@@ -340,6 +366,14 @@ const th: Translations = {
     emptyProfiles: 'ยังไม่มีโปรไฟล์ เป็นคนแรกที่เข้าร่วม!',
     joinedPrefix: 'เข้าร่วม',
   },
+  projects: {
+    sectionTitle: 'โปรเจกต์',
+    lolMemoTitle: 'LoL Memo',
+    lolMemoDescription: 'เครื่องมืออ้างอิงความสามารถแชมเปี้ยนสำหรับ League of Legends',
+    nutritionTitle: 'ตัวติดตามโภชนาการ',
+    nutritionDescription: 'ติดตามอาหารและเครื่องดื่มประจำวันพร้อมการวิเคราะห์โภชนาการ',
+    openButton: 'เปิด',
+  },
   widget: {
     communityProgress: 'ความคืบหน้าชุมชน',
     level: 'ระดับ',
@@ -420,6 +454,14 @@ const es: Translations = {
     profilesCount: 'perfiles',
     emptyProfiles: 'No hay perfiles aun. Se el primero en unirte!',
     joinedPrefix: 'Se unio el',
+  },
+  projects: {
+    sectionTitle: 'Proyectos',
+    lolMemoTitle: 'LoL Memo',
+    lolMemoDescription: 'Herramienta de referencia de habilidades de campeones de League of Legends.',
+    nutritionTitle: 'Rastreador Nutricional',
+    nutritionDescription: 'Rastreador diario de alimentos y bebidas con analisis nutricional.',
+    openButton: 'Abrir',
   },
   widget: {
     communityProgress: 'Progreso de la Comunidad',

@@ -11,6 +11,35 @@
   padding-bottom: 24px;
 }
 
+
+.containerFullscreen {
+  max-width: 100%;
+  overflow-y: auto;
+}
+
+.container:fullscreen {
+  background: #F9FAFB;
+}
+
+.btnFullscreen {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  background: #F3F4F6;
+  color: #374151;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btnFullscreen:hover {
+  background: #E5E7EB;
+  border-color: #D1D5DB;
+}
+
 /* ── Header ── */
 .header {
   background: #FFFFFF;

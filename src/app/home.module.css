@@ -503,6 +503,131 @@
   color: var(--color-text-muted);
 }
 
+/* ── projects section ─────────────────────────────────────── */
+
+.projectsSection {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+
+.projectsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.projectCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 28px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(18, 18, 26, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.projectCard:hover {
+  border-color: color-mix(in srgb, var(--project-accent, #5b6ee1) 40%, var(--color-border-subtle));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--project-accent, #5b6ee1) 10%, transparent);
+}
+
+.projectIconWrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--project-accent, #5b6ee1) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--project-accent, #5b6ee1) 20%, transparent);
+  flex-shrink: 0;
+}
+
+.projectIconWrapper svg {
+  width: 24px;
+  height: 24px;
+  color: var(--project-accent, #5b6ee1);
+}
+
+.projectInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.projectTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.projectDesc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.projectAction {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.projectOpenBtn {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--project-accent, #5b6ee1);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.projectCard:hover .projectOpenBtn {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.projectArrow {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: color 0.2s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.projectCard:hover .projectArrow {
+  color: var(--project-accent, #5b6ee1);
+  transform: translateX(4px);
+}
+
+@media (max-width: 580px) {
+  .projectCard {
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 20px;
+  }
+
+  .projectAction {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .projectOpenBtn {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* ── profile link banner ──────────────────────────────────── */
 
 .profileBanner {
