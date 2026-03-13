@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import './lol-memo.css'
 
 /* ── Constants ── */
-const MERAKI_URL = '/api/lol-champions'
+const DD_API_URL = '/api/lol-champions'
 const HN = 16
 const SK = 'lol_notes_v3'
 const CK = 'lol_cats_v3'
@@ -82,7 +82,7 @@ export default function LolMemo() {
     const [cdVer, setCdVer] = useState('—')
     const [cdState, setCdState] = useState<'loading' | 'error' | 'done'>('loading')
     const [progPct, setProgPct] = useState(0)
-    const [loadSub, setLoadSub] = useState('Meraki CDN に接続中...')
+    const [loadSub, setLoadSub] = useState('Data Dragon に接続中...')
     const [errTitle, setErrTitle] = useState('')
     const [errDetail, setErrDetail] = useState('')
     const [ddVer, setDdVer] = useState('')
@@ -211,46 +211,52 @@ export default function LolMemo() {
     }
 
     const loadChamps = useCallback(async () => {
-        setCdState('loading'); setProgPct(5); setLoadSub('Meraki CDN から全チャンピオンデータを取得中...')
+        setCdState('loading'); setProgPct(5); setLoadSub('Data Dragon から全チャンピオンデータを取得中...')
         try {
-            const res = await fetch(MERAKI_URL)
+            const res = await fetch(DD_API_URL)
             if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
             setProgPct(60); setLoadSub('JSONをパース中...')
-            const data = await res.json()
+            const json = await res.json()
+            const { version, champions: data } = json
             setProgPct(80); setLoadSub('データを整形中...')
 
-            const champs: Champ[] = Object.values(data).map((c: any) => ({
-                id: c.key || c.name,
-                name: c.name,
-                title: c.title,
-                tags: (c.roles || []).map((r: string) => r.charAt(0).toUpperCase() + r.slice(1).toLowerCase()),
-                roles: c.roles || [],
-                abilities: c.abilities || {},
-                icon: c.icon || '',
-                stats: {
-                    ad: c.stats?.attackDamage?.flat || 0,
-                    as: c.stats?.attackSpeed?.flat || 0,
-                    hp: c.stats?.health?.flat || 0,
-                    armor: c.stats?.armor?.flat || 0,
-                    mr: c.stats?.magicResistance?.flat || 0,
-                    range: c.stats?.attackRange?.flat || 0,
-                    ms: c.stats?.movespeed?.flat || 0,
-                    attackType: c.attackType || '',
-                },
-            })).sort((a: Champ, b: Champ) => a.name.localeCompare(b.name, 'ja'))
+            // Set version info
+            if (version) {
+                setDdVer(version)
+                const parts = version.split('.')
+                const major = parseInt(parts[0]) + 10
+                const minor = parts[1].padStart(2, '0')
+                setCdVer(`PATCH ${major}.${minor}`)
+            }
 
-            try {
-                const vRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json')
-                if (vRes.ok) {
-                    const v = await vRes.json()
-                    setDdVer(v[0])
-                    // Convert DD version (e.g. "16.5.1") to game patch (e.g. "26.05")
-                    const parts = v[0].split('.')
-                    const major = parseInt(parts[0]) + 10
-                    const minor = parts[1].padStart(2, '0')
-                    setCdVer(`PATCH ${major}.${minor}`)
+            const champs: Champ[] = Object.values(data).map((c: any) => {
+                const rangeVal = c.stats?.attackrange || 0
+                return {
+                    id: c.id,
+                    name: c.name,
+                    title: c.title,
+                    tags: c.tags || [],
+                    roles: (c.tags || []).map((t: string) => t.toLowerCase()),
+                    abilities: {
+                        P: [c.passive],
+                        Q: [c.spells?.[0]],
+                        W: [c.spells?.[1]],
+                        E: [c.spells?.[2]],
+                        R: [c.spells?.[3]],
+                    },
+                    icon: '',
+                    stats: {
+                        ad: c.stats?.attackdamage || 0,
+                        as: c.stats?.attackspeed || 0,
+                        hp: c.stats?.hp || 0,
+                        armor: c.stats?.armor || 0,
+                        mr: c.stats?.spellblock || 0,
+                        range: rangeVal,
+                        ms: c.stats?.movespeed || 0,
+                        attackType: rangeVal >= 300 ? 'Ranged' : 'Melee',
+                    },
                 }
-            } catch { /* ignore */ }
+            }).sort((a: Champ, b: Champ) => a.name.localeCompare(b.name, 'ja'))
 
             setProgPct(100); setLoadSub('完了！')
             setAllChamps(champs)
@@ -258,7 +264,7 @@ export default function LolMemo() {
             setCdState('done')
         } catch (err: any) {
             setErrTitle('読み込みに失敗しました')
-            setErrDetail(`エラー: ${err.message}\n\nMeraki CDN (cdn.merakianalytics.com) への接続に失敗しました。\nインターネット接続を確認してから RETRY してください。`)
+            setErrDetail(`エラー: ${err.message}\n\nData Dragon (ddragon.leagueoflegends.com) への接続に失敗しました。\nインターネット接続を確認してから RETRY してください。`)
             setCdState('error')
         }
     }, [])
@@ -285,56 +291,40 @@ export default function LolMemo() {
 
     const getAbilityCooldowns = (ability: any): number[] => {
         if (!ability) return []
-        // Try direct cooldown array
         if (Array.isArray(ability.cooldown)) {
-            const cds = ability.cooldown.modifiers
-                ? ability.cooldown.modifiers[0]?.values || []
-                : ability.cooldown
-            return Array.isArray(cds) ? cds.map(Number).filter((v: number) => !isNaN(v)) : []
+            return ability.cooldown.map(Number).filter((v: number) => !isNaN(v))
         }
-        // Try cooldowns array
-        if (Array.isArray(ability.cooldowns)) return ability.cooldowns.map(Number).filter((v: number) => !isNaN(v))
-        // Try cooldown as object with modifiers
-        if (ability.cooldown && typeof ability.cooldown === 'object' && ability.cooldown.modifiers) {
-            return ability.cooldown.modifiers[0]?.values?.map(Number).filter((v: number) => !isNaN(v)) || []
+        if (ability.cooldownBurn) {
+            return ability.cooldownBurn.split('/').map(Number).filter((v: number) => !isNaN(v))
         }
         return []
     }
 
     const getAbilityRange = (ability: any): string => {
         if (!ability) return '—'
-        const ra = ability.range || ability.ranges
-        if (!ra) return '—'
-        if (Array.isArray(ra)) {
-            const rArr = [...new Set(ra.map((r: any) => parseInt(r)).filter((r: number) => r > 0))]
+        if (ability.rangeBurn) {
+            const vals = [...new Set(ability.rangeBurn.split('/').map(Number).filter((v: number) => v > 0))]
+            return vals.length ? vals.join('/') : '—'
+        }
+        if (Array.isArray(ability.range)) {
+            const rArr = [...new Set(ability.range.map(Number).filter((r: number) => r > 0))]
             return rArr.length ? rArr.join('/') : '—'
         }
-        if (typeof ra === 'number' && ra > 0) return String(ra)
         return '—'
     }
 
     const getAbilityCost = (ability: any): string => {
         if (!ability) return '—'
-        const ca = ability.cost || ability.costs
-        if (!ca) return '—'
-        if (Array.isArray(ca)) {
-            const cArr = [...new Set(ca)]
-            if (cArr.length && Number(cArr[0]) > 0) {
-                let result = cArr.join('/')
-                if (ability.costType) result += ` ${ability.costType}`
-                return result
-            }
+        if (ability.costBurn) {
+            const costVal = ability.costBurn
+            if (costVal === '0') return '—'
+            const costType = ability.costType?.replace(/{{ abilityresourcename }}/gi, '').trim() || ''
+            return costType ? `${costVal} ${costType}` : costVal
         }
-        if (typeof ca === 'object' && !Array.isArray(ca) && ca.modifiers) {
-            const vals = ca.modifiers[0]?.values || []
-            const cArr = [...new Set(vals)]
-            if (cArr.length && Number(cArr[0]) > 0) {
-                let result = cArr.join('/')
-                if (ability.costType) result += ` ${ability.costType}`
-                return result
-            }
+        if (ability.resource) {
+            if (ability.resource === 'No Cost' || ability.resource === 'No cost') return '—'
+            return ability.resource
         }
-        if (typeof ca === 'number' && ca > 0) return `${ca}${ability.costType ? ' ' + ability.costType : ''}`
         return '—'
     }
 
