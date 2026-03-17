@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import './lol-memo.css'
 
 /* ── Constants ── */
@@ -88,9 +89,7 @@ export default function LolMemo() {
     const [ddVer, setDdVer] = useState('')
     const [headerTime, setHeaderTime] = useState('')
 
-    /* ── Fullscreen state ── */
-    const [isFullscreen, setIsFullscreen] = useState(false)
-    const containerRef = useRef<HTMLDivElement>(null)
+
 
     /* ── Calc state ── */
     const [calcAH, setCalcAH] = useState(0)
@@ -317,6 +316,11 @@ export default function LolMemo() {
         return '—'
     }
 
+    const cleanDescription = (desc: string): string => {
+        if (!desc) return ''
+        return desc.replace(/\{\{\s*\w+\s*\}\}/g, '(?)')
+    }
+
     const getAbilityCost = (ability: any): string => {
         if (!ability) return '—'
         if (ability.costBurn) {
@@ -344,25 +348,12 @@ export default function LolMemo() {
     }, [notes, cats, activeCat])
 
 
-    /* ── Fullscreen toggle ── */
-    const toggleFullscreen = useCallback(() => {
-        if (!document.fullscreenElement) {
-            containerRef.current?.requestFullscreen().catch(() => {})
-        } else {
-            document.exitFullscreen().catch(() => {})
-        }
-    }, [])
 
-    useEffect(() => {
-        const handler = () => setIsFullscreen(!!document.fullscreenElement)
-        document.addEventListener('fullscreenchange', handler)
-        return () => document.removeEventListener('fullscreenchange', handler)
-    }, [])
 
 
     /* ──────── RENDER ──────── */
     return (
-        <div className={`container ${isFullscreen ? 'containerFullscreen' : ''}`} ref={containerRef}>
+        <div className="container">
             <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet" />
 
             {/* HEADER */}
@@ -374,12 +365,7 @@ export default function LolMemo() {
                         <div className="logoSub">LEAGUE OF LEGENDS MEMO</div>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div className="headerTime">{headerTime}</div>
-                    <button className="btnFullscreen" onClick={toggleFullscreen} title={isFullscreen ? '全画面を終了' : '全画面表示'}>
-                        {isFullscreen ? '⊠' : '⛶'}
-                    </button>
-                </div>
+                <div className="headerTime">{headerTime}</div>
             </header>
 
             {/* NAV TABS */}
@@ -570,6 +556,12 @@ export default function LolMemo() {
                                                 <td className="cdCell"><span className="noCd">— パッシブ</span></td>
                                                 <td className="rngCell">—</td><td className="costCell">—</td>
                                             </tr>
+                                            {passive?.description && (
+                                                <tr className="spellDescRow">
+                                                    <td></td>
+                                                    <td colSpan={4}><div className="spellDesc" dangerouslySetInnerHTML={{ __html: cleanDescription(passive.description) }} /></td>
+                                                </tr>
+                                            )}
                                             {/* Q W E R */}
                                             {SLOT_KEYS.map((key, i) => {
                                                 const slot = getAbility(ab, key)
@@ -586,7 +578,8 @@ export default function LolMemo() {
                                                 const rngs = getAbilityRange(slot)
                                                 const cost = getAbilityCost(slot)
                                                 return (
-                                                    <tr key={key} className="spellRow">
+                                                    <React.Fragment key={key}>
+                                                    <tr className="spellRow">
                                                         <td><div className={`keyBadge ${SLOT_CLS[i]}`}>{key}</div></td>
                                                         <td><div className="spellNameCell">
                                                             {slot.image?.full && ddVer ? <img className="spellIconImg" src={`https://ddragon.leagueoflegends.com/cdn/${ddVer}/img/spell/${slot.image.full}`} alt="" onError={e => { (e.target as HTMLImageElement).style.opacity = '.2' }} /> : <div className="spellIconImg" />}
@@ -602,6 +595,13 @@ export default function LolMemo() {
                                                         <td className="rngCell">{rngs}</td>
                                                         <td className="costCell">{cost}</td>
                                                     </tr>
+                                                    {slot.description && (
+                                                        <tr className="spellDescRow">
+                                                            <td></td>
+                                                            <td colSpan={4}><div className="spellDesc" dangerouslySetInnerHTML={{ __html: cleanDescription(slot.description) }} /></td>
+                                                        </tr>
+                                                    )}
+                                                    </React.Fragment>
                                                 )
                                             })}
                                         </tbody>

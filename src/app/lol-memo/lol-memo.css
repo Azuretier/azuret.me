@@ -6,39 +6,12 @@
   background: #F9FAFB;
   color: #111827;
   min-height: 100vh;
-  max-width: 480px;
+
   margin: 0 auto;
   padding-bottom: 24px;
 }
 
 
-.containerFullscreen {
-  max-width: 100%;
-  overflow-y: auto;
-}
-
-.container:fullscreen {
-  background: #F9FAFB;
-}
-
-.btnFullscreen {
-  width: 30px;
-  height: 30px;
-  border: 1px solid #E5E7EB;
-  border-radius: 6px;
-  background: #F3F4F6;
-  color: #374151;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, border-color 0.15s;
-}
-.btnFullscreen:hover {
-  background: #E5E7EB;
-  border-color: #D1D5DB;
-}
 
 /* ── Header ── */
 .header {
@@ -1219,6 +1192,21 @@
 .spellRow td {
   padding: 10px 8px;
   vertical-align: middle;
+}
+
+.spellDescRow td {
+  padding: 0 8px 10px;
+  vertical-align: top;
+}
+
+.spellDesc {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #6B7280;
+  background: #F9FAFB;
+  border-radius: 6px;
+  padding: 8px 10px;
+  border-left: 2px solid #E5E7EB;
 }
 
 .keyBadge {
