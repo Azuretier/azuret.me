@@ -95,6 +95,19 @@ export default function LolMemo() {
     const [calcAH, setCalcAH] = useState(0)
     const [calcBaseCD, setCalcBaseCD] = useState(10)
 
+    /* ── Inline Calc (from CD chips) ── */
+    const [inlineCalcOpen, setInlineCalcOpen] = useState(false)
+    const [inlineCalcBaseCD, setInlineCalcBaseCD] = useState(10)
+    const [inlineCalcAH, setInlineCalcAH] = useState(0)
+    const [inlineCalcLabel, setInlineCalcLabel] = useState('')
+
+    const openInlineCalc = (cd: number, champName: string, key: string) => {
+        setInlineCalcBaseCD(cd)
+        setInlineCalcAH(0)
+        setInlineCalcLabel(`${champName} — ${key}`)
+        setInlineCalcOpen(true)
+    }
+
     /* ── Init (with migration from old body format) ── */
     useEffect(() => {
         const savedNotes = localStorage.getItem(SK)
@@ -588,7 +601,7 @@ export default function LolMemo() {
                                                         <td className="cdCell">
                                                             <div className="cdVals">
                                                                 {uniq.filter(v => v > 0).length > 0
-                                                                    ? uniq.filter(v => v > 0).map((v, j) => <span key={j} className={`cdChip ${isR ? 'cdChipR' : ''}`}>{v}s</span>)
+                                                                    ? uniq.filter(v => v > 0).map((v, j) => <span key={j} className={`cdChip cdChipClickable ${isR ? 'cdChipR' : ''}`} onClick={e => { e.stopPropagation(); openInlineCalc(v, curChamp!.name, key) }}>{v}s</span>)
                                                                     : <span className="noCd">—</span>}
                                                             </div>
                                                         </td>
@@ -757,6 +770,48 @@ export default function LolMemo() {
                             placeholder="メッセージを入力..."
                         />
                         <button className="chatSendBtn" onClick={sendMessage} disabled={!chatInput.trim()}>送信</button>
+                    </div>
+                </div>
+            </div>
+
+            {/* INLINE CALC MODAL */}
+            <div className={`modalBg ${inlineCalcOpen ? 'modalBgShow' : ''}`} onClick={e => { if (e.target === e.currentTarget) setInlineCalcOpen(false) }}>
+                <div className="modal inlineCalcModal">
+                    <div className="inlineCalcHd">
+                        <div className="inlineCalcLabel">{inlineCalcLabel}</div>
+                        <div className="inlineCalcBaseBadge">{inlineCalcBaseCD}s</div>
+                        <button className="inlineCalcClose" onClick={() => setInlineCalcOpen(false)}>✕</button>
+                    </div>
+                    <div className="inlineCalcBody">
+                        <div className="calcSection">
+                            <div className="calcSectionTitle">⚡ スキルヘイスト (AH)</div>
+                            <div className="calcSliderRow">
+                                <input type="range" min={0} max={200} step={1} value={inlineCalcAH} onChange={e => setInlineCalcAH(Number(e.target.value))} className="calcSlider" />
+                                <div className="calcInputWrap">
+                                    <input type="number" min={0} max={500} value={inlineCalcAH} onChange={e => setInlineCalcAH(Math.max(0, Math.min(500, Number(e.target.value) || 0)))} className="calcNumInput" />
+                                    <span className="calcNumUnit">AH</span>
+                                </div>
+                            </div>
+                            <div className="calcPresets">
+                                {[10, 20, 40, 60, 80, 100, 120, 150].map(v => (
+                                    <button key={v} className={`calcPresetBtn ${inlineCalcAH === v ? 'calcPresetActive' : ''}`} onClick={() => setInlineCalcAH(v)}>{v}</button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="calcResults">
+                            <div className="calcResultCard calcResultMain">
+                                <div className="calcResultLabel">実質 CD</div>
+                                <div className="calcResultValue">{(inlineCalcBaseCD * (100 / (100 + inlineCalcAH))).toFixed(2)}<span className="calcResultSuffix">秒</span></div>
+                            </div>
+                            <div className="calcResultCard">
+                                <div className="calcResultLabel">CDR</div>
+                                <div className="calcResultValue">{(inlineCalcAH / (inlineCalcAH + 100) * 100).toFixed(1)}<span className="calcResultSuffix">%</span></div>
+                            </div>
+                            <div className="calcResultCard">
+                                <div className="calcResultLabel">カット量</div>
+                                <div className="calcResultValue">{(inlineCalcBaseCD - inlineCalcBaseCD * (100 / (100 + inlineCalcAH))).toFixed(2)}<span className="calcResultSuffix">秒</span></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

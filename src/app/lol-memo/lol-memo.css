@@ -1742,3 +1742,82 @@
   font-family: 'Outfit', monospace;
   font-weight: 500;
 }
+
+/* ── Clickable CD Chips ── */
+.cdChipClickable {
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.cdChipClickable:hover {
+  background: #111827;
+  border-color: #111827;
+  color: #FFFFFF;
+  transform: scale(1.08);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+.cdChipClickable.cdChipR:hover {
+  background: #DC2626;
+  border-color: #DC2626;
+  color: #FFFFFF;
+}
+
+/* ── Inline Calc Modal ── */
+.inlineCalcModal {
+  width: 420px;
+  max-width: 95vw;
+}
+
+.inlineCalcHd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.inlineCalcLabel {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.3px;
+}
+
+.inlineCalcBaseBadge {
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #111827;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.inlineCalcClose {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  color: #6B7280;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.inlineCalcClose:hover {
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+  color: #DC2626;
+}
+
+.inlineCalcBody {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
