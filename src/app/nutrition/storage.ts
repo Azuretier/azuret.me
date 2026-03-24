@@ -12,6 +12,7 @@ export interface Food {
     id: number; name: string; qty: string;
     cal: number; protein: number; fat: number; carb: number;
     fiber: number; na: number; dairy?: boolean;
+    recipe?: string; category?: string;
 }
 
 export interface Exercise {
