@@ -7,6 +7,7 @@ type AppTab = 'learn' | 'phrases' | 'quiz' | 'plan'
 type VocabItem = {
   id: number
   word: string
+  ipa: string
   meaning: string
   example: string
   exampleMeaning: string
@@ -18,6 +19,7 @@ type PhraseItem = {
   id: number
   situation: string
   english: string
+  ipa: string
   japanese: string
   note: string
 }
@@ -33,27 +35,27 @@ type QuizItem = {
 const STORAGE_KEY = 'english-app-progress-v1'
 
 const VOCAB: VocabItem[] = [
-  { id: 1, word: 'introduce', meaning: 'introduce, present', example: 'Let me introduce myself.', exampleMeaning: '自己紹介させてください。', tip: 'Useful when meeting someone new.', level: 'Starter' },
-  { id: 2, word: 'schedule', meaning: 'schedule, plan', example: 'My schedule is full this week.', exampleMeaning: '今週は予定がいっぱいです。', tip: 'Often used for work and appointments.', level: 'Daily' },
-  { id: 3, word: 'improve', meaning: 'to get better', example: 'I want to improve my English.', exampleMeaning: '英語を上達させたいです。', tip: 'Great verb for goals and habits.', level: 'Starter' },
-  { id: 4, word: 'comfortable', meaning: 'feeling relaxed, at ease', example: 'I feel comfortable speaking with her.', exampleMeaning: '彼女と話すと安心します。', tip: 'Also used for clothes, rooms, and social situations.', level: 'Daily' },
-  { id: 5, word: 'recommend', meaning: 'to suggest', example: 'Can you recommend a good movie?', exampleMeaning: 'おすすめの映画はありますか？', tip: 'Very common in travel and shopping.', level: 'Daily' },
-  { id: 6, word: 'available', meaning: 'free, ready to use', example: 'Are you available tomorrow?', exampleMeaning: '明日空いていますか？', tip: 'A must-know word for scheduling.', level: 'Work' },
-  { id: 7, word: 'confident', meaning: 'sure of yourself', example: 'She sounds confident in English.', exampleMeaning: '彼女は英語に自信があるように聞こえます。', tip: 'Pairs well with speaking and presenting.', level: 'Starter' },
-  { id: 8, word: 'solve', meaning: 'to fix or answer', example: 'We solved the problem together.', exampleMeaning: '一緒に問題を解決しました。', tip: 'Useful in work, study, and daily life.', level: 'Work' },
-  { id: 9, word: 'instead', meaning: 'in place of something else', example: 'I studied at home instead.', exampleMeaning: '代わりに家で勉強しました。', tip: 'Often used to compare choices.', level: 'Daily' },
-  { id: 10, word: 'practice', meaning: 'to repeat to improve', example: 'Practice a little every day.', exampleMeaning: '毎日少しずつ練習しましょう。', tip: 'Can be both a noun and a verb.', level: 'Starter' },
-  { id: 11, word: 'deadline', meaning: 'final time to finish something', example: 'The deadline is Friday afternoon.', exampleMeaning: '締め切りは金曜の午後です。', tip: 'Important for school and work.', level: 'Work' },
-  { id: 12, word: 'habit', meaning: 'something you do regularly', example: 'Reading is a good habit.', exampleMeaning: '読書は良い習慣です。', tip: 'Helpful for self-improvement talk.', level: 'Daily' },
+  { id: 1, word: 'introduce', ipa: '/ˌɪntrəˈduːs/', meaning: 'introduce, present', example: 'Let me introduce myself.', exampleMeaning: '自己紹介させてください。', tip: 'Useful when meeting someone new.', level: 'Starter' },
+  { id: 2, word: 'schedule', ipa: '/ˈskedʒuːl/', meaning: 'schedule, plan', example: 'My schedule is full this week.', exampleMeaning: '今週は予定がいっぱいです。', tip: 'Often used for work and appointments.', level: 'Daily' },
+  { id: 3, word: 'improve', ipa: '/ɪmˈpruːv/', meaning: 'to get better', example: 'I want to improve my English.', exampleMeaning: '英語を上達させたいです。', tip: 'Great verb for goals and habits.', level: 'Starter' },
+  { id: 4, word: 'comfortable', ipa: '/ˈkʌmftərbəl/', meaning: 'feeling relaxed, at ease', example: 'I feel comfortable speaking with her.', exampleMeaning: '彼女と話すと安心します。', tip: 'Also used for clothes, rooms, and social situations.', level: 'Daily' },
+  { id: 5, word: 'recommend', ipa: '/ˌrekəˈmend/', meaning: 'to suggest', example: 'Can you recommend a good movie?', exampleMeaning: 'おすすめの映画はありますか？', tip: 'Very common in travel and shopping.', level: 'Daily' },
+  { id: 6, word: 'available', ipa: '/əˈveɪləbəl/', meaning: 'free, ready to use', example: 'Are you available tomorrow?', exampleMeaning: '明日空いていますか？', tip: 'A must-know word for scheduling.', level: 'Work' },
+  { id: 7, word: 'confident', ipa: '/ˈkɑːnfɪdənt/', meaning: 'sure of yourself', example: 'She sounds confident in English.', exampleMeaning: '彼女は英語に自信があるように聞こえます。', tip: 'Pairs well with speaking and presenting.', level: 'Starter' },
+  { id: 8, word: 'solve', ipa: '/sɑːlv/', meaning: 'to fix or answer', example: 'We solved the problem together.', exampleMeaning: '一緒に問題を解決しました。', tip: 'Useful in work, study, and daily life.', level: 'Work' },
+  { id: 9, word: 'instead', ipa: '/ɪnˈsted/', meaning: 'in place of something else', example: 'I studied at home instead.', exampleMeaning: '代わりに家で勉強しました。', tip: 'Often used to compare choices.', level: 'Daily' },
+  { id: 10, word: 'practice', ipa: '/ˈpræktɪs/', meaning: 'to repeat to improve', example: 'Practice a little every day.', exampleMeaning: '毎日少しずつ練習しましょう。', tip: 'Can be both a noun and a verb.', level: 'Starter' },
+  { id: 11, word: 'deadline', ipa: '/ˈdedlaɪn/', meaning: 'final time to finish something', example: 'The deadline is Friday afternoon.', exampleMeaning: '締め切りは金曜の午後です。', tip: 'Important for school and work.', level: 'Work' },
+  { id: 12, word: 'habit', ipa: '/ˈhæbɪt/', meaning: 'something you do regularly', example: 'Reading is a good habit.', exampleMeaning: '読書は良い習慣です。', tip: 'Helpful for self-improvement talk.', level: 'Daily' },
 ]
 
 const PHRASES: PhraseItem[] = [
-  { id: 1, situation: 'Meeting people', english: 'Nice to meet you. I am still learning English.', japanese: 'はじめまして。まだ英語を勉強中です。', note: 'Simple and honest. Great for lowering pressure in conversations.' },
-  { id: 2, situation: 'Asking for help', english: 'Could you say that one more time, please?', japanese: 'もう一度言ってもらえますか？', note: 'Polite and extremely useful in real conversations.' },
-  { id: 3, situation: 'At work', english: 'I will finish this task by tomorrow morning.', japanese: 'この作業は明日の朝までに終わらせます。', note: 'Good structure for reporting progress clearly.' },
-  { id: 4, situation: 'Daily life', english: 'I usually study for twenty minutes after dinner.', japanese: 'たいてい夕食後に20分勉強します。', note: 'Useful sentence pattern for building routine talk.' },
-  { id: 5, situation: 'Conversation', english: 'What do you mean by that?', japanese: 'それはどういう意味ですか？', note: 'Helpful when you understand words but not intent.' },
-  { id: 6, situation: 'Travel', english: 'Could you recommend a place to visit nearby?', japanese: 'この近くでおすすめの場所はありますか？', note: 'Great for restaurants, sightseeing, and local spots.' },
+  { id: 1, situation: 'Meeting people', english: 'Nice to meet you. I am still learning English.', ipa: '/naɪs tə miːt juː. aɪ æm stɪl ˈlɝːnɪŋ ˈɪŋɡlɪʃ./', japanese: 'はじめまして。まだ英語を勉強中です。', note: 'Simple and honest. Great for lowering pressure in conversations.' },
+  { id: 2, situation: 'Asking for help', english: 'Could you say that one more time, please?', ipa: '/kʊd juː seɪ ðæt wʌn mɔːr taɪm, pliːz?/', japanese: 'もう一度言ってもらえますか？', note: 'Polite and extremely useful in real conversations.' },
+  { id: 3, situation: 'At work', english: 'I will finish this task by tomorrow morning.', ipa: '/aɪ wɪl ˈfɪnɪʃ ðɪs tæsk baɪ təˈmɑːroʊ ˈmɔːrnɪŋ./', japanese: 'この作業は明日の朝までに終わらせます。', note: 'Good structure for reporting progress clearly.' },
+  { id: 4, situation: 'Daily life', english: 'I usually study for twenty minutes after dinner.', ipa: '/aɪ ˈjuːʒuəli ˈstʌdi fɔːr ˈtwenti ˈmɪnɪts ˈæftər ˈdɪnər./', japanese: 'たいてい夕食後に20分勉強します。', note: 'Useful sentence pattern for building routine talk.' },
+  { id: 5, situation: 'Conversation', english: 'What do you mean by that?', ipa: '/wʌt də juː miːn baɪ ðæt?/', japanese: 'それはどういう意味ですか？', note: 'Helpful when you understand words but not intent.' },
+  { id: 6, situation: 'Travel', english: 'Could you recommend a place to visit nearby?', ipa: '/kʊd juː ˌrekəˈmend ə pleɪs tə ˈvɪzɪt ˌnɪrˈbaɪ?/', japanese: 'この近くでおすすめの場所はありますか？', note: 'Great for restaurants, sightseeing, and local spots.' },
 ]
 
 const QUIZ: QuizItem[] = [
@@ -85,6 +87,9 @@ export default function EnglishApp() {
   const [studyMinutes, setStudyMinutes] = useState(15)
   const [lastVisit, setLastVisit] = useState('')
   const [streak, setStreak] = useState(1)
+  const [voicesReady, setVoicesReady] = useState(false)
+  const [voiceName, setVoiceName] = useState('')
+  const [isNarrating, setIsNarrating] = useState(false)
 
   useEffect(() => {
     try {
@@ -132,6 +137,29 @@ export default function EnglishApp() {
       // ignore storage errors
     }
   }, [revealedWords, masteredWords, studyMinutes, lastVisit, streak])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+
+    const loadVoices = () => {
+      const available = window.speechSynthesis.getVoices()
+      const englishVoice =
+        available.find((voice) => voice.lang.toLowerCase().startsWith('en-us')) ??
+        available.find((voice) => voice.lang.toLowerCase().startsWith('en')) ??
+        null
+
+      setVoicesReady(available.length > 0)
+      setVoiceName(englishVoice?.name ?? '')
+    }
+
+    loadVoices()
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices)
+
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', loadVoices)
+      window.speechSynthesis.cancel()
+    }
+  }, [])
 
   const selectedWord = VOCAB.find((item) => item.id === selectedWordId) ?? VOCAB[0]
   const selectedPhrase = PHRASES.find((item) => item.id === selectedPhraseId) ?? PHRASES[0]
@@ -201,6 +229,29 @@ export default function EnglishApp() {
     borderRadius: 24,
   }
 
+  const speakText = (text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    const available = window.speechSynthesis.getVoices()
+    const englishVoice =
+      available.find((voice) => voice.name === voiceName) ??
+      available.find((voice) => voice.lang.toLowerCase().startsWith('en-us')) ??
+      available.find((voice) => voice.lang.toLowerCase().startsWith('en')) ??
+      null
+
+    utterance.voice = englishVoice
+    utterance.lang = englishVoice?.lang ?? 'en-US'
+    utterance.rate = 0.92
+    utterance.pitch = 1
+    utterance.onstart = () => setIsNarrating(true)
+    utterance.onend = () => setIsNarrating(false)
+    utterance.onerror = () => setIsNarrating(false)
+
+    window.speechSynthesis.cancel()
+    window.speechSynthesis.speak(utterance)
+  }
+
   return (
     <div style={shell}>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -225,6 +276,17 @@ export default function EnglishApp() {
               <p style={{ margin: '14px 0 0', maxWidth: 560, fontSize: 15, lineHeight: 1.7, color: '#57534e' }}>
                 Build real conversation confidence with bite-sized vocabulary, practical phrases, and quick quizzes. Designed to feel friendly on both phone and desktop.
               </p>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+                <button
+                  onClick={() => speakText('Welcome back. Let us practice English together.')}
+                  style={{ border: 'none', borderRadius: 999, padding: '11px 14px', background: '#1c1917', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  {isNarrating ? 'Narrating...' : 'Play welcome narration'}
+                </button>
+                <span style={{ alignSelf: 'center', fontSize: 13, color: '#78716c' }}>
+                  {voicesReady ? `Voice: ${voiceName || 'English system voice'}` : 'Narration uses your browser voice when available.'}
+                </span>
+              </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(120px, 1fr))', gap: 10, minWidth: 'min(100%, 300px)' }}>
@@ -304,6 +366,7 @@ export default function EnglishApp() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                         <div>
                           <div style={{ fontSize: 18, fontWeight: 800 }}>{item.word}</div>
+                          <div style={{ color: '#2563eb', marginTop: 4, fontSize: 12, fontFamily: "'JetBrains Mono','Consolas',monospace" }}>{item.ipa}</div>
                           <div style={{ color: '#78716c', marginTop: 4, fontSize: 13 }}>{revealedWords.includes(item.id) ? item.meaning : 'Tap reveal in the detail card'}</div>
                         </div>
                         <div style={{ display: 'grid', gap: 6, justifyItems: 'end' }}>
@@ -322,6 +385,7 @@ export default function EnglishApp() {
               <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div>
                   <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1 }}>{selectedWord.word}</div>
+                  <div style={{ marginTop: 8, color: '#2563eb', fontSize: 14, fontFamily: "'JetBrains Mono','Consolas',monospace" }}>{selectedWord.ipa}</div>
                   <div style={{ marginTop: 8, color: '#57534e', fontSize: 15 }}>
                     {revealedWords.includes(selectedWord.id) ? selectedWord.meaning : 'Meaning hidden for active recall'}
                   </div>
@@ -340,6 +404,18 @@ export default function EnglishApp() {
               </div>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
+                <button
+                  onClick={() => speakText(selectedWord.word)}
+                  style={{ border: 'none', borderRadius: 14, padding: '12px 14px', background: '#0f766e', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  Hear word
+                </button>
+                <button
+                  onClick={() => speakText(selectedWord.example)}
+                  style={{ border: 'none', borderRadius: 14, padding: '12px 14px', background: '#7c3aed', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  Hear example
+                </button>
                 <button
                   onClick={() => revealWord(selectedWord.id)}
                   style={{ border: 'none', borderRadius: 14, padding: '12px 14px', background: '#2563eb', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
@@ -376,6 +452,7 @@ export default function EnglishApp() {
                     }}
                   >
                     <div style={{ fontSize: 16, fontWeight: 800 }}>{item.situation}</div>
+                    <div style={{ marginTop: 6, color: '#2563eb', fontSize: 12, fontFamily: "'JetBrains Mono','Consolas',monospace" }}>{item.ipa}</div>
                     <div style={{ marginTop: 6, color: '#78716c', fontSize: 13 }}>{item.english}</div>
                   </button>
                 ))}
@@ -385,9 +462,25 @@ export default function EnglishApp() {
             <div style={{ ...panel, padding: 24 }}>
               <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#78716c', fontWeight: 800 }}>Phrase Drill</div>
               <div style={{ marginTop: 12, fontSize: 30, fontWeight: 800, lineHeight: 1.15 }}>{selectedPhrase.english}</div>
+              <div style={{ marginTop: 10, color: '#2563eb', fontSize: 14, fontFamily: "'JetBrains Mono','Consolas',monospace" }}>{selectedPhrase.ipa}</div>
               <div style={{ marginTop: 14, fontSize: 16, color: '#57534e', lineHeight: 1.7 }}>{selectedPhrase.japanese}</div>
               <div style={{ marginTop: 18, padding: 16, borderRadius: 18, background: '#ecfeff', color: '#155e75', lineHeight: 1.7 }}>
                 <strong>Practice note:</strong> {selectedPhrase.note}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+                <button
+                  onClick={() => speakText(selectedPhrase.english)}
+                  style={{ border: 'none', borderRadius: 14, padding: '12px 14px', background: '#0f766e', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  Hear phrase
+                </button>
+                <button
+                  onClick={() => speakText(`${selectedPhrase.english} ${selectedPhrase.english}`)}
+                  style={{ border: 'none', borderRadius: 14, padding: '12px 14px', background: '#1d4ed8', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  Loop twice
+                </button>
               </div>
 
               <div style={{ marginTop: 18, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
