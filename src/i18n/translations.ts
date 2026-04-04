@@ -103,6 +103,10 @@ export interface Translations {
     lolMemoDescription: string
     nutritionTitle: string
     nutritionDescription: string
+    workoutTitle: string
+    workoutDescription: string
+    englishTitle: string
+    englishDescription: string
     openButton: string
   }
 
@@ -194,6 +198,10 @@ const en: Translations = {
     lolMemoDescription: 'Champion ability reference tool for League of Legends.',
     nutritionTitle: 'Nutrition Tracker',
     nutritionDescription: 'Daily food & drink intake tracker with nutritional analysis.',
+    workoutTitle: 'Workout',
+    workoutDescription: 'Track your workout routines and progress.',
+    englishTitle: 'English Studio',
+    englishDescription: 'Vocabulary, phrases, and short quizzes for daily English practice.',
     openButton: 'Open',
   },
   widget: {
@@ -283,6 +291,10 @@ const ja: Translations = {
     lolMemoDescription: 'League of Legendsのチャンピオンアビリティリファレンスツール。',
     nutritionTitle: '栄養トラッカー',
     nutritionDescription: '毎日の食事・飲料の摂取量と栄養分析トラッカー。',
+    workoutTitle: 'ワークアウト',
+    workoutDescription: 'ワークアウトルーティンと進捗を記録。',
+    englishTitle: '英語スタジオ',
+    englishDescription: '単語、フレーズ、短いクイズで毎日英語を練習できます。',
     openButton: '開く',
   },
   widget: {
@@ -372,6 +384,10 @@ const th: Translations = {
     lolMemoDescription: 'เครื่องมืออ้างอิงความสามารถแชมเปี้ยนสำหรับ League of Legends',
     nutritionTitle: 'ตัวติดตามโภชนาการ',
     nutritionDescription: 'ติดตามอาหารและเครื่องดื่มประจำวันพร้อมการวิเคราะห์โภชนาการ',
+    workoutTitle: 'ออกกำลังกาย',
+    workoutDescription: 'ติดตามกิจวัตรออกกำลังกายและความก้าวหน้า',
+    englishTitle: 'สตูดิโอภาษาอังกฤษ',
+    englishDescription: 'ฝึกคำศัพท์ วลี และควิซสั้น ๆ เพื่อใช้ภาษาอังกฤษทุกวัน',
     openButton: 'เปิด',
   },
   widget: {
@@ -461,6 +477,10 @@ const es: Translations = {
     lolMemoDescription: 'Herramienta de referencia de habilidades de campeones de League of Legends.',
     nutritionTitle: 'Rastreador Nutricional',
     nutritionDescription: 'Rastreador diario de alimentos y bebidas con analisis nutricional.',
+    workoutTitle: 'Entrenamiento',
+    workoutDescription: 'Registra tus rutinas de ejercicio y progreso.',
+    englishTitle: 'Estudio de Ingles',
+    englishDescription: 'Vocabulario, frases y cuestionarios cortos para practicar ingles cada dia.',
     openButton: 'Abrir',
   },
   widget: {

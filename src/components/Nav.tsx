@@ -5,16 +5,8 @@ import styles from './Nav.module.css'
 import { siteIdentity } from '../config/siteConfig'
 import { useLanguage } from '../i18n/LanguageContext'
 import LanguageSwitcher from './LanguageSwitcher'
-
-/* ── types ────────────────────────────────────────────────── */
-
-interface SiteStats {
-  comments: number
-  likes: number
-  profiles: number
-}
-
-type TabKey = 'home' | 'profiles' | 'links'
+import { fetchSiteStats, subscribeToSiteDataChanged } from '../lib/siteApi'
+import type { SiteStats, TabKey } from '../types'
 
 /* ── component ──────────────────────────────────────────────── */
 
@@ -44,26 +36,15 @@ export default function Nav({
 
   const fetchStats = useCallback(async () => {
     try {
-      const [commentsRes, profilesRes] = await Promise.all([
-        fetch('/api/comments'),
-        fetch('/api/profiles'),
-      ])
-      if (commentsRes.ok && profilesRes.ok) {
-        const comments = await commentsRes.json()
-        const profiles = await profilesRes.json()
-        const totalLikes = comments.reduce((sum: number, c: { likes: number }) => sum + c.likes, 0)
-        setStats({
-          comments: comments.length,
-          likes: totalLikes,
-          profiles: profiles.length,
-        })
-      }
+      setStats(await fetchSiteStats())
     } catch { /* silent */ }
   }, [])
 
   useEffect(() => {
     fetchStats()
   }, [fetchStats])
+
+  useEffect(() => subscribeToSiteDataChanged(fetchStats), [fetchStats])
 
   const total = stats.comments + stats.likes + stats.profiles
   const level = total < 5 ? 1 : total < 15 ? 2 : total < 30 ? 3 : total < 60 ? 4 : 5

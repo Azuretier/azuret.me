@@ -1,7 +1,5 @@
-'use client'
-
-import NutritionApp from './NutritionApp'
+import { redirect } from 'next/navigation'
 
 export default function NutritionPage() {
-    return <NutritionApp />
+  redirect('/n')
 }

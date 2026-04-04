@@ -8,8 +8,13 @@ import {
   slideshowInterval,
 } from '../../config/siteConfig'
 import { useLanguage } from '../../i18n/LanguageContext'
+import {
+  createComment,
+  fetchComments as fetchCommentsList,
+  likeCommentById,
+} from '../../lib/siteApi'
 import { avatarColor, timeAgo } from '../../utils/helpers'
-import type { Comment } from '../../types'
+import type { Comment, TabKey } from '../../types'
 
 /* ── about icons ──────────────────────────────────────────── */
 
@@ -41,9 +46,10 @@ const aboutIcons: Record<string, React.ReactNode> = {
 
 interface HomeTabProps {
   visible: boolean
+  onTabChange?: (tab: TabKey) => void
 }
 
-export default function HomeTab({ visible }: HomeTabProps) {
+export default function HomeTab({ visible, onTabChange }: HomeTabProps) {
   const { t } = useLanguage()
 
   /* ── slideshow ────────────────────────────────────────────── */
@@ -65,8 +71,7 @@ export default function HomeTab({ visible }: HomeTabProps) {
 
   const fetchComments = useCallback(async () => {
     try {
-      const res = await fetch('/api/comments')
-      if (res.ok) setComments(await res.json())
+      setComments(await fetchCommentsList())
     } catch { /* silent */ }
   }, [])
 
@@ -76,12 +81,9 @@ export default function HomeTab({ visible }: HomeTabProps) {
     if (!author.trim() || !content.trim() || submitting) return
     setSubmitting(true)
     try {
-      const res = await fetch('/api/comments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ author: author.trim(), content: content.trim() }),
-      })
-      if (res.ok) { setContent(''); fetchComments() }
+      await createComment({ author: author.trim(), content: content.trim() })
+      setContent('')
+      fetchComments()
     } catch { /* silent */ }
     setSubmitting(false)
   }
@@ -90,7 +92,7 @@ export default function HomeTab({ visible }: HomeTabProps) {
     if (likedIds.has(id)) return
     setLikedIds((prev) => new Set(prev).add(id))
     setComments((prev) => prev.map((c) => (c.id === id ? { ...c, likes: c.likes + 1 } : c)))
-    try { await fetch(`/api/comments/${id}/like`, { method: 'POST' }) } catch { /* silent */ }
+    try { await likeCommentById(id) } catch { /* silent */ }
   }
 
   /* ── about items ──────────────────────────────────────────── */
@@ -156,7 +158,7 @@ export default function HomeTab({ visible }: HomeTabProps) {
 
       <section className={styles.projectsSection}>
         <div className={styles.projectsGrid}>
-          <a href="/lol-memo" className={styles.projectCard} style={{ '--project-accent': '#e84057' } as React.CSSProperties}>
+          <button onClick={() => onTabChange?.('l')} className={styles.projectCard} style={{ '--project-accent': '#e84057' } as React.CSSProperties}>
             <div className={styles.projectIconWrapper}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -174,9 +176,9 @@ export default function HomeTab({ visible }: HomeTabProps) {
                 <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
               </svg>
             </div>
-          </a>
+          </button>
 
-          <a href="/nutrition" className={styles.projectCard} style={{ '--project-accent': '#10b981' } as React.CSSProperties}>
+          <button onClick={() => onTabChange?.('n')} className={styles.projectCard} style={{ '--project-accent': '#10b981' } as React.CSSProperties}>
             <div className={styles.projectIconWrapper}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8h1a4 4 0 010 8h-1" />
@@ -196,7 +198,49 @@ export default function HomeTab({ visible }: HomeTabProps) {
                 <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
               </svg>
             </div>
-          </a>
+          </button>
+
+          <button onClick={() => onTabChange?.('workout')} className={styles.projectCard} style={{ '--project-accent': '#f59e0b' } as React.CSSProperties}>
+            <div className={styles.projectIconWrapper}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.24 12.24a6 6 0 00-8.49-8.49L5 10.5V19h8.5z" />
+                <line x1="16" y1="8" x2="2" y2="22" />
+                <line x1="17.5" y1="15" x2="9" y2="15" />
+              </svg>
+            </div>
+            <div className={styles.projectInfo}>
+              <div className={styles.projectTitle}>{t.projects.workoutTitle || 'Workout'}</div>
+              <div className={styles.projectDesc}>{t.projects.workoutDescription || 'Track your workout routines'}</div>
+            </div>
+            <div className={styles.projectAction}>
+              <span className={styles.projectOpenBtn}>{t.projects.openButton}</span>
+              <svg className={styles.projectArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
+
+          <button onClick={() => onTabChange?.('english')} className={styles.projectCard} style={{ '--project-accent': '#2563eb' } as React.CSSProperties}>
+            <div className={styles.projectIconWrapper}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 5h7a4 4 0 014 4v10H8a4 4 0 00-4 4z" />
+                <path d="M20 5h-7a4 4 0 00-4 4v10h7a4 4 0 014 4z" />
+                <path d="M8 9h4" />
+                <path d="M8 13h4" />
+                <path d="M12 9h4" />
+              </svg>
+            </div>
+            <div className={styles.projectInfo}>
+              <div className={styles.projectTitle}>{t.projects.englishTitle}</div>
+              <div className={styles.projectDesc}>{t.projects.englishDescription}</div>
+            </div>
+            <div className={styles.projectAction}>
+              <span className={styles.projectOpenBtn}>{t.projects.openButton}</span>
+              <svg className={styles.projectArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
         </div>
       </section>
 

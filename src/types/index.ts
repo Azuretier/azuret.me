@@ -1,6 +1,6 @@
 /* ── Shared Types ──────────────────────────────────────────── */
 
-export type TabKey = 'home' | 'profiles' | 'links'
+export type TabKey = 'home' | 'profiles' | 'links' | 'l' | 'n' | 'workout' | 'english'
 
 export interface Comment {
   id: number
@@ -17,4 +17,10 @@ export interface Profile {
   bio: string
   website: string
   created_at: string
+}
+
+export interface SiteStats {
+  comments: number
+  likes: number
+  profiles: number
 }

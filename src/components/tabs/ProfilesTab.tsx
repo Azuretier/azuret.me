@@ -3,6 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import styles from '../../app/home.module.css'
 import { useLanguage } from '../../i18n/LanguageContext'
+import {
+  createProfile,
+  fetchProfiles as fetchProfilesList,
+} from '../../lib/siteApi'
 import { avatarColor, formatDate } from '../../utils/helpers'
 import type { Profile } from '../../types'
 
@@ -27,8 +31,7 @@ export default function ProfilesTab({ visible }: ProfilesTabProps) {
 
   const fetchProfiles = useCallback(async () => {
     try {
-      const res = await fetch('/api/profiles')
-      if (res.ok) setProfiles(await res.json())
+      setProfiles(await fetchProfilesList())
     } catch { /* silent */ }
   }, [])
 
@@ -41,31 +44,26 @@ export default function ProfilesTab({ visible }: ProfilesTabProps) {
     setSubmitting(true)
 
     try {
-      const res = await fetch('/api/profiles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: username.trim(),
-          display_name: displayName.trim(),
-          bio: bio.trim(),
-          website: website.trim(),
-        }),
+      await createProfile({
+        username: username.trim(),
+        display_name: displayName.trim(),
+        bio: bio.trim(),
+        website: website.trim(),
       })
 
-      if (res.ok) {
-        setUsername('')
-        setDisplayName('')
-        setBio('')
-        setWebsite('')
-        setSuccess(t.profilesPage.successMessage)
-        fetchProfiles()
-        setTimeout(() => setSuccess(''), 3000)
+      setUsername('')
+      setDisplayName('')
+      setBio('')
+      setWebsite('')
+      setSuccess(t.profilesPage.successMessage)
+      fetchProfiles()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message)
       } else {
-        const data = await res.json()
-        setError(data.error || 'Something went wrong')
+        setError(t.profilesPage.networkError)
       }
-    } catch {
-      setError(t.profilesPage.networkError)
     }
 
     setSubmitting(false)

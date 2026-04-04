@@ -1,7 +1,5 @@
-'use client'
-
-import LolMemo from './LolMemo'
+import { redirect } from 'next/navigation'
 
 export default function LolMemoPage() {
-    return <LolMemo />
+  redirect('/l')
 }

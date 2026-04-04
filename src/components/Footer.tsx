@@ -3,8 +3,7 @@
 import styles from './Footer.module.css'
 import { siteIdentity, footerLinks } from '../config/siteConfig'
 import { useLanguage } from '../i18n/LanguageContext'
-
-type TabKey = 'home' | 'profiles' | 'links'
+import type { TabKey } from '../types'
 
 export default function Footer({ onTabChange }: { onTabChange?: (tab: TabKey) => void }) {
   const { t } = useLanguage()
