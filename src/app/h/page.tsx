@@ -1,7 +1,5 @@
-'use client'
-
-import HybridNotesApp from '../hybrid-notes/HybridNotesApp'
+import HybridNotesShowcase from '../hybrid-notes/HybridNotesShowcase'
 
 export default function HybridNotesShortcutPage() {
-  return <HybridNotesApp />
+  return <HybridNotesShowcase />
 }

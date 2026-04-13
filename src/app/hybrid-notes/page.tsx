@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import HybridNotesShowcase from './HybridNotesShowcase'
 
 export default function HybridNotesPage() {
-  redirect('/h')
+  return <HybridNotesShowcase />
 }

@@ -16,7 +16,7 @@ const LolMemo = dynamic(() => import('../app/lol-memo/LolMemo'), { ssr: false })
 const NutritionApp = dynamic(() => import('../app/nutrition/NutritionApp'), { ssr: false })
 const WorkoutApp = dynamic(() => import('../app/workout/WorkoutApp'), { ssr: false })
 const EnglishApp = dynamic(() => import('../app/english/EnglishApp'), { ssr: false })
-const HybridNotesApp = dynamic(() => import('../app/hybrid-notes/HybridNotesApp'), { ssr: false })
+const HybridNotesShowcase = dynamic(() => import('../app/hybrid-notes/HybridNotesShowcase'), { ssr: false })
 
 /* ── loading spinner ─────────────────────────────────────── */
 
@@ -92,7 +92,7 @@ export default function PageShell({ defaultTab = 'home' }: { defaultTab?: TabKey
       )}
       {activeTab === 'h' && (
         <Suspense fallback={<AppLoading />}>
-          <HybridNotesApp />
+          <HybridNotesShowcase />
         </Suspense>
       )}
 
