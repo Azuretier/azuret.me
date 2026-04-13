@@ -68,6 +68,14 @@ type LinkForm = {
   note: string
 }
 
+type EdgeTabCandidate = {
+  id: string
+  title: string
+  url: string
+  profile: string
+  sourceKind: 'tabs' | 'session'
+}
+
 const STORAGE_KEY = 'hybrid-notes-atelier-v1'
 const NOTEBOOKS = ['Daily Log', 'Project Book', 'Study Pad', 'Pocket Memo']
 const SPACES = ['Knowledge Base', 'Action Board', 'Idea Garden', 'Archive Shelf']
@@ -150,6 +158,10 @@ export default function HybridNotesApp() {
   const [analogForm, setAnalogForm] = useState(defaultAnalog())
   const [digitalForm, setDigitalForm] = useState(defaultDigital())
   const [linkForm, setLinkForm] = useState(defaultLink())
+  const [edgeTabs, setEdgeTabs] = useState<EdgeTabCandidate[]>([])
+  const [edgeSelectedIds, setEdgeSelectedIds] = useState<string[]>([])
+  const [edgeLoading, setEdgeLoading] = useState(false)
+  const [edgeSourceLabel, setEdgeSourceLabel] = useState('')
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -293,6 +305,74 @@ export default function HybridNotesApp() {
     flash('リンクを解除しました。')
   }
 
+  const toggleEdgeSelection = (tabId: string) => {
+    setEdgeSelectedIds((prev) => prev.includes(tabId) ? prev.filter((id) => id !== tabId) : [...prev, tabId])
+  }
+
+  const loadEdgeTabs = async () => {
+    setEdgeLoading(true)
+
+    try {
+      const response = await fetch('/api/edge-tabs', { cache: 'no-store' })
+      const payload = await response.json() as {
+        tabs?: EdgeTabCandidate[]
+        source?: { kind: string; profile: string; updatedAt: string }
+        error?: string
+      }
+
+      if (!response.ok || payload.error) {
+        throw new Error(payload.error || 'Edge session could not be loaded.')
+      }
+
+      const tabs = Array.isArray(payload.tabs) ? payload.tabs : []
+      setEdgeTabs(tabs)
+      setEdgeSelectedIds([])
+      setEdgeSourceLabel(payload.source ? `${payload.source.profile} • ${payload.source.kind} • ${stamp(payload.source.updatedAt)}` : '')
+      flash(tabs.length > 0 ? `${tabs.length}件の Edge タブ候補を取得しました。` : 'Edge から取り込めるタブが見つかりませんでした。')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Edge import failed.'
+      flash(message)
+    } finally {
+      setEdgeLoading(false)
+    }
+  }
+
+  const importSelectedEdgeTabs = () => {
+    const selectedTabs = edgeTabs.filter((entry) => edgeSelectedIds.includes(entry.id))
+    if (selectedTabs.length === 0) return flash('保存したい Edge タブを選んでください。')
+
+    const importedAt = new Date()
+    const entries: DigitalEntry[] = selectedTabs.map((entry, index) => {
+      let hostTag = 'edge'
+
+      try {
+        const parsed = new URL(entry.url)
+        hostTag = parsed.hostname.replace(/^www\./, '') || hostTag
+      } catch {
+        if (entry.url.startsWith('edge://')) hostTag = 'edge'
+      }
+
+      return {
+        id: uid('digital'),
+        title: entry.title,
+        space: 'Knowledge Base',
+        type: 'reference',
+        body: [
+          `Source: Microsoft Edge (${entry.profile})`,
+          `Imported: ${importedAt.toLocaleString('ja-JP')}`,
+          `URL: ${entry.url}`,
+        ].join('\n'),
+        tags: ['edge-import', hostTag],
+        sourceAnalogIds: [],
+        createdAt: new Date(importedAt.getTime() + index).toISOString(),
+      }
+    })
+
+    setDigitalEntries((prev) => [...entries, ...prev])
+    setRitual((prev) => ({ ...prev, distill: true }))
+    flash(`${entries.length}件の Edge タブをタイトル付きで保存しました。`)
+  }
+
   return (
     <div className="hybridApp">
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -427,6 +507,50 @@ export default function HybridNotesApp() {
 
         {tab === 'capture' && (
           <div className="gridTwo">
+            <section className="panel sectionPad widePanel">
+              <div className="sectionHead">
+                <div>
+                  <div className="eyebrow">Edge Import</div>
+                  <h2>Microsoft Edge の開いているタブ候補を保存</h2>
+                </div>
+                <button className="ghostBtn" onClick={loadEdgeTabs} disabled={edgeLoading}>
+                  {edgeLoading ? '読み込み中...' : 'Edge から取得'}
+                </button>
+              </div>
+              <p className="lead">
+                Edge の最新セッションスナップショットから、タイトル付きタブ候補を読み込みます。
+                保存するとデジタルノートとして URL と一緒に残せます。
+              </p>
+              {edgeSourceLabel && <div className="helper">Source: {edgeSourceLabel}</div>}
+              <div className="stack tightStack">
+                {edgeTabs.length === 0 && <div className="emptyCard">まだ Edge タブ候補は読み込まれていません。</div>}
+                {edgeTabs.length > 0 && (
+                  <>
+                    <div className="candidateList">
+                      {edgeTabs.map((entry) => (
+                        <label key={entry.id} className="candidateRow">
+                          <input
+                            type="checkbox"
+                            checked={edgeSelectedIds.includes(entry.id)}
+                            onChange={() => toggleEdgeSelection(entry.id)}
+                          />
+                          <div className="candidateBody">
+                            <strong>{entry.title}</strong>
+                            <span>{entry.url}</span>
+                          </div>
+                          <span className={`badge badge${entry.sourceKind === 'tabs' ? 'mint' : 'blue'}`}>{entry.sourceKind}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <div className="actionRow">
+                      <span className="helper">{edgeSelectedIds.length}件選択中</span>
+                      <button className="primaryBtn" onClick={importSelectedEdgeTabs}>選択したタブを保存</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </section>
+
             <section className="panel sectionPad">
               <div className="eyebrow">Analog Capture</div>
               <h2>紙ノートを取り込む</h2>
@@ -618,7 +742,8 @@ export default function HybridNotesApp() {
         .eyebrow{font-size:12px;letter-spacing:2.4px;text-transform:uppercase;color:#64748b;font-weight:700}.dim{opacity:.72}.tabRow,.chipRow,.actionRow,.sectionHead,.entryHead,.entryActions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tabRow{margin:18px 0}
         .tabBtn,.ghostBtn,.pillBtn,.primaryBtn{border-radius:999px;padding:12px 18px;font-weight:700;cursor:pointer}.tabBtn,.ghostBtn,.pillBtn{border:1px solid rgba(20,33,61,.12);background:rgba(255,255,255,.72);color:#334155}.tabBtnActive{background:#0f172a;color:#f8fafc;box-shadow:0 14px 30px rgba(15,23,42,.16)}
         .primaryBtn{border:none;background:linear-gradient(135deg,#0f766e 0%,#1d4ed8 100%);color:#fff;box-shadow:0 18px 40px rgba(15,118,110,.24)}
-        .splitGrid,.gridTwo{display:grid;grid-template-columns:1fr 1fr;gap:18px}.stack{display:grid;gap:18px}.sectionPad{padding:22px}.sectionPad h2{margin:8px 0 10px;font-size:30px}.countText,.helper,.metaLine{font-size:13px;color:#64748b}.metaLine.paper{color:#ea580c;font-weight:700}
+        .splitGrid,.gridTwo{display:grid;grid-template-columns:1fr 1fr;gap:18px}.stack{display:grid;gap:18px}.tightStack{gap:12px}.sectionPad{padding:22px}.sectionPad h2{margin:8px 0 10px;font-size:30px}.countText,.helper,.metaLine{font-size:13px;color:#64748b}.metaLine.paper{color:#ea580c;font-weight:700}
+        .widePanel{grid-column:1 / -1}
         .statGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.statCard{background:#fffdfa;border:1px solid rgba(20,33,61,.08);border-radius:20px;padding:16px}.statCard span{display:block;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#64748b;margin-bottom:8px}.statCard strong{font-size:30px}
         .focusBox{margin-top:16px;padding:14px;border-radius:18px;background:#0f172a;color:#e2e8f0}.focusBox strong{display:block;margin-top:8px;font-size:17px}.focusBox p{margin:6px 0 0;color:#cbd5e1}
         .entryCard,.workflowCard,.promptCard,.emptyCard,.ritualCard{border-radius:22px;padding:18px;background:#fffdfa;border:1px solid rgba(20,33,61,.08)} .entryCard h3{margin:6px 0 0;font-size:20px}.workflowCard strong{display:block;font-size:20px}.promptCard{display:flex;gap:12px;align-items:flex-start}.promptIndex,.ritualDot{width:36px;height:36px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
@@ -626,10 +751,12 @@ export default function HybridNotesApp() {
         .tone1 strong{color:#ea580c}.tone2 strong{color:#0f766e}.tone3 strong{color:#1d4ed8}.badge{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:7px 10px;border-radius:999px}
         .miniChip{padding:6px 10px;border-radius:999px;background:#f1f5f9;color:#334155;font-size:12px;font-weight:700}.miniChipPaper{background:#fff7ed;color:#c2410c}
         .input{width:100%;border-radius:16px;border:1px solid rgba(20,33,61,.12);background:rgba(255,255,255,.72);padding:13px 14px;color:#0f172a;outline:none}.formStack{display:grid;gap:14px}.gridInput{display:grid;grid-template-columns:.9fr 1.1fr;gap:14px}
+        .candidateList{display:grid;gap:10px;max-height:360px;overflow:auto;padding-right:4px}.candidateRow{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:flex-start;border-radius:18px;padding:14px;background:#fffdfa;border:1px solid rgba(20,33,61,.08);cursor:pointer}.candidateRow input{margin-top:4px}.candidateBody{display:grid;gap:4px;min-width:0}.candidateBody strong{font-size:15px}.candidateBody span{font-size:12px;line-height:1.6;color:#64748b;word-break:break-all}
         .area{min-height:120px;resize:vertical}.area.small{min-height:96px}.area.tall{min-height:180px}.callout{margin-top:10px;padding:12px;border-radius:16px}.calloutBlue{background:#eff6ff;color:#1e3a8a}.calloutPaper{background:#fff7ed;color:#9a3412}
         .progressBar{margin-top:18px;height:12px;border-radius:999px;background:#e2e8f0;overflow:hidden}.progressFill{height:100%;background:linear-gradient(90deg,#ea580c,#0f766e,#1d4ed8)}
         .ritualCard{text-align:left;border:none;cursor:pointer}.ritualCardActive{background:#0f172a;color:#f8fafc}.ritualCardActive p{color:#cbd5e1}.ritualDot{background:#e2e8f0;color:#64748b}.ritualDotActive{background:#14b8a6;color:#052e2b}
         .toneBtn{padding:10px 14px}.toneorangeActive,.tonemintActive,.toneblueActive,.tonevioletActive,.toneslateActive{color:#fff}.toneorangeActive{background:#c2410c}.tonemintActive{background:#0f766e}.toneblueActive{background:#1d4ed8}.tonevioletActive{background:#7c3aed}.toneslateActive{background:#475569}.pillBtnActive{background:#0f172a;color:#f8fafc}
+        .ghostBtn:disabled,.primaryBtn:disabled{opacity:.5;cursor:not-allowed}
         .preLine{white-space:pre-line}.emptyCard{color:#475569}.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f172a;color:#f8fafc;padding:12px 18px;border-radius:999px;font-weight:700;box-shadow:0 18px 50px rgba(15,23,42,.24);z-index:50}
         @media (max-width:980px){.heroPanel,.splitGrid,.gridTwo,.gridInput{grid-template-columns:1fr}}
       `}</style>
