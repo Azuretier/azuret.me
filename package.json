@@ -1,13 +1,16 @@
 {
   "name": "azuretia-portfolio",
   "version": "0.1.0",
+  "main": "electron/main.cjs",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "postbuild": "next-sitemap",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "electron": "electron .",
+    "electron:dev": "node electron/dev-runner.cjs"
   },
   "dependencies": {
     "@next/third-parties": "^16.1.6",
@@ -29,6 +32,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.182.0",
+    "electron": "^41.2.0",
     "typescript": "^5"
   }
 }

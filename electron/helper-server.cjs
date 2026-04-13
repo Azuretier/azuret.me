@@ -1,33 +1,17 @@
-import { execFile } from 'node:child_process'
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { promisify } from 'node:util'
-import { NextResponse } from 'next/server'
-
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
-
-type CandidateKind = 'tabs' | 'session'
-
-type CandidateFile = {
-  fullPath: string
-  kind: CandidateKind
-  profile: string
-  mtimeMs: number
-}
-
-type RawEntry = {
-  offset: number
-  title: string
-  url: string
-}
+const http = require('node:http')
+const fs = require('node:fs/promises')
+const os = require('node:os')
+const path = require('node:path')
+const { execFile } = require('node:child_process')
+const { promisify } = require('node:util')
 
 const execFileAsync = promisify(execFile)
+const HELPER_PORT = Number(process.env.ELECTRON_HELPER_PORT || 4317)
 const PROFILE_NAME_PATTERN = /^(Default|Profile \d+)$/i
 const URL_PATTERN = /(https?:\/\/[^\x00\s]+|edge:\/\/[^\x00\s]+)/g
 const MAX_RESULTS = 40
 
-function cleanTitle(title: string) {
+function cleanTitle(title) {
   return title
     .replace(/\u0000/g, '')
     .replace(/^\d+\s+\|\s*/u, '')
@@ -35,11 +19,11 @@ function cleanTitle(title: string) {
     .trim()
 }
 
-function cleanUrl(url: string) {
+function cleanUrl(url) {
   return url.replace(/[\u0000-\u001f]+/g, '').trim()
 }
 
-function isUsefulTitle(title: string) {
+function isUsefulTitle(title) {
   if (title.length < 2) return false
   if (/^\d+$/u.test(title)) return false
   if (!/[\p{L}\p{N}]/u.test(title)) return false
@@ -47,17 +31,13 @@ function isUsefulTitle(title: string) {
   return true
 }
 
-function shouldIgnoreUrl(url: string) {
-  return (
-    url === 'about:blank' ||
-    url === 'edge://newtab/' ||
-    url.startsWith('https://ntp.msn.com/edge/ntp')
-  )
+function shouldIgnoreUrl(url) {
+  return url === 'about:blank' || url === 'edge://newtab/' || url.startsWith('https://ntp.msn.com/edge/ntp')
 }
 
-function extractTitledEntries(buffer: Buffer): RawEntry[] {
+function extractTitledEntries(buffer) {
   const latin = buffer.toString('latin1')
-  const entries: RawEntry[] = []
+  const entries = []
 
   for (const match of latin.matchAll(URL_PATTERN)) {
     const rawUrl = match[1]
@@ -68,11 +48,7 @@ function extractTitledEntries(buffer: Buffer): RawEntry[] {
 
     const start = match.index ?? 0
     let pos = start + Buffer.byteLength(rawUrl, 'latin1') + 1
-
-    if (pos < buffer.length && buffer[pos] === 0) {
-      pos += 1
-    }
-
+    if (pos < buffer.length && buffer[pos] === 0) pos += 1
     if (pos + 4 > buffer.length) continue
 
     const titleLength = buffer.readUInt32LE(pos)
@@ -91,14 +67,12 @@ function extractTitledEntries(buffer: Buffer): RawEntry[] {
   return entries
 }
 
-function finalizeTabs(entries: RawEntry[], candidate: CandidateFile) {
-  const byUrl = new Map<string, RawEntry>()
+function finalizeTabs(entries, candidate) {
+  const byUrl = new Map()
 
   for (const entry of entries) {
     const current = byUrl.get(entry.url)
-    if (!current || current.offset < entry.offset) {
-      byUrl.set(entry.url, entry)
-    }
+    if (!current || current.offset < entry.offset) byUrl.set(entry.url, entry)
   }
 
   return [...byUrl.values()]
@@ -113,11 +87,10 @@ function finalizeTabs(entries: RawEntry[], candidate: CandidateFile) {
     }))
 }
 
-async function collectLatestCandidates(userDataDir: string) {
+async function collectLatestCandidates(userDataDir) {
   const dirEntries = await fs.readdir(userDataDir, { withFileTypes: true })
   const profiles = dirEntries.filter((entry) => entry.isDirectory() && PROFILE_NAME_PATTERN.test(entry.name))
-
-  const candidates: CandidateFile[] = []
+  const candidates = []
 
   for (const profile of profiles) {
     const sessionsDir = path.join(userDataDir, profile.name, 'Sessions')
@@ -125,7 +98,7 @@ async function collectLatestCandidates(userDataDir: string) {
     try {
       const files = await fs.readdir(sessionsDir, { withFileTypes: true })
 
-      for (const kind of ['tabs', 'session'] as const) {
+      for (const kind of ['tabs', 'session']) {
         const prefix = kind === 'tabs' ? 'Tabs_' : 'Session_'
         const latest = await Promise.all(
           files
@@ -133,18 +106,16 @@ async function collectLatestCandidates(userDataDir: string) {
             .map(async (entry) => {
               const fullPath = path.join(sessionsDir, entry.name)
               const stat = await fs.stat(fullPath)
-              return stat.size > 0
-                ? { fullPath, kind, profile: profile.name, mtimeMs: stat.mtimeMs }
-                : null
+              return stat.size > 0 ? { fullPath, kind, profile: profile.name, mtimeMs: stat.mtimeMs } : null
             }),
         )
 
-        const best = latest
-          .filter((item): item is CandidateFile => item !== null)
-          .sort((a, b) => b.mtimeMs - a.mtimeMs)
-          .slice(0, 4)
-
-        candidates.push(...best)
+        candidates.push(
+          ...latest
+            .filter(Boolean)
+            .sort((a, b) => b.mtimeMs - a.mtimeMs)
+            .slice(0, 4),
+        )
       }
     } catch {
       // ignore missing profile session directory
@@ -154,12 +125,12 @@ async function collectLatestCandidates(userDataDir: string) {
   return candidates
 }
 
-function psEscape(value: string) {
+function psEscape(value) {
   return value.replace(/'/g, "''")
 }
 
-async function snapshotLockedFile(sourcePath: string) {
-  const tempDir = path.join(process.cwd(), 'data', '.edge-import')
+async function snapshotLockedFile(sourcePath) {
+  const tempDir = path.join(os.tmpdir(), 'azuret-edge-helper')
   await fs.mkdir(tempDir, { recursive: true })
   const destinationPath = path.join(tempDir, `edge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.bin`)
 
@@ -181,7 +152,7 @@ async function snapshotLockedFile(sourcePath: string) {
   return destinationPath
 }
 
-async function parseCandidate(candidate: CandidateFile) {
+async function parseCandidate(candidate) {
   const snapshotPath = await snapshotLockedFile(candidate.fullPath)
 
   try {
@@ -192,69 +163,131 @@ async function parseCandidate(candidate: CandidateFile) {
   }
 }
 
-async function findFirstParsed(candidates: CandidateFile[]) {
-  const sorted = [...candidates].sort((a, b) => b.mtimeMs - a.mtimeMs)
-
-  for (const candidate of sorted) {
+async function findFirstParsed(candidates) {
+  for (const candidate of [...candidates].sort((a, b) => b.mtimeMs - a.mtimeMs)) {
     try {
       const items = await parseCandidate(candidate)
-      if (items.length > 0) {
-        return { items, candidate }
-      }
+      if (items.length > 0) return { items, candidate }
     } catch {
-      // try an older session snapshot
+      // try older snapshots
     }
   }
 
   return null
 }
 
-export async function GET() {
+async function getEdgeTabs() {
   if (process.platform !== 'win32') {
-    return NextResponse.json(
-      {
+    return {
+      ok: false,
+      status: 400,
+      body: {
         tabs: [],
-        error:
-          'Edge import works only when this app is running locally on your Windows PC. If you opened the deployed site, that server cannot read tabs from your own Edge browser.',
+        error: 'The Electron Edge helper only works on Windows.',
       },
-      { status: 400 },
-    )
+    }
   }
 
   const localAppData = process.env.LOCALAPPDATA
   if (!localAppData) {
-    return NextResponse.json({ tabs: [], error: 'LOCALAPPDATA is not available.' }, { status: 500 })
+    return {
+      ok: false,
+      status: 500,
+      body: { tabs: [], error: 'LOCALAPPDATA is not available.' },
+    }
   }
 
   const userDataDir = path.join(localAppData, 'Microsoft', 'Edge', 'User Data')
+  const candidates = await collectLatestCandidates(userDataDir)
+  const chosenTabs = await findFirstParsed(candidates.filter((item) => item.kind === 'tabs'))
+  const chosenSession = await findFirstParsed(candidates.filter((item) => item.kind === 'session'))
+  const tabsIsFresh = chosenTabs ? Date.now() - chosenTabs.candidate.mtimeMs < 1000 * 60 * 60 * 4 : false
+  const chosen = tabsIsFresh && chosenTabs ? chosenTabs : chosenSession ?? chosenTabs
 
-  try {
-    const candidates = await collectLatestCandidates(userDataDir)
-    const chosenTabs = await findFirstParsed(candidates.filter((item) => item.kind === 'tabs'))
-    const chosenSession = await findFirstParsed(candidates.filter((item) => item.kind === 'session'))
-
-    const tabsIsFresh =
-      chosenTabs ? Date.now() - chosenTabs.candidate.mtimeMs < 1000 * 60 * 60 * 4 : false
-
-    const chosen =
-      tabsIsFresh && chosenTabs
-        ? chosenTabs
-        : chosenSession ?? chosenTabs
-
-    if (!chosen) {
-      return NextResponse.json({ tabs: [], error: 'No Edge session snapshot could be parsed.' }, { status: 404 })
+  if (!chosen) {
+    return {
+      ok: false,
+      status: 404,
+      body: { tabs: [], error: 'No Edge session snapshot could be parsed.' },
     }
+  }
 
-    return NextResponse.json({
+  return {
+    ok: true,
+    status: 200,
+    body: {
       tabs: chosen.items,
       source: {
         kind: chosen.candidate.kind,
         profile: chosen.candidate.profile,
         updatedAt: new Date(chosen.candidate.mtimeMs).toISOString(),
       },
-    })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to read Edge session.'
-    return NextResponse.json({ tabs: [], error: message }, { status: 500 })
+    },
   }
+}
+
+function sendJson(response, status, body) {
+  response.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  })
+  response.end(JSON.stringify(body))
+}
+
+async function startHelperServer({ port = HELPER_PORT } = {}) {
+  const server = http.createServer(async (request, response) => {
+    if (!request.url) {
+      sendJson(response, 404, { error: 'Not found' })
+      return
+    }
+
+    if (request.method === 'OPTIONS') {
+      sendJson(response, 204, {})
+      return
+    }
+
+    if (request.method === 'GET' && request.url === '/health') {
+      sendJson(response, 200, { ok: true, port })
+      return
+    }
+
+    if (request.method === 'GET' && request.url === '/api/edge-tabs') {
+      try {
+        const result = await getEdgeTabs()
+        sendJson(response, result.status, result.body)
+      } catch (error) {
+        sendJson(response, 500, {
+          tabs: [],
+          error: error instanceof Error ? error.message : 'Failed to read Edge tabs.',
+        })
+      }
+      return
+    }
+
+    sendJson(response, 404, { error: 'Not found' })
+  })
+
+  await new Promise((resolve, reject) => {
+    server.once('error', reject)
+    server.listen(port, '127.0.0.1', () => {
+      server.off('error', reject)
+      resolve()
+    })
+  })
+
+  return {
+    port,
+    close: () =>
+      new Promise((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()))
+      }),
+  }
+}
+
+module.exports = {
+  HELPER_PORT,
+  getEdgeTabs,
+  startHelperServer,
 }

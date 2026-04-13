@@ -76,7 +76,28 @@ type EdgeTabCandidate = {
   sourceKind: 'tabs' | 'session'
 }
 
+type EdgeTabsPayload = {
+  tabs?: EdgeTabCandidate[]
+  source?: { kind: string; profile: string; updatedAt: string }
+  error?: string
+}
+
+type HybridWorkspace = {
+  analogEntries: AnalogEntry[]
+  digitalEntries: DigitalEntry[]
+  bridgeLinks: BridgeLink[]
+  ritual: RitualState
+}
+
+type HybridWorkspacePayload = {
+  workspace?: Partial<HybridWorkspace> | null
+  updatedAt?: string | null
+  error?: string
+}
+
 const STORAGE_KEY = 'hybrid-notes-atelier-v1'
+const SYNC_KEY_STORAGE_KEY = `${STORAGE_KEY}:sync-key`
+const SYNC_QUERY_PARAM = 'sync'
 const NOTEBOOKS = ['Daily Log', 'Project Book', 'Study Pad', 'Pocket Memo']
 const SPACES = ['Knowledge Base', 'Action Board', 'Idea Garden', 'Archive Shelf']
 const TYPE_META: Record<DigitalType, { label: string; tone: string }> = {
@@ -147,6 +168,78 @@ function stamp(value: string) {
   return new Date(value).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
+function defaultWorkspace(): HybridWorkspace {
+  return {
+    analogEntries: [],
+    digitalEntries: [],
+    bridgeLinks: [],
+    ritual: defaultRitual(),
+  }
+}
+
+function normalizeWorkspace(workspace?: Partial<HybridWorkspace> | null): HybridWorkspace {
+  const fallback = defaultWorkspace()
+
+  return {
+    analogEntries: Array.isArray(workspace?.analogEntries) ? workspace.analogEntries : fallback.analogEntries,
+    digitalEntries: Array.isArray(workspace?.digitalEntries) ? workspace.digitalEntries : fallback.digitalEntries,
+    bridgeLinks: Array.isArray(workspace?.bridgeLinks) ? workspace.bridgeLinks : fallback.bridgeLinks,
+    ritual: workspace?.ritual?.dateKey ? { ...defaultRitual(), ...workspace.ritual } : fallback.ritual,
+  }
+}
+
+function normalizeSyncKey(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 64)
+}
+
+function createSyncKey() {
+  return `atelier-${Math.random().toString(36).slice(2, 8)}-${Date.now().toString(36).slice(-4)}`
+}
+
+async function fetchEdgeTabsFrom(endpoint: string) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 4500)
+
+  try {
+    const response = await fetch(endpoint, {
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+
+    const payload = await response.json() as EdgeTabsPayload
+    return { response, payload }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+async function fetchHybridWorkspaceFrom(syncKey: string) {
+  const response = await fetch(`/api/hybrid-notes?syncKey=${encodeURIComponent(syncKey)}`, {
+    cache: 'no-store',
+  })
+
+  const payload = await response.json() as HybridWorkspacePayload
+  return { response, payload }
+}
+
+async function saveHybridWorkspaceTo(syncKey: string, workspace: HybridWorkspace) {
+  const response = await fetch('/api/hybrid-notes', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ syncKey, workspace }),
+  })
+
+  const payload = await response.json() as HybridWorkspacePayload
+  return { response, payload }
+}
+
 export default function HybridNotesApp() {
   const [tab, setTab] = useState<AppTab>('overview')
   const [ready, setReady] = useState(false)
@@ -162,17 +255,36 @@ export default function HybridNotesApp() {
   const [edgeSelectedIds, setEdgeSelectedIds] = useState<string[]>([])
   const [edgeLoading, setEdgeLoading] = useState(false)
   const [edgeSourceLabel, setEdgeSourceLabel] = useState('')
+  const [syncKeyInput, setSyncKeyInput] = useState('')
+  const [activeSyncKey, setActiveSyncKey] = useState('')
+  const [syncReady, setSyncReady] = useState(false)
+  const [syncBusy, setSyncBusy] = useState(false)
+  const [syncSaving, setSyncSaving] = useState(false)
+  const [syncUpdatedAt, setSyncUpdatedAt] = useState('')
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const syncSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const skipNextRemoteSave = useRef(false)
+  const attemptedAutoSyncKey = useRef('')
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
-        const parsed = JSON.parse(raw) as Partial<{ analogEntries: AnalogEntry[]; digitalEntries: DigitalEntry[]; bridgeLinks: BridgeLink[]; ritual: RitualState }>
-        setAnalogEntries(Array.isArray(parsed.analogEntries) ? parsed.analogEntries : [])
-        setDigitalEntries(Array.isArray(parsed.digitalEntries) ? parsed.digitalEntries : [])
-        setBridgeLinks(Array.isArray(parsed.bridgeLinks) ? parsed.bridgeLinks : [])
+        const parsed = normalizeWorkspace(JSON.parse(raw) as Partial<HybridWorkspace>)
+        setAnalogEntries(parsed.analogEntries)
+        setDigitalEntries(parsed.digitalEntries)
+        setBridgeLinks(parsed.bridgeLinks)
         setRitual(parsed.ritual?.dateKey === todayKey() ? { ...defaultRitual(), ...parsed.ritual } : defaultRitual())
+      }
+
+      const params = new URLSearchParams(window.location.search)
+      const querySyncKey = normalizeSyncKey(params.get(SYNC_QUERY_PARAM) || '')
+      const storedSyncKey = normalizeSyncKey(localStorage.getItem(SYNC_KEY_STORAGE_KEY) || '')
+      const initialSyncKey = querySyncKey || storedSyncKey
+
+      if (initialSyncKey) {
+        setSyncKeyInput(initialSyncKey)
+        setActiveSyncKey(initialSyncKey)
       }
     } catch {
       setRitual(defaultRitual())
@@ -184,13 +296,32 @@ export default function HybridNotesApp() {
     if (!ready) return
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ analogEntries, digitalEntries, bridgeLinks, ritual }))
+      if (activeSyncKey) {
+        localStorage.setItem(SYNC_KEY_STORAGE_KEY, activeSyncKey)
+      } else {
+        localStorage.removeItem(SYNC_KEY_STORAGE_KEY)
+      }
     } catch {
       // ignore
     }
-  }, [ready, analogEntries, digitalEntries, bridgeLinks, ritual])
+  }, [ready, analogEntries, digitalEntries, bridgeLinks, ritual, activeSyncKey])
+
+  useEffect(() => {
+    if (!ready) return
+
+    const url = new URL(window.location.href)
+    if (activeSyncKey) {
+      url.searchParams.set(SYNC_QUERY_PARAM, activeSyncKey)
+    } else {
+      url.searchParams.delete(SYNC_QUERY_PARAM)
+    }
+
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`)
+  }, [ready, activeSyncKey])
 
   useEffect(() => () => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
+    if (syncSaveTimer.current) clearTimeout(syncSaveTimer.current)
   }, [])
 
   const flash = (message: string) => {
@@ -198,6 +329,133 @@ export default function HybridNotesApp() {
     if (toastTimer.current) clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToast(''), 2200)
   }
+
+  const snapshotWorkspace = (): HybridWorkspace => ({
+    analogEntries,
+    digitalEntries,
+    bridgeLinks,
+    ritual,
+  })
+
+  const applyWorkspace = (workspace: HybridWorkspace) => {
+    setAnalogEntries(workspace.analogEntries)
+    setDigitalEntries(workspace.digitalEntries)
+    setBridgeLinks(workspace.bridgeLinks)
+    setRitual(workspace.ritual.dateKey === todayKey() ? { ...defaultRitual(), ...workspace.ritual } : defaultRitual())
+  }
+
+  const loadSharedWorkspace = async (syncKey: string, quiet = false) => {
+    setSyncBusy(true)
+    setSyncReady(false)
+    setActiveSyncKey(syncKey)
+    setSyncKeyInput(syncKey)
+
+    try {
+      const loaded = await fetchHybridWorkspaceFrom(syncKey)
+      if (!loaded.response.ok || loaded.payload.error) {
+        throw new Error(loaded.payload.error || '共有ワークスペースを読み込めませんでした。')
+      }
+
+      if (loaded.payload.workspace) {
+        skipNextRemoteSave.current = true
+        applyWorkspace(normalizeWorkspace(loaded.payload.workspace))
+        setSyncUpdatedAt(loaded.payload.updatedAt ? stamp(loaded.payload.updatedAt) : '')
+        setSyncReady(true)
+        if (!quiet) flash('共有ワークスペースを接続しました。')
+        return
+      }
+
+      const saved = await saveHybridWorkspaceTo(syncKey, snapshotWorkspace())
+      if (!saved.response.ok || saved.payload.error) {
+        throw new Error(saved.payload.error || '共有ワークスペースを作成できませんでした。')
+      }
+
+      setSyncUpdatedAt(saved.payload.updatedAt ? stamp(saved.payload.updatedAt) : '')
+      setSyncReady(true)
+      if (!quiet) flash('新しい共有ワークスペースを作成しました。')
+    } catch (error) {
+      setSyncReady(false)
+      const message = error instanceof Error ? error.message : '共有同期に失敗しました。'
+      flash(message)
+    } finally {
+      setSyncBusy(false)
+    }
+  }
+
+  const connectSharedWorkspace = () => {
+    const nextSyncKey = normalizeSyncKey(syncKeyInput)
+    if (nextSyncKey.length < 4) return flash('同期キーは4文字以上で入力してください。')
+    attemptedAutoSyncKey.current = nextSyncKey
+    void loadSharedWorkspace(nextSyncKey)
+  }
+
+  const createSharedWorkspace = () => {
+    const nextSyncKey = createSyncKey()
+    attemptedAutoSyncKey.current = nextSyncKey
+    void loadSharedWorkspace(nextSyncKey)
+  }
+
+  const disconnectSharedWorkspace = () => {
+    attemptedAutoSyncKey.current = ''
+    setActiveSyncKey('')
+    setSyncKeyInput('')
+    setSyncReady(false)
+    setSyncUpdatedAt('')
+    flash('ローカル保存モードに切り替えました。')
+  }
+
+  const copySyncLink = async () => {
+    if (!activeSyncKey) return flash('先に同期キーを接続してください。')
+
+    try {
+      const url = new URL(window.location.href)
+      url.searchParams.set(SYNC_QUERY_PARAM, activeSyncKey)
+      await navigator.clipboard.writeText(url.toString())
+      flash('同期リンクをコピーしました。')
+    } catch {
+      flash('同期リンクをコピーできませんでした。')
+    }
+  }
+
+  useEffect(() => {
+    if (!ready || !activeSyncKey || syncReady || syncBusy || attemptedAutoSyncKey.current === activeSyncKey) return
+    attemptedAutoSyncKey.current = activeSyncKey
+    void loadSharedWorkspace(activeSyncKey, true)
+  }, [ready, activeSyncKey, syncReady, syncBusy])
+
+  useEffect(() => {
+    if (!ready || !activeSyncKey || !syncReady) return
+
+    if (skipNextRemoteSave.current) {
+      skipNextRemoteSave.current = false
+      return
+    }
+
+    if (syncSaveTimer.current) clearTimeout(syncSaveTimer.current)
+
+    syncSaveTimer.current = setTimeout(() => {
+      setSyncSaving(true)
+      void saveHybridWorkspaceTo(activeSyncKey, snapshotWorkspace())
+        .then(({ response, payload }) => {
+          if (!response.ok || payload.error) {
+            throw new Error(payload.error || '共有ワークスペースを保存できませんでした。')
+          }
+
+          setSyncUpdatedAt(payload.updatedAt ? stamp(payload.updatedAt) : '')
+        })
+        .catch((error) => {
+          const message = error instanceof Error ? error.message : '共有同期に失敗しました。'
+          flash(message)
+        })
+        .finally(() => {
+          setSyncSaving(false)
+        })
+    }, 700)
+
+    return () => {
+      if (syncSaveTimer.current) clearTimeout(syncSaveTimer.current)
+    }
+  }, [ready, activeSyncKey, syncReady, analogEntries, digitalEntries, bridgeLinks, ritual])
 
   const analogMap = Object.fromEntries(analogEntries.map((entry) => [entry.id, entry])) as Record<string, AnalogEntry>
   const digitalMap = Object.fromEntries(digitalEntries.map((entry) => [entry.id, entry])) as Record<string, DigitalEntry>
@@ -313,15 +571,32 @@ export default function HybridNotesApp() {
     setEdgeLoading(true)
 
     try {
-      const response = await fetch('/api/edge-tabs', { cache: 'no-store' })
-      const payload = await response.json() as {
-        tabs?: EdgeTabCandidate[]
-        source?: { kind: string; profile: string; updatedAt: string }
-        error?: string
+      const endpoints = [
+        'http://127.0.0.1:4317/api/edge-tabs',
+        'http://localhost:4317/api/edge-tabs',
+        '/api/edge-tabs',
+      ]
+
+      let lastError = 'Edge session could not be loaded.'
+      let payload: EdgeTabsPayload | null = null
+
+      for (const endpoint of endpoints) {
+        try {
+          const result = await fetchEdgeTabsFrom(endpoint)
+          if (!result.response.ok || result.payload.error) {
+            lastError = result.payload.error || lastError
+            continue
+          }
+
+          payload = result.payload
+          break
+        } catch {
+          // try next source
+        }
       }
 
-      if (!response.ok || payload.error) {
-        throw new Error(payload.error || 'Edge session could not be loaded.')
+      if (!payload) {
+        throw new Error(lastError)
       }
 
       const tabs = Array.isArray(payload.tabs) ? payload.tabs : []
@@ -408,6 +683,47 @@ export default function HybridNotesApp() {
             </div>
           </div>
         </header>
+
+        <section className="panel sectionPad syncPanel">
+          <div className="sectionHead">
+            <div>
+              <div className="eyebrow">Shared Sync</div>
+              <h2>Web と Electron で同じノートを開く</h2>
+            </div>
+            <span className={`badge ${activeSyncKey && syncReady ? 'badgeMint' : 'badgeSlate'}`}>
+              {activeSyncKey && syncReady ? 'shared' : 'local'}
+            </span>
+          </div>
+          <p className="lead">
+            同じ同期キー、または同じ同期リンクをブラウザ版と Electron 版で使うと、
+            紙ノート・デジタルノート・リンクが同じワークスペースとして開きます。
+          </p>
+          <div className="syncControls">
+            <input
+              className="input"
+              value={syncKeyInput}
+              onChange={(event) => setSyncKeyInput(event.target.value)}
+              placeholder="sync key"
+            />
+            <button className="primaryBtn" onClick={connectSharedWorkspace} disabled={syncBusy}>
+              {syncBusy ? '接続中...' : syncReady ? '再同期する' : '同期を接続'}
+            </button>
+            <button className="ghostBtn" onClick={createSharedWorkspace} disabled={syncBusy}>
+              新しいキー
+            </button>
+            <button className="ghostBtn" onClick={copySyncLink} disabled={!activeSyncKey}>
+              同期リンクをコピー
+            </button>
+            <button className="ghostBtn" onClick={disconnectSharedWorkspace} disabled={!activeSyncKey}>
+              ローカル専用
+            </button>
+          </div>
+          <div className="helper">
+            {activeSyncKey
+              ? `${syncSaving ? '自動同期中' : '接続中'} • key: ${activeSyncKey}${syncUpdatedAt ? ` • 最終同期 ${syncUpdatedAt}` : ''}`
+              : 'いまはこのブラウザ内だけに保存しています。'}
+          </div>
+        </section>
 
         <div className="tabRow">
           {(['overview', 'capture', 'bridge'] as AppTab[]).map((item) => (
@@ -521,6 +837,7 @@ export default function HybridNotesApp() {
                 Edge の最新セッションスナップショットから、タイトル付きタブ候補を読み込みます。
                 保存するとデジタルノートとして URL と一緒に残せます。
               </p>
+              <div className="helper">この機能は「このアプリを Windows PC 上でローカル実行しているとき」にだけ動きます。公開サイトからは手元の Edge タブを読めません。</div>
               {edgeSourceLabel && <div className="helper">Source: {edgeSourceLabel}</div>}
               <div className="stack tightStack">
                 {edgeTabs.length === 0 && <div className="emptyCard">まだ Edge タブ候補は読み込まれていません。</div>}
@@ -744,6 +1061,7 @@ export default function HybridNotesApp() {
         .primaryBtn{border:none;background:linear-gradient(135deg,#0f766e 0%,#1d4ed8 100%);color:#fff;box-shadow:0 18px 40px rgba(15,118,110,.24)}
         .splitGrid,.gridTwo{display:grid;grid-template-columns:1fr 1fr;gap:18px}.stack{display:grid;gap:18px}.tightStack{gap:12px}.sectionPad{padding:22px}.sectionPad h2{margin:8px 0 10px;font-size:30px}.countText,.helper,.metaLine{font-size:13px;color:#64748b}.metaLine.paper{color:#ea580c;font-weight:700}
         .widePanel{grid-column:1 / -1}
+        .syncPanel{margin-bottom:18px}.syncControls{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(4,auto);gap:10px;align-items:center}
         .statGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.statCard{background:#fffdfa;border:1px solid rgba(20,33,61,.08);border-radius:20px;padding:16px}.statCard span{display:block;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#64748b;margin-bottom:8px}.statCard strong{font-size:30px}
         .focusBox{margin-top:16px;padding:14px;border-radius:18px;background:#0f172a;color:#e2e8f0}.focusBox strong{display:block;margin-top:8px;font-size:17px}.focusBox p{margin:6px 0 0;color:#cbd5e1}
         .entryCard,.workflowCard,.promptCard,.emptyCard,.ritualCard{border-radius:22px;padding:18px;background:#fffdfa;border:1px solid rgba(20,33,61,.08)} .entryCard h3{margin:6px 0 0;font-size:20px}.workflowCard strong{display:block;font-size:20px}.promptCard{display:flex;gap:12px;align-items:flex-start}.promptIndex,.ritualDot{width:36px;height:36px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
@@ -758,7 +1076,7 @@ export default function HybridNotesApp() {
         .toneBtn{padding:10px 14px}.toneorangeActive,.tonemintActive,.toneblueActive,.tonevioletActive,.toneslateActive{color:#fff}.toneorangeActive{background:#c2410c}.tonemintActive{background:#0f766e}.toneblueActive{background:#1d4ed8}.tonevioletActive{background:#7c3aed}.toneslateActive{background:#475569}.pillBtnActive{background:#0f172a;color:#f8fafc}
         .ghostBtn:disabled,.primaryBtn:disabled{opacity:.5;cursor:not-allowed}
         .preLine{white-space:pre-line}.emptyCard{color:#475569}.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f172a;color:#f8fafc;padding:12px 18px;border-radius:999px;font-weight:700;box-shadow:0 18px 50px rgba(15,23,42,.24);z-index:50}
-        @media (max-width:980px){.heroPanel,.splitGrid,.gridTwo,.gridInput{grid-template-columns:1fr}}
+        @media (max-width:980px){.heroPanel,.splitGrid,.gridTwo,.gridInput,.syncControls{grid-template-columns:1fr}}
       `}</style>
     </div>
   )

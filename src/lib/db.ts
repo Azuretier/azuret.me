@@ -32,6 +32,14 @@ function getDb(): Database.Database {
         website TEXT DEFAULT '',
         created_at TEXT DEFAULT (datetime('now'))
       );
+
+      CREATE TABLE IF NOT EXISTS hybrid_workspaces (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sync_key TEXT UNIQUE NOT NULL,
+        payload TEXT NOT NULL,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+      );
     `)
   }
   return db
@@ -83,4 +91,42 @@ export function createProfile(
   return getDb()
     .prepare('SELECT * FROM profiles WHERE id = ?')
     .get(result.lastInsertRowid)
+}
+
+/* ── Hybrid Workspaces ───────────────────────────────────── */
+
+type HybridWorkspaceRow = {
+  sync_key: string
+  payload: string
+  updated_at: string
+}
+
+export function getHybridWorkspace(syncKey: string) {
+  const row = getDb()
+    .prepare('SELECT sync_key, payload, updated_at FROM hybrid_workspaces WHERE sync_key = ?')
+    .get(syncKey) as HybridWorkspaceRow | undefined
+
+  if (!row) return null
+
+  return {
+    syncKey: row.sync_key,
+    workspace: JSON.parse(row.payload),
+    updatedAt: row.updated_at,
+  }
+}
+
+export function saveHybridWorkspace(syncKey: string, workspace: unknown) {
+  const payload = JSON.stringify(workspace)
+
+  getDb()
+    .prepare(`
+      INSERT INTO hybrid_workspaces (sync_key, payload, updated_at)
+      VALUES (?, ?, datetime('now'))
+      ON CONFLICT(sync_key) DO UPDATE SET
+        payload = excluded.payload,
+        updated_at = datetime('now')
+    `)
+    .run(syncKey, payload)
+
+  return getHybridWorkspace(syncKey)
 }
