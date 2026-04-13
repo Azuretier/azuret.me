@@ -107,6 +107,8 @@ export interface Translations {
     workoutDescription: string
     englishTitle: string
     englishDescription: string
+    hybridNotesTitle: string
+    hybridNotesDescription: string
     openButton: string
   }
 
@@ -202,6 +204,8 @@ const en: Translations = {
     workoutDescription: 'Track your workout routines and progress.',
     englishTitle: 'English Studio',
     englishDescription: 'Vocabulary, phrases, and short quizzes for daily English practice.',
+    hybridNotesTitle: 'Hybrid Notes Atelier',
+    hybridNotesDescription: 'Capture fast on paper, distill digitally, and link both into one workflow.',
     openButton: 'Open',
   },
   widget: {
@@ -295,6 +299,8 @@ const ja: Translations = {
     workoutDescription: 'ワークアウトルーティンと進捗を記録。',
     englishTitle: '英語スタジオ',
     englishDescription: '単語、フレーズ、短いクイズで毎日英語を練習できます。',
+    hybridNotesTitle: 'ハイブリッドノート',
+    hybridNotesDescription: '紙で速く書き、デジタルで整理し、両方をリンクして再利用できるノートアプリ。',
     openButton: '開く',
   },
   widget: {
@@ -388,6 +394,8 @@ const th: Translations = {
     workoutDescription: 'ติดตามกิจวัตรออกกำลังกายและความก้าวหน้า',
     englishTitle: 'สตูดิโอภาษาอังกฤษ',
     englishDescription: 'ฝึกคำศัพท์ วลี และควิซสั้น ๆ เพื่อใช้ภาษาอังกฤษทุกวัน',
+    hybridNotesTitle: 'Hybrid Notes Atelier',
+    hybridNotesDescription: 'จดบนกระดาษให้เร็ว จัดระบบบนดิจิทัล แล้วเชื่อมทั้งสองฝั่งไว้ด้วยกัน',
     openButton: 'เปิด',
   },
   widget: {
@@ -481,6 +489,8 @@ const es: Translations = {
     workoutDescription: 'Registra tus rutinas de ejercicio y progreso.',
     englishTitle: 'Estudio de Ingles',
     englishDescription: 'Vocabulario, frases y cuestionarios cortos para practicar ingles cada dia.',
+    hybridNotesTitle: 'Hybrid Notes Atelier',
+    hybridNotesDescription: 'Captura rapido en papel, organiza en digital y conecta ambos en un solo flujo.',
     openButton: 'Abrir',
   },
   widget: {

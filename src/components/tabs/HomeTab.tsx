@@ -241,6 +241,28 @@ export default function HomeTab({ visible, onTabChange }: HomeTabProps) {
               </svg>
             </div>
           </button>
+
+          <button onClick={() => onTabChange?.('h')} className={styles.projectCard} style={{ '--project-accent': '#0f766e' } as React.CSSProperties}>
+            <div className={styles.projectIconWrapper}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 4h10a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                <path d="M8 8h8" />
+                <path d="M8 12h5" />
+                <path d="M15 16l2-2 3 3" />
+                <circle cx="17" cy="14" r="2" />
+              </svg>
+            </div>
+            <div className={styles.projectInfo}>
+              <div className={styles.projectTitle}>{t.projects.hybridNotesTitle}</div>
+              <div className={styles.projectDesc}>{t.projects.hybridNotesDescription}</div>
+            </div>
+            <div className={styles.projectAction}>
+              <span className={styles.projectOpenBtn}>{t.projects.openButton}</span>
+              <svg className={styles.projectArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
         </div>
       </section>
 

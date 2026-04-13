@@ -1,6 +1,6 @@
 /* ── Shared Types ──────────────────────────────────────────── */
 
-export type TabKey = 'home' | 'profiles' | 'links' | 'l' | 'n' | 'workout' | 'english'
+export type TabKey = 'home' | 'profiles' | 'links' | 'l' | 'n' | 'workout' | 'english' | 'h'
 
 export interface Comment {
   id: number
