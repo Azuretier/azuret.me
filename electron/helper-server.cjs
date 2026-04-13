@@ -10,6 +10,8 @@ const HELPER_PORT = Number(process.env.ELECTRON_HELPER_PORT || 4317)
 const PROFILE_NAME_PATTERN = /^(Default|Profile \d+)$/i
 const URL_PATTERN = /(https?:\/\/[^\x00\s]+|edge:\/\/[^\x00\s]+)/g
 const MAX_RESULTS = 40
+const LIVE_TAB_LIMIT = 30
+const liveExtensionTabs = []
 
 function cleanTitle(title) {
   return title
@@ -33,6 +35,93 @@ function isUsefulTitle(title) {
 
 function shouldIgnoreUrl(url) {
   return url === 'about:blank' || url === 'edge://newtab/' || url.startsWith('https://ntp.msn.com/edge/ntp')
+}
+
+function normalizeExtensionTab(payload) {
+  const title = typeof payload?.title === 'string' ? cleanTitle(payload.title) : ''
+  const url = typeof payload?.url === 'string' ? cleanUrl(payload.url) : ''
+
+  if (!url || shouldIgnoreUrl(url)) return null
+  if (!title || !isUsefulTitle(title)) return null
+
+  const capturedAt =
+    typeof payload?.capturedAt === 'string' && !Number.isNaN(Date.parse(payload.capturedAt))
+      ? payload.capturedAt
+      : new Date().toISOString()
+
+  return {
+    id:
+      typeof payload?.id === 'string' && payload.id.trim()
+        ? payload.id.trim()
+        : `extension-${Buffer.from(url).toString('base64url').slice(0, 16)}`,
+    title,
+    url,
+    profile: 'Live Edge',
+    sourceKind: 'extension',
+    windowId: typeof payload?.windowId === 'number' ? payload.windowId : null,
+    tabId: typeof payload?.tabId === 'number' ? payload.tabId : null,
+    faviconUrl: typeof payload?.faviconUrl === 'string' ? payload.faviconUrl : '',
+    capturedAt,
+    reason: typeof payload?.reason === 'string' ? payload.reason : 'manual',
+  }
+}
+
+function saveLiveExtensionTab(payload) {
+  const normalized = normalizeExtensionTab(payload)
+  if (!normalized) return null
+
+  const index = liveExtensionTabs.findIndex((entry) => {
+    if (normalized.tabId !== null && entry.tabId !== null) {
+      return entry.tabId === normalized.tabId && entry.windowId === normalized.windowId
+    }
+
+    return entry.url === normalized.url
+  })
+
+  if (index >= 0) liveExtensionTabs.splice(index, 1)
+  liveExtensionTabs.unshift(normalized)
+  liveExtensionTabs.splice(LIVE_TAB_LIMIT)
+  return normalized
+}
+
+function getLiveExtensionTabs() {
+  const latest = liveExtensionTabs[0]
+
+  return {
+    ok: true,
+    status: 200,
+    body: {
+      tabs: liveExtensionTabs,
+      source: latest
+        ? {
+            kind: 'extension',
+            profile: 'Active Tab Feed',
+            updatedAt: latest.capturedAt,
+          }
+        : null,
+    },
+  }
+}
+
+function readJsonBody(request) {
+  return new Promise((resolve, reject) => {
+    const chunks = []
+
+    request.on('data', (chunk) => {
+      chunks.push(chunk)
+    })
+
+    request.on('end', () => {
+      try {
+        const raw = Buffer.concat(chunks).toString('utf8')
+        resolve(raw ? JSON.parse(raw) : {})
+      } catch (error) {
+        reject(error)
+      }
+    })
+
+    request.on('error', reject)
+  })
 }
 
 function extractTitledEntries(buffer) {
@@ -230,7 +319,7 @@ function sendJson(response, status, body) {
   response.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   })
   response.end(JSON.stringify(body))
@@ -261,6 +350,32 @@ async function startHelperServer({ port = HELPER_PORT } = {}) {
         sendJson(response, 500, {
           tabs: [],
           error: error instanceof Error ? error.message : 'Failed to read Edge tabs.',
+        })
+      }
+      return
+    }
+
+    if (request.method === 'GET' && request.url === '/api/edge-extension-tabs') {
+      const result = getLiveExtensionTabs()
+      sendJson(response, result.status, result.body)
+      return
+    }
+
+    if (request.method === 'POST' && request.url === '/api/edge-extension-tabs') {
+      try {
+        const body = await readJsonBody(request)
+        const saved = saveLiveExtensionTab(body)
+
+        if (!saved) {
+          sendJson(response, 400, { ok: false, error: 'Valid title and url are required.' })
+          return
+        }
+
+        sendJson(response, 201, { ok: true, tab: saved })
+      } catch (error) {
+        sendJson(response, 400, {
+          ok: false,
+          error: error instanceof Error ? error.message : 'Failed to parse tab payload.',
         })
       }
       return

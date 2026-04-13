@@ -7,8 +7,8 @@ const featureCards = [
     body: '紙ノートの勢いをそのまま残しながら、あとで拾い上げるための要点・ページ・タグを整えます。',
   },
   {
-    title: 'Edge Import',
-    body: 'Microsoft Edge の開いているタブをタイトル付きで読み込み、調べ物の流れをそのまま保存できます。',
+    title: 'Live Edge Extension',
+    body: 'Microsoft Edge 拡張機能が現在のアクティブタブを localhost helper へ送信し、リアルタイムに近い形で取り込めます。',
   },
   {
     title: 'Bridge View',
@@ -53,6 +53,9 @@ export default function HybridNotesShowcase() {
             </a>
             <a className={styles.secondaryCta} href="/downloads/hybrid-notes-desktop-guide.txt" download>
               Download Setup Guide
+            </a>
+            <a className={styles.secondaryCta} href="/downloads/hybrid-notes-edge-extension.zip" download>
+              Download Edge Extension
             </a>
             <Link className={styles.ghostCta} href="#preview">
               See the interface
@@ -183,7 +186,7 @@ export default function HybridNotesShowcase() {
             <h2>ダウンロードして、そのまま手元で使い始める</h2>
             <p>
               このページはショーケースです。実際の操作、保存、Edge タブ取り込み、ノートの接続は
-              Electron デスクトップアプリ側で行います。
+              Electron デスクトップアプリ側で行います。リアルタイムの現在タブ取得は Edge 拡張機能を使います。
             </p>
           </div>
 
@@ -193,6 +196,9 @@ export default function HybridNotesShowcase() {
             </a>
             <a className={styles.secondaryCta} href="/downloads/hybrid-notes-desktop-guide.txt" download>
               Setup Guide
+            </a>
+            <a className={styles.secondaryCta} href="/downloads/hybrid-notes-edge-extension.zip" download>
+              Edge Extension
             </a>
           </div>
         </div>

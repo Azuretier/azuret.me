@@ -11,3 +11,8 @@ What you get:
 - Local workspace storage
 - Microsoft Edge tab import helper on Windows
 - Analog capture, digital notes, bridge links, and JSON backup
+
+Optional real-time tab capture:
+1. Load the Edge extension from the hybrid-notes-edge extension bundle.
+2. Keep Hybrid Notes Desktop running.
+3. Turn on Auto send in the extension popup.

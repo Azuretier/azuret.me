@@ -7,6 +7,7 @@ Electron-first desktop app for analog + digital note workflows.
 - the web page is now a product showcase and download surface
 - the actual experience lives in the Electron app
 - the desktop app stores notes locally and can import Microsoft Edge tabs through the local helper
+- an Edge extension can push the active tab to the helper in real time
 
 ## Commands
 
@@ -27,6 +28,7 @@ npm run electron
 - dashboard with paper inbox, digital shelf, and bridge coverage
 - analog capture and digital note creation
 - Microsoft Edge tab import from the same Windows machine
+- live active-tab import through the Edge extension
 - bridge links between paper notes and digital notes
 - ritual checklist, JSON export, JSON import, and local reset
 

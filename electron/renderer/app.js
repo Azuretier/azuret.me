@@ -41,6 +41,7 @@ const state = {
 }
 
 const app = document.querySelector('#app')
+let edgePollTimer = null
 
 function todayKey() {
   const now = new Date()
@@ -82,6 +83,17 @@ function notePreview(text) {
 
 function toneClass(tone) {
   return `tone-${tone}`
+}
+
+function mergeTabCandidates(...groups) {
+  const byUrl = new Map()
+
+  groups.flat().forEach((entry) => {
+    if (!entry || typeof entry.url !== 'string' || !entry.url) return
+    if (!byUrl.has(entry.url)) byUrl.set(entry.url, entry)
+  })
+
+  return [...byUrl.values()]
 }
 
 function linkedAnalogIds() {
@@ -327,7 +339,7 @@ function renderCapture() {
           </div>
           <button class="secondary-button" data-action="load-edge-tabs" ${state.edgeLoading ? 'disabled' : ''}>${state.edgeLoading ? 'Loading...' : 'Fetch Edge tabs'}</button>
         </div>
-        <p class="section-copy">この PC 上で開いている Edge セッションをローカル helper から読み込み、タイトル付きでデジタルノートに保存します。</p>
+        <p class="section-copy">Edge 拡張機能のライブ前面タブ feed を優先し、必要に応じてローカル session snapshot も補完して読み込みます。</p>
         ${state.edgeSourceLabel ? `<div class="helper-line">Source: ${safeText(state.edgeSourceLabel)}</div>` : '<div class="helper-line">Desktop app local helper only.</div>'}
         <div class="edge-list">
           ${state.edgeTabs.length === 0 ? '<div class="empty-card">まだ Edge タブ候補はありません。</div>' : ''}
@@ -594,6 +606,7 @@ function render() {
 
 function setView(view) {
   state.activeView = view
+  syncEdgePolling()
   render()
 }
 
@@ -681,43 +694,90 @@ function saveLink(form) {
   flash('紙とデジタルをリンクしました。')
 }
 
-async function loadEdgeTabs() {
+async function loadEdgeTabs({ silent = false } = {}) {
   state.edgeLoading = true
   render()
 
   try {
-    const endpoints = ['http://127.0.0.1:4317/api/edge-tabs', 'http://localhost:4317/api/edge-tabs']
-    let payload = null
-    let lastError = 'Edge session could not be loaded.'
+    const hosts = ['http://127.0.0.1:4317', 'http://localhost:4317']
+    let livePayload = null
+    let sessionPayload = null
+    let lastError = 'Edge data could not be loaded.'
 
-    for (const endpoint of endpoints) {
+    for (const host of hosts) {
       try {
-        const response = await fetch(endpoint, { cache: 'no-store' })
+        const response = await fetch(`${host}/api/edge-extension-tabs`, { cache: 'no-store' })
         const next = await response.json()
-        if (!response.ok || next.error) {
-          lastError = next.error || lastError
-          continue
+        if (response.ok && !next.error) {
+          livePayload = next
+          break
         }
-        payload = next
-        break
+        lastError = next.error || lastError
       } catch {
-        // try next endpoint
+        // try next host
       }
     }
 
-    if (!payload) throw new Error(lastError)
+    for (const host of hosts) {
+      try {
+        const response = await fetch(`${host}/api/edge-tabs`, { cache: 'no-store' })
+        const next = await response.json()
+        if (response.ok && !next.error) {
+          sessionPayload = next
+          break
+        }
+        lastError = next.error || lastError
+      } catch {
+        // try next host
+      }
+    }
 
-    state.edgeTabs = Array.isArray(payload.tabs) ? payload.tabs : []
+    const liveTabs = Array.isArray(livePayload?.tabs) ? livePayload.tabs : []
+    const sessionTabs = Array.isArray(sessionPayload?.tabs) ? sessionPayload.tabs : []
+    const mergedTabs = mergeTabCandidates(liveTabs, sessionTabs)
+
+    if (mergedTabs.length === 0 && !livePayload && !sessionPayload) {
+      throw new Error(lastError)
+    }
+
+    state.edgeTabs = mergedTabs
     state.edgeSelectedIds = []
-    state.edgeSourceLabel = payload.source ? `${payload.source.profile} • ${payload.source.kind} • ${stamp(payload.source.updatedAt)}` : ''
-    flash(state.edgeTabs.length > 0 ? `${state.edgeTabs.length}件の Edge タブ候補を取得しました。` : 'Edge タブ候補が見つかりませんでした。')
+    state.edgeSourceLabel = [
+      livePayload?.source ? `Live: ${livePayload.source.profile} • ${stamp(livePayload.source.updatedAt)}` : '',
+      sessionPayload?.source ? `Snapshot: ${sessionPayload.source.profile} • ${sessionPayload.source.kind} • ${stamp(sessionPayload.source.updatedAt)}` : '',
+    ].filter(Boolean).join(' / ')
+    if (!silent) {
+      flash(state.edgeTabs.length > 0 ? `${state.edgeTabs.length}件の Edge タブ候補を取得しました。` : 'Edge タブ候補が見つかりませんでした。')
+    } else {
+      render()
+    }
   } catch (error) {
-    flash(error instanceof Error ? error.message : 'Edge import failed.')
+    if (!silent) {
+      flash(error instanceof Error ? error.message : 'Edge import failed.')
+    }
   } finally {
     state.edgeLoading = false
     render()
   }
 }
+
+function syncEdgePolling() {
+  if (edgePollTimer) {
+    clearInterval(edgePollTimer)
+    edgePollTimer = null
+  }
+
+  if (state.activeView !== 'capture') return
+
+  void loadEdgeTabs({ silent: true })
+  edgePollTimer = setInterval(() => {
+    if (!state.edgeLoading) void loadEdgeTabs({ silent: true })
+  }, 5000)
+}
+
+window.addEventListener('beforeunload', () => {
+  if (edgePollTimer) clearInterval(edgePollTimer)
+})
 
 function importEdgeTabs() {
   const selected = state.edgeTabs.filter((entry) => state.edgeSelectedIds.includes(entry.id))
@@ -903,4 +963,5 @@ app.addEventListener('submit', (event) => {
 })
 
 loadWorkspace()
+syncEdgePolling()
 render()

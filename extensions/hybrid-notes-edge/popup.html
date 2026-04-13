@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hybrid Notes Live Bridge</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header class="hero">
+        <img src="./icon.svg" alt="Hybrid Notes icon" class="hero-icon" />
+        <div>
+          <span class="eyebrow">Hybrid Notes</span>
+          <h1>Live Edge Bridge</h1>
+        </div>
+      </header>
+
+      <section class="status-card">
+        <div class="status-row">
+          <span>Helper</span>
+          <strong id="helper-status">Checking...</strong>
+        </div>
+        <div class="status-row">
+          <span>Auto send</span>
+          <label class="toggle">
+            <input id="auto-send" type="checkbox" />
+            <span class="toggle-ui"></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="actions">
+        <button id="send-active" class="primary">Send current tab</button>
+        <button id="send-window" class="secondary">Send current window</button>
+      </section>
+
+      <section class="info-card">
+        <span class="eyebrow">Last sent</span>
+        <strong id="last-title">Nothing sent yet</strong>
+        <p id="last-meta">Install Hybrid Notes Desktop and keep it running.</p>
+      </section>
+
+      <section class="info-card">
+        <span class="eyebrow">Latest error</span>
+        <p id="last-error">No errors.</p>
+      </section>
+    </main>
+
+    <script src="./popup.js"></script>
+  </body>
+  </html>
