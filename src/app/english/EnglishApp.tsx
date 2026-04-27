@@ -2,156 +2,166 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 
-type Tab = 'sprint' | 'writing' | 'speaking' | 'plan'
+type GameTab = 'vocab' | 'grammar' | 'dialogue' | 'review'
 
-type Question = {
+type VocabRound = {
+  id: number
+  word: string
+  options: string[]
+  answer: string
+  hint: string
+  example: string
+}
+
+type GrammarRound = {
   id: number
   prompt: string
-  choices: string[]
+  options: string[]
   answer: string
-  note: string
+  explanation: string
 }
 
-type Sprint = {
-  id: string
-  label: string
-  title: string
-  minutes: string
-  passageTitle: string
-  passage: string[]
-  questions: Question[]
-  writingPrompt: string
-  thesisHint: string
-  speakingTopic: string
-  speakingCue: string
-  speakingBullets: string[]
-  speakingFrames: string[]
-  vocab: string[]
+type DialogueRound = {
+  id: number
+  situation: string
+  line: string
+  options: string[]
+  answer: string
+  reason: string
 }
 
-const STORAGE_KEY = 'ielts-sprint-studio-v1'
+const STORAGE_KEY = 'english-adventure-lab-v2'
 
-const FOCUS_WORDS = [
-  { word: 'paraphrase', meaning: 'say the same idea in different words' },
-  { word: 'coherent', meaning: 'clear and easy to follow' },
-  { word: 'justify', meaning: 'give a reason or evidence' },
-  { word: 'reliable', meaning: 'consistent and dependable' },
-  { word: 'adaptability', meaning: 'ability to adjust to change' },
-  { word: 'restrictive', meaning: 'limiting your options' },
-]
-
-const SPRINTS: Sprint[] = [
+const VOCAB_ROUNDS: VocabRound[] = [
   {
-    id: 'pods',
-    label: 'Set A',
-    title: 'Campus Focus Pods',
-    minutes: '18 min',
-    passageTitle: 'Why Quiet Study Pods Catch On',
-    passage: [
-      'Several universities now rent small study pods to students who struggle in open libraries. The pods are not meant to isolate learners completely. Instead, they create a short block of structure: one reserved seat, fewer digital distractions, and a visible countdown timer.',
-      'In one pilot, students who booked the pods three times a week did not study for dramatically longer. However, they finished tasks more often and felt less mentally tired. Researchers said this mattered because many students confuse long study time with effective study time.',
-      'The project leaders warned that the pods were not a magic answer. A twenty-minute grammar review worked well in the pod, but a wide creative brainstorm often felt too restrictive. Their final advice was simple: match the environment to the task rather than copy someone else\'s routine.',
-    ],
-    questions: [
-      { id: 1, prompt: 'Why were the pods introduced?', choices: ['To replace libraries', 'To create short focused sessions', 'To increase group work', 'To make students study longer'], answer: 'To create short focused sessions', note: 'The passage focuses on structure and fewer distractions, not longer hours.' },
-      { id: 2, prompt: 'What improved in the pilot?', choices: ['Study hours doubled', 'Task completion and energy improved', 'Creative work became easier', 'Library attendance disappeared'], answer: 'Task completion and energy improved', note: 'Students finished tasks more often and felt less mentally tired.' },
-      { id: 3, prompt: 'What misconception is mentioned?', choices: ['Creative work is always best', 'Technology always helps', 'Long study automatically means effective study', 'Libraries are outdated'], answer: 'Long study automatically means effective study', note: 'The text explicitly contrasts time spent with real effectiveness.' },
-      { id: 4, prompt: 'Which task matched the pod best?', choices: ['A broad brainstorm', 'A short grammar review', 'A loud discussion', 'An all-day project'], answer: 'A short grammar review', note: 'The pod suits narrow, clearly defined work.' },
-      { id: 5, prompt: "What is the writer's main point?", choices: ['Students should always study alone', 'Study pods are expensive', 'Focused tools help when matched to the task', 'Libraries should ban phones'], answer: 'Focused tools help when matched to the task', note: 'The closing sentence gives the key idea: match the environment to the task.' },
-    ],
-    writingPrompt: 'Some people think universities should only teach skills that are directly useful for jobs. Others believe university education should have a broader purpose. Discuss both views and give your own opinion.',
-    thesisHint: 'Universities should improve employability, but they should still build judgement and adaptability through broader learning.',
-    speakingTopic: 'Describe a skill you learned in a short period of time.',
-    speakingCue: 'Explain what the skill was, why you learned it quickly, how you felt, and how it still helps you now.',
-    speakingBullets: ['what the skill was', 'why you learned it quickly', 'how you felt', 'how it helps you now'],
-    speakingFrames: ['One reason I learned it so quickly was...', 'What surprised me most was...', 'Since then, it has helped me to...'],
-    vocab: ['effective study time', 'restrictive', 'adaptability'],
+    id: 1,
+    word: 'resilient',
+    options: ['easily broken', 'quick to recover from difficulty', 'very expensive', 'extremely quiet'],
+    answer: 'quick to recover from difficulty',
+    hint: 'Think of a person who faces stress and still keeps going.',
+    example: 'After failing the first test, Mina was resilient and made a better study plan.',
   },
   {
-    id: 'buses',
-    label: 'Set B',
-    title: 'Reliable City Commutes',
-    minutes: '17 min',
-    passageTitle: 'Why Reliability Can Matter More Than Speed',
-    passage: [
-      'Many cities now test bus-priority lanes to improve commuting, but the biggest benefit is not always speed. In one mid-sized city, a central lane was given to buses during rush hour. Car drivers complained at first because they expected worse traffic jams.',
-      'After eight weeks, the average bus journey was only four minutes faster. Even so, ridership climbed sharply. Surveys showed that passengers valued reliable arrival times more than raw speed, because predictable journeys felt safer for work and school.',
-      'Planners also noticed that some employers adjusted office start times after the pilot began, which reduced pressure on the system. Officials concluded that transport changes work best when they are paired with communication and flexible scheduling. A single policy rarely fixes a city\'s travel problems alone.',
-    ],
-    questions: [
-      { id: 1, prompt: 'What did drivers predict at first?', choices: ['Cheaper bus fares', 'Longer traffic jams', 'Fewer office workers', 'Shorter walking times'], answer: 'Longer traffic jams', note: 'The first paragraph states this directly.' },
-      { id: 2, prompt: 'What happened after eight weeks?', choices: ['Bus times changed slightly and ridership rose', 'Bus use fell sharply', 'Employers ended flexible work', 'Passengers cared less about timing'], answer: 'Bus times changed slightly and ridership rose', note: 'The gain in speed was modest, but passenger numbers increased.' },
-      { id: 3, prompt: 'What mattered most to passengers?', choices: ['Lower prices', 'Predictable arrival times', 'More seats', 'Shorter walks'], answer: 'Predictable arrival times', note: 'Reliability is the central idea of the passage.' },
-      { id: 4, prompt: 'What unexpected change also helped?', choices: ['New bike lanes', 'Employer schedule changes', 'More parking lots', 'Free bus tickets'], answer: 'Employer schedule changes', note: 'Flexible office start times reduced pressure on the system.' },
-      { id: 5, prompt: 'What is the main lesson?', choices: ['Speed is the only transport goal', 'One policy solves everything', 'Reliable improvements can work without huge speed gains', 'Cars should be banned'], answer: 'Reliable improvements can work without huge speed gains', note: 'The article argues that reliability can be more persuasive than dramatic speed.' },
-    ],
-    writingPrompt: 'Online short-video platforms are increasingly used for education. Do the advantages of this development outweigh the disadvantages?',
-    thesisHint: 'Short-video platforms can widen access to learning, but they work best as a starting point rather than a replacement for deeper study.',
-    speakingTopic: 'Describe a crowded place you visited recently.',
-    speakingCue: 'Say where it was, why many people were there, what you did, and whether you would go back.',
-    speakingBullets: ['where it was', 'why it was crowded', 'what you did there', 'whether you would go back'],
-    speakingFrames: ['What stood out immediately was...', 'Even though it was crowded, I...', 'Looking back, I would return because...'],
-    vocab: ['ridership', 'predictable times', 'flexible scheduling'],
+    id: 2,
+    word: 'evaluate',
+    options: ['hide from', 'throw away', 'carefully judge quality', 'repeat loudly'],
+    answer: 'carefully judge quality',
+    hint: 'Teachers do this when they check essays with criteria.',
+    example: 'Before buying a course, evaluate the reviews and lesson quality.',
+  },
+  {
+    id: 3,
+    word: 'precise',
+    options: ['exact and accurate', 'too late to use', 'full of emotion', 'hard to understand'],
+    answer: 'exact and accurate',
+    hint: 'A precise answer has no unnecessary words.',
+    example: 'Use precise language in IELTS writing to avoid vague ideas.',
+  },
+  {
+    id: 4,
+    word: 'maintain',
+    options: ['argue with everyone', 'keep at the same level', 'learn instantly', 'forget completely'],
+    answer: 'keep at the same level',
+    hint: 'You can maintain focus for 25 minutes during deep work.',
+    example: 'It is hard to maintain motivation without a weekly routine.',
   },
 ]
 
-function countWords(text: string) {
-  const value = text.trim()
-  return value ? value.split(/\s+/).length : 0
-}
+const GRAMMAR_ROUNDS: GrammarRound[] = [
+  {
+    id: 1,
+    prompt: 'By the time I arrived, the movie ____.',
+    options: ['has started', 'had started', 'will start', 'starts'],
+    answer: 'had started',
+    explanation: 'Past perfect is used for an action completed before another past action.',
+  },
+  {
+    id: 2,
+    prompt: 'If she ____ more confident, she would speak in public more often.',
+    options: ['is', 'was', 'were', 'has been'],
+    answer: 'were',
+    explanation: 'Second conditional uses "if + past simple" and "would + base verb".',
+  },
+  {
+    id: 3,
+    prompt: 'The report ____ before the manager came to the office.',
+    options: ['finished', 'was finishing', 'had been finished', 'has finished'],
+    answer: 'had been finished',
+    explanation: 'Passive past perfect fits because the report received the action before another past event.',
+  },
+  {
+    id: 4,
+    prompt: 'Neither the students nor the teacher ____ ready for the surprise quiz.',
+    options: ['were', 'are', 'was', 'be'],
+    answer: 'was',
+    explanation: 'With “neither...nor,” the verb agrees with the noun closest to it: teacher (singular).',
+  },
+]
 
-function bandFrom(score: number, total: number) {
-  const ratio = total ? score / total : 0
-  if (ratio >= 1) return '7.5-8.0'
-  if (ratio >= 0.8) return '7.0'
-  if (ratio >= 0.6) return '6.5'
-  if (ratio >= 0.4) return '6.0'
-  if (ratio > 0) return '5.5'
-  return '5.0'
-}
+const DIALOGUE_ROUNDS: DialogueRound[] = [
+  {
+    id: 1,
+    situation: 'You are joining an online study group for the first time.',
+    line: 'Choose the most natural opening sentence.',
+    options: ['Give me your notes now.', 'Hi everyone, I am Alex. Could I join today’s discussion?', 'I cannot hear you, bye.', 'This meeting is boring.'],
+    answer: 'Hi everyone, I am Alex. Could I join today’s discussion?',
+    reason: 'It is polite, clear, and invites collaboration.',
+  },
+  {
+    id: 2,
+    situation: 'You did not understand part of a lecture.',
+    line: 'Choose the best follow-up question.',
+    options: ['Repeat everything from the beginning.', 'Why is this so hard?', 'Could you clarify what you meant by “data bias”?', 'I will just guess.'],
+    answer: 'Could you clarify what you meant by “data bias”?',
+    reason: 'Specific clarification questions improve both speaking and listening skills.',
+  },
+  {
+    id: 3,
+    situation: 'Your teammate missed a deadline.',
+    line: 'Choose the most constructive response.',
+    options: ['You always ruin projects.', 'Can we review what blocked you and set a new plan?', 'Do not talk to me again.', 'I will do everything alone forever.'],
+    answer: 'Can we review what blocked you and set a new plan?',
+    reason: 'This language is professional and solution-focused.',
+  },
+]
 
-function feedbackFor(score: number, total: number) {
-  const ratio = total ? score / total : 0
-  if (ratio >= 0.8) return 'Strong sprint. Review the notes once and keep your pacing tight.'
-  if (ratio >= 0.6) return 'Solid base. Focus on paraphrase recognition and main-idea reading.'
-  if (ratio >= 0.4) return 'Useful practice. Skim each paragraph for purpose before answering.'
-  return 'Keep the loop light and repeatable. One short sprint each day will build speed.'
-}
+const DAILY_MISSIONS = [
+  'Complete 1 vocabulary round with zero mistakes.',
+  'Score 3/4 or higher in grammar arena.',
+  'Finish all dialogue scenes and read feedback aloud.',
+]
 
 export default function EnglishApp() {
-  const [tab, setTab] = useState<Tab>('sprint')
-  const [setId, setSetId] = useState(SPRINTS[0].id)
-  const [answers, setAnswers] = useState<Record<string, Record<number, string>>>({})
-  const [submitted, setSubmitted] = useState<Record<string, boolean>>({})
-  const [writingDrafts, setWritingDrafts] = useState<Record<string, string>>({})
-  const [speakingNotes, setSpeakingNotes] = useState<Record<string, string>>({})
+  const [tab, setTab] = useState<GameTab>('vocab')
+  const [vocabAnswers, setVocabAnswers] = useState<Record<number, string>>({})
+  const [grammarAnswers, setGrammarAnswers] = useState<Record<number, string>>({})
+  const [dialogueAnswers, setDialogueAnswers] = useState<Record<number, string>>({})
+  const [showResults, setShowResults] = useState(false)
+  const [xp, setXp] = useState(0)
+  const [streak, setStreak] = useState(0)
   const [bestScore, setBestScore] = useState(0)
-  const [sessions, setSessions] = useState(0)
-  const [studyMinutes, setStudyMinutes] = useState(20)
-  const [voiceName, setVoiceName] = useState('')
-  const [voicesReady, setVoicesReady] = useState(false)
-  const [narrating, setNarrating] = useState(false)
+  const [notes, setNotes] = useState('')
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (!raw) return
       const saved = JSON.parse(raw) as {
-        answers?: Record<string, Record<number, string>>
-        submitted?: Record<string, boolean>
-        writingDrafts?: Record<string, string>
-        speakingNotes?: Record<string, string>
+        vocabAnswers?: Record<number, string>
+        grammarAnswers?: Record<number, string>
+        dialogueAnswers?: Record<number, string>
+        xp?: number
+        streak?: number
         bestScore?: number
-        sessions?: number
-        studyMinutes?: number
+        notes?: string
       }
-      setAnswers(saved.answers ?? {})
-      setSubmitted(saved.submitted ?? {})
-      setWritingDrafts(saved.writingDrafts ?? {})
-      setSpeakingNotes(saved.speakingNotes ?? {})
+      setVocabAnswers(saved.vocabAnswers ?? {})
+      setGrammarAnswers(saved.grammarAnswers ?? {})
+      setDialogueAnswers(saved.dialogueAnswers ?? {})
+      setXp(saved.xp ?? 0)
+      setStreak(saved.streak ?? 0)
       setBestScore(saved.bestScore ?? 0)
-      setSessions(saved.sessions ?? 0)
-      setStudyMinutes(saved.studyMinutes ?? 20)
+      setNotes(saved.notes ?? '')
     } catch {
       // ignore broken local storage
     }
@@ -161,338 +171,277 @@ export default function EnglishApp() {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ answers, submitted, writingDrafts, speakingNotes, bestScore, sessions, studyMinutes }),
+        JSON.stringify({ vocabAnswers, grammarAnswers, dialogueAnswers, xp, streak, bestScore, notes }),
       )
     } catch {
-      // ignore storage errors
+      // ignore local storage failures
     }
-  }, [answers, submitted, writingDrafts, speakingNotes, bestScore, sessions, studyMinutes])
+  }, [vocabAnswers, grammarAnswers, dialogueAnswers, xp, streak, bestScore, notes])
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
-    const loadVoices = () => {
-      const all = window.speechSynthesis.getVoices()
-      const english =
-        all.find((voice) => voice.lang.toLowerCase().startsWith('en-us')) ??
-        all.find((voice) => voice.lang.toLowerCase().startsWith('en')) ??
-        null
-      setVoicesReady(all.length > 0)
-      setVoiceName(english?.name ?? '')
-    }
-    loadVoices()
-    window.speechSynthesis.addEventListener('voiceschanged', loadVoices)
-    return () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', loadVoices)
-      window.speechSynthesis.cancel()
-    }
-  }, [])
-
-  const active = SPRINTS.find((item) => item.id === setId) ?? SPRINTS[0]
-  const activeAnswers = answers[active.id] ?? {}
-  const activeSubmitted = submitted[active.id] ?? false
-  const writingDraft = writingDrafts[active.id] ?? ''
-  const speakingDraft = speakingNotes[active.id] ?? ''
-  const answeredCount = active.questions.filter((item) => activeAnswers[item.id]).length
-  const score = useMemo(
-    () => active.questions.reduce((sum, item) => sum + (activeAnswers[item.id] === item.answer ? 1 : 0), 0),
-    [active.questions, activeAnswers],
+  const vocabScore = useMemo(
+    () => VOCAB_ROUNDS.reduce((sum, round) => sum + (vocabAnswers[round.id] === round.answer ? 1 : 0), 0),
+    [vocabAnswers],
   )
+  const grammarScore = useMemo(
+    () => GRAMMAR_ROUNDS.reduce((sum, round) => sum + (grammarAnswers[round.id] === round.answer ? 1 : 0), 0),
+    [grammarAnswers],
+  )
+  const dialogueScore = useMemo(
+    () => DIALOGUE_ROUNDS.reduce((sum, round) => sum + (dialogueAnswers[round.id] === round.answer ? 1 : 0), 0),
+    [dialogueAnswers],
+  )
+
+  const totalQuestions = VOCAB_ROUNDS.length + GRAMMAR_ROUNDS.length + DIALOGUE_ROUNDS.length
+  const totalScore = vocabScore + grammarScore + dialogueScore
+  const level = Math.floor(xp / 120) + 1
+  const xpToNext = 120 - (xp % 120)
+
+  const completeRun = () => {
+    const runXp = totalScore * 15
+    setXp((prev) => prev + runXp)
+    setShowResults(true)
+    setStreak((prev) => (totalScore >= 8 ? prev + 1 : 0))
+    setBestScore((prev) => Math.max(prev, totalScore))
+  }
+
+  const resetRun = () => {
+    setVocabAnswers({})
+    setGrammarAnswers({})
+    setDialogueAnswers({})
+    setShowResults(false)
+  }
 
   const shell: CSSProperties = {
     minHeight: '100vh',
-    background: 'radial-gradient(circle at top, #fbf0d4 0%, #f7efe5 34%, #f4f4ef 100%)',
-    color: '#1c1917',
-    fontFamily: "'Manrope','Noto Sans JP',sans-serif",
-  }
-  const panel: CSSProperties = {
-    background: 'rgba(255,255,255,0.84)',
-    border: '1px solid rgba(28,25,23,0.08)',
-    boxShadow: '0 20px 50px rgba(28,25,23,0.08)',
-    borderRadius: 24,
-    backdropFilter: 'blur(12px)',
-  }
-  const inputArea: CSSProperties = {
-    width: '100%',
-    minHeight: 150,
-    borderRadius: 18,
-    border: '1px solid rgba(28,25,23,0.12)',
-    padding: '14px 16px',
-    background: '#fff',
-    color: '#1c1917',
-    lineHeight: 1.7,
-    resize: 'vertical',
+    background: 'radial-gradient(circle at top, #ebf4ff 0%, #eef7e9 45%, #fff8e8 100%)',
+    color: '#111827',
+    fontFamily: "'Inter','Noto Sans',sans-serif",
+    padding: '34px 16px 72px',
   }
 
-  const speak = (text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
-    const utterance = new SpeechSynthesisUtterance(text)
-    const all = window.speechSynthesis.getVoices()
-    const english =
-      all.find((voice) => voice.name === voiceName) ??
-      all.find((voice) => voice.lang.toLowerCase().startsWith('en-us')) ??
-      all.find((voice) => voice.lang.toLowerCase().startsWith('en')) ??
-      null
-    utterance.voice = english
-    utterance.lang = english?.lang ?? 'en-US'
-    utterance.rate = 0.92
-    utterance.onstart = () => setNarrating(true)
-    utterance.onend = () => setNarrating(false)
-    utterance.onerror = () => setNarrating(false)
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(utterance)
-  }
-
-  const chooseAnswer = (questionId: number, choice: string) => {
-    setAnswers((prev) => ({ ...prev, [active.id]: { ...(prev[active.id] ?? {}), [questionId]: choice } }))
-    setSubmitted((prev) => ({ ...prev, [active.id]: false }))
-  }
-
-  const checkSprint = () => {
-    if (answeredCount !== active.questions.length) return
-    setSubmitted((prev) => ({ ...prev, [active.id]: true }))
-    setBestScore((prev) => Math.max(prev, score))
-    setSessions((prev) => prev + 1)
-  }
-
-  const resetSprint = () => {
-    setAnswers((prev) => ({ ...prev, [active.id]: {} }))
-    setSubmitted((prev) => ({ ...prev, [active.id]: false }))
-  }
-
-  const insertWritingOutline = () => {
-    setWritingDrafts((prev) => {
-      if ((prev[active.id] ?? '').trim()) return prev
-      return { ...prev, [active.id]: `${active.thesisHint}\n\n1. Introduction\n2. Body paragraph 1\n3. Body paragraph 2\n4. Conclusion` }
-    })
+  const card: CSSProperties = {
+    background: 'rgba(255,255,255,0.86)',
+    border: '1px solid rgba(17,24,39,0.1)',
+    borderRadius: 20,
+    boxShadow: '0 16px 40px rgba(17,24,39,0.08)',
+    padding: 20,
   }
 
   return (
-    <div style={shell}>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-      <div style={{ maxWidth: 1120, margin: '0 auto', padding: '28px 18px 100px' }}>
-        <div style={{ ...panel, padding: 24, marginBottom: 18, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', inset: 'auto -60px -80px auto', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(37,99,235,0.18), rgba(37,99,235,0))' }} />
-          <div style={{ position: 'absolute', inset: '-40px auto auto -20px', width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(245,158,11,0.18), rgba(245,158,11,0))' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap', position: 'relative' }}>
-            <div style={{ maxWidth: 620 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 3, textTransform: 'uppercase', color: '#57534e', marginBottom: 10 }}>IELTS Sprint Studio</div>
-              <h1 style={{ margin: 0, fontSize: 'clamp(32px, 5vw, 56px)', lineHeight: 1, letterSpacing: -2 }}>Practice for IELTS without waiting for a full mock test.</h1>
-              <p style={{ margin: '14px 0 0', maxWidth: 560, fontSize: 15, lineHeight: 1.7, color: '#57534e' }}>
-                Use short reading sprints, a Task 2 planner, and speaking cue cards to train consistently on busy days.
-              </p>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
-                {['2 sprint sets', 'Task 2 practice', 'Speaking cue cards'].map((item) => (
-                  <span key={item} style={{ padding: '8px 12px', borderRadius: 999, background: 'rgba(255,255,255,0.72)', border: '1px solid rgba(28,25,23,0.08)', fontSize: 13, fontWeight: 700, color: '#44403c' }}>{item}</span>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-                <button onClick={() => speak('Welcome back. Let us practice for IELTS together.')} style={{ border: 'none', borderRadius: 999, padding: '11px 14px', background: '#1c1917', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>{narrating ? 'Narrating...' : 'Play welcome narration'}</button>
-                <button onClick={() => setTab('sprint')} style={{ border: 'none', borderRadius: 999, padding: '11px 14px', background: '#2563eb', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>Start sprint</button>
-                <span style={{ alignSelf: 'center', fontSize: 13, color: '#78716c' }}>{voicesReady ? `Voice: ${voiceName || 'English system voice'}` : 'Narration uses your browser voice when available.'}</span>
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, minWidth: 'min(100%, 320px)', flex: '1 1 320px' }}>
-              {[
-                { label: 'Best', value: sessions > 0 ? `Band ~${bandFrom(bestScore, active.questions.length)}` : 'Start', tone: '#2563eb' },
-                { label: 'Sessions', value: `${sessions}`, tone: '#dc2626' },
-                { label: 'Study block', value: `${studyMinutes} min`, tone: '#ca8a04' },
-                { label: 'Focus words', value: `${FOCUS_WORDS.length}`, tone: '#0f766e' },
-              ].map((item) => (
-                <div key={item.label} style={{ background: '#fffdf8', borderRadius: 18, padding: 16, border: '1px solid rgba(28,25,23,0.08)' }}>
-                  <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: '#78716c', marginBottom: 8 }}>{item.label}</div>
-                  <div style={{ fontSize: 26, fontWeight: 800, color: item.tone }}>{item.value}</div>
-                </div>
-              ))}
-            </div>
+    <main style={shell}>
+      <div style={{ maxWidth: 1080, margin: '0 auto', display: 'grid', gap: 16 }}>
+        <section style={{ ...card, display: 'grid', gap: 14 }}>
+          <h1 style={{ margin: 0, fontSize: 'clamp(1.7rem, 4vw, 2.5rem)' }}>English Adventure Lab</h1>
+          <p style={{ margin: 0, color: '#374151' }}>
+            A rebuilt game-style learning app: train vocabulary, grammar, and real conversation choices in one loop.
+          </p>
+          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+            <Stat label="Level" value={`Lv.${level}`} />
+            <Stat label="XP" value={`${xp} XP`} />
+            <Stat label="Next Level" value={`${xpToNext} XP left`} />
+            <Stat label="Current Streak" value={`${streak} day`} />
+            <Stat label="Best Run" value={`${bestScore}/${totalQuestions}`} />
           </div>
-        </div>
+        </section>
 
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
-          {[
-            { id: 'sprint', label: 'Sprint' },
-            { id: 'writing', label: 'Writing' },
-            { id: 'speaking', label: 'Speaking' },
-            { id: 'plan', label: 'Plan' },
-          ].map((item) => (
-            <button key={item.id} onClick={() => setTab(item.id as Tab)} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: tab === item.id ? '#1c1917' : 'rgba(255,255,255,0.72)', color: tab === item.id ? '#fafaf9' : '#44403c', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-              {item.label}
+        <section style={{ ...card, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {([
+            ['vocab', 'Word Quest'],
+            ['grammar', 'Grammar Arena'],
+            ['dialogue', 'Dialogue Battle'],
+            ['review', 'Review Room'],
+          ] as Array<[GameTab, string]>).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              style={{
+                border: '1px solid rgba(17,24,39,0.18)',
+                borderRadius: 999,
+                padding: '10px 16px',
+                background: tab === key ? '#111827' : '#fff',
+                color: tab === key ? '#fff' : '#111827',
+                cursor: 'pointer',
+                fontWeight: 700,
+              }}
+            >
+              {label}
             </button>
           ))}
-        </div>
+        </section>
 
-        {tab === 'sprint' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 18 }}>
-            <div style={{ ...panel, padding: 22 }}>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
-                {SPRINTS.map((item) => (
-                  <button key={item.id} onClick={() => setSetId(item.id)} style={{ border: item.id === active.id ? 'none' : '1px solid rgba(28,25,23,0.12)', borderRadius: 16, padding: '12px 14px', background: item.id === active.id ? '#1c1917' : '#fff', color: item.id === active.id ? '#fff' : '#1c1917', fontWeight: 800, cursor: 'pointer' }}>
-                    {item.label}: {item.title}
-                  </button>
-                ))}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#78716c', fontWeight: 800 }}>Reading Sprint</div>
-                  <div style={{ fontSize: 26, fontWeight: 800, marginTop: 6 }}>{active.passageTitle}</div>
-                  <div style={{ marginTop: 8, color: '#57534e', lineHeight: 1.7 }}>Skim for structure first, then answer the questions quickly.</div>
-                </div>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <button onClick={() => speak(active.passage.join(' '))} style={{ border: 'none', borderRadius: 14, padding: '12px 14px', background: '#0f766e', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>Hear passage</button>
-                  <button onClick={resetSprint} style={{ border: '1px solid rgba(28,25,23,0.12)', borderRadius: 14, padding: '12px 14px', background: '#fff', color: '#1c1917', fontWeight: 800, cursor: 'pointer' }}>Reset</button>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
-                {active.vocab.map((item) => <span key={item} style={{ background: '#eff6ff', color: '#1d4ed8', borderRadius: 999, padding: '8px 11px', fontSize: 12, fontWeight: 800 }}>{item}</span>)}
-              </div>
-              <div style={{ marginTop: 18, padding: 18, borderRadius: 20, background: '#fffdf8', border: '1px solid rgba(28,25,23,0.08)', display: 'grid', gap: 14, lineHeight: 1.75, color: '#44403c' }}>
-                {active.passage.map((paragraph, index) => <p key={`${active.id}-${index}`} style={{ margin: 0 }}>{paragraph}</p>)}
-              </div>
-              <div style={{ marginTop: 20, display: 'grid', gap: 14 }}>
-                {active.questions.map((question) => (
-                  <div key={question.id} style={{ background: '#fff', borderRadius: 20, border: '1px solid rgba(28,25,23,0.08)', padding: 18 }}>
-                    <div style={{ fontSize: 18, fontWeight: 800 }}>Q{question.id}. {question.prompt}</div>
-                    <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
-                      {question.choices.map((choice) => (
-                        <button key={choice} onClick={() => chooseAnswer(question.id, choice)} style={{ border: activeAnswers[question.id] === choice ? '2px solid #2563eb' : '1px solid rgba(28,25,23,0.08)', background: activeAnswers[question.id] === choice ? '#eff6ff' : '#fff', borderRadius: 16, padding: '14px 16px', textAlign: 'left', fontSize: 15, fontWeight: 700, cursor: 'pointer', color: '#1c1917' }}>
-                          {choice}
-                        </button>
-                      ))}
-                    </div>
-                    {activeSubmitted && <div style={{ marginTop: 14, padding: 14, borderRadius: 16, background: activeAnswers[question.id] === question.answer ? '#f0fdf4' : '#fef2f2', color: '#44403c', lineHeight: 1.7 }}><strong style={{ color: '#1c1917' }}>{activeAnswers[question.id] === question.answer ? 'Correct.' : 'Review this one.'}</strong> {question.note}</div>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gap: 18, alignSelf: 'start' }}>
-              <div style={{ ...panel, padding: 22 }}>
-                <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#78716c', fontWeight: 800 }}>Sprint Result</div>
-                <div style={{ fontSize: 30, fontWeight: 800, marginTop: 8 }}>{score}/{active.questions.length}</div>
-                <div style={{ marginTop: 8, color: '#2563eb', fontSize: 22, fontWeight: 800 }}>Band ~{bandFrom(score, active.questions.length)}</div>
-                <div style={{ marginTop: 12, color: '#57534e', lineHeight: 1.7 }}>{feedbackFor(score, active.questions.length)}</div>
-                <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', color: '#57534e' }}>
-                  <div>Answered <strong style={{ color: '#1c1917' }}>{answeredCount}/{active.questions.length}</strong></div>
-                  <div>Time box <strong style={{ color: '#1c1917' }}>{active.minutes}</strong></div>
-                </div>
-                <button onClick={checkSprint} disabled={answeredCount !== active.questions.length} style={{ marginTop: 18, border: 'none', borderRadius: 14, padding: '12px 16px', background: answeredCount === active.questions.length ? '#1c1917' : '#d6d3d1', color: '#fff', fontWeight: 800, cursor: answeredCount === active.questions.length ? 'pointer' : 'not-allowed', width: '100%' }}>
-                  Check sprint
-                </button>
-              </div>
-              <div style={{ ...panel, padding: 22 }}>
-                <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#78716c', fontWeight: 800 }}>Efficient Loop</div>
-                <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-                  {[
-                    '2 min: skim the passage for topic and paragraph purpose.',
-                    '8 min: answer all questions without overthinking.',
-                    '5 min: draft a thesis and two body ideas.',
-                    '3 min: answer the cue card aloud.',
-                  ].map((item, index) => (
-                    <div key={item} style={{ display: 'flex', gap: 12, padding: 14, borderRadius: 16, background: '#fff', border: '1px solid rgba(28,25,23,0.08)' }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 10, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, flexShrink: 0 }}>{index + 1}</div>
-                      <div style={{ color: '#44403c', lineHeight: 1.7 }}>{item}</div>
-                    </div>
+        {tab === 'vocab' && (
+          <section style={{ ...card, display: 'grid', gap: 14 }}>
+            <h2 style={{ margin: 0 }}>Word Quest</h2>
+            {VOCAB_ROUNDS.map((round) => (
+              <article key={round.id} style={{ borderTop: '1px dashed #d1d5db', paddingTop: 12 }}>
+                <p style={{ margin: '0 0 8px', fontWeight: 700 }}>{round.id}. {round.word}</p>
+                <p style={{ margin: '0 0 8px', color: '#4b5563' }}>Hint: {round.hint}</p>
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {round.options.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => setVocabAnswers((prev) => ({ ...prev, [round.id]: option }))}
+                      style={{
+                        textAlign: 'left',
+                        border: '1px solid #d1d5db',
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        background: vocabAnswers[round.id] === option ? '#dbeafe' : '#fff',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {option}
+                    </button>
                   ))}
                 </div>
-              </div>
-            </div>
-          </div>
+              </article>
+            ))}
+          </section>
         )}
 
-        {tab === 'writing' && (
-          <div style={{ ...panel, padding: 22, maxWidth: 860, margin: '0 auto' }}>
-            <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#78716c', fontWeight: 800 }}>Task 2 Planner</div>
-            <div style={{ fontSize: 30, fontWeight: 800, marginTop: 8 }}>Write smarter, not longer.</div>
-            <div style={{ marginTop: 16, padding: 16, borderRadius: 18, background: '#fff7ed', color: '#7c2d12', lineHeight: 1.7 }}><strong>Prompt:</strong> {active.writingPrompt}</div>
-            <div style={{ marginTop: 14, padding: 16, borderRadius: 18, background: '#f8fafc', color: '#334155', lineHeight: 1.7 }}><strong>Thesis angle:</strong> {active.thesisHint}</div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-              <button onClick={() => speak(active.writingPrompt)} style={{ border: 'none', borderRadius: 14, padding: '12px 14px', background: '#2563eb', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>Hear prompt</button>
-              <button onClick={insertWritingOutline} style={{ border: '1px solid rgba(28,25,23,0.12)', borderRadius: 14, padding: '12px 14px', background: '#fff', color: '#1c1917', fontWeight: 800, cursor: 'pointer' }}>Insert outline</button>
-            </div>
-            <textarea value={writingDraft} onChange={(event) => setWritingDrafts((prev) => ({ ...prev, [active.id]: event.target.value }))} placeholder="Draft an intro, body ideas, or a full response here..." style={{ ...inputArea, marginTop: 16 }} />
-            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', color: '#57534e' }}>
-              <div>Word count: <strong style={{ color: '#1c1917' }}>{countWords(writingDraft)}</strong></div>
-              <div style={{ fontWeight: 700, color: countWords(writingDraft) >= 250 ? '#166534' : '#78716c' }}>{countWords(writingDraft) >= 250 ? 'Target reached for Task 2.' : `${250 - countWords(writingDraft)} words to 250+`}</div>
-            </div>
-          </div>
-        )}
-
-        {tab === 'speaking' && (
-          <div style={{ ...panel, padding: 22, maxWidth: 860, margin: '0 auto' }}>
-            <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#78716c', fontWeight: 800 }}>Speaking Cue</div>
-            <div style={{ fontSize: 30, fontWeight: 800, marginTop: 8 }}>{active.speakingTopic}</div>
-            <div style={{ marginTop: 16, padding: 16, borderRadius: 18, background: '#eef2ff', color: '#312e81', lineHeight: 1.7 }}>
-              <strong>Prompt:</strong> {active.speakingCue}
-              <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>{active.speakingBullets.map((item) => <div key={item}>• {item}</div>)}</div>
-            </div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-              <button onClick={() => speak(`${active.speakingTopic}. ${active.speakingCue}`)} style={{ border: 'none', borderRadius: 14, padding: '12px 14px', background: '#0f766e', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>Hear cue</button>
-              <button onClick={() => setSpeakingNotes((prev) => ({ ...prev, [active.id]: '' }))} style={{ border: '1px solid rgba(28,25,23,0.12)', borderRadius: 14, padding: '12px 14px', background: '#fff', color: '#1c1917', fontWeight: 800, cursor: 'pointer' }}>Clear notes</button>
-            </div>
-            <textarea value={speakingDraft} onChange={(event) => setSpeakingNotes((prev) => ({ ...prev, [active.id]: event.target.value }))} placeholder="Plan a short answer with one example and one reflection..." style={{ ...inputArea, marginTop: 16, minHeight: 130 }} />
-            <div style={{ marginTop: 12, color: '#57534e' }}>Notes prepared: <strong style={{ color: '#1c1917' }}>{countWords(speakingDraft)}</strong> words</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>{active.speakingFrames.map((item) => <span key={item} style={{ background: '#ecfeff', color: '#155e75', borderRadius: 999, padding: '8px 11px', fontSize: 12, fontWeight: 800 }}>{item}</span>)}</div>
-          </div>
-        )}
-
-        {tab === 'plan' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '0.95fr 1.05fr', gap: 18 }}>
-            <div style={{ ...panel, padding: 22 }}>
-              <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#78716c', fontWeight: 800 }}>Daily Plan</div>
-              <div style={{ fontSize: 28, fontWeight: 800, marginTop: 8 }}>A small routine you can repeat.</div>
-              <p style={{ margin: '10px 0 18px', color: '#57534e', lineHeight: 1.7 }}>Consistency beats intensity, especially for IELTS. Pick a block and keep it realistic.</p>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
-                {[10, 15, 20, 30].map((minutes) => (
-                  <button key={minutes} onClick={() => setStudyMinutes(minutes)} style={{ border: 'none', borderRadius: 999, padding: '10px 14px', background: studyMinutes === minutes ? '#1c1917' : '#fff', color: studyMinutes === minutes ? '#fff' : '#44403c', fontWeight: 800, cursor: 'pointer' }}>
-                    {minutes} min
-                  </button>
-                ))}
-              </div>
-              <div style={{ padding: 16, borderRadius: 18, background: '#fff7ed', color: '#7c2d12', lineHeight: 1.7 }}><strong>Today&apos;s focus:</strong> Finish one reading sprint, then choose either writing or speaking so the habit stays sustainable.</div>
-            </div>
-            <div style={{ display: 'grid', gap: 12 }}>
-              <div style={{ ...panel, padding: 18 }}>
-                <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#78716c', fontWeight: 800 }}>4-Step Loop</div>
-                <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-                  {[
-                    'Warm up with 3 focus words and say them aloud.',
-                    `Run ${active.label} in ${active.minutes}.`,
-                    'Write one thesis sentence and two body ideas.',
-                    'Speak for 60 to 90 seconds using one real example.',
-                  ].map((item, index) => (
-                    <div key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: 14, borderRadius: 16, background: '#fff', border: '1px solid rgba(28,25,23,0.08)' }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 10, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, flexShrink: 0 }}>{index + 1}</div>
-                      <div style={{ color: '#44403c', lineHeight: 1.7 }}>{item}</div>
-                    </div>
+        {tab === 'grammar' && (
+          <section style={{ ...card, display: 'grid', gap: 14 }}>
+            <h2 style={{ margin: 0 }}>Grammar Arena</h2>
+            {GRAMMAR_ROUNDS.map((round) => (
+              <article key={round.id} style={{ borderTop: '1px dashed #d1d5db', paddingTop: 12 }}>
+                <p style={{ margin: '0 0 10px', fontWeight: 700 }}>{round.prompt}</p>
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {round.options.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => setGrammarAnswers((prev) => ({ ...prev, [round.id]: option }))}
+                      style={{
+                        textAlign: 'left',
+                        border: '1px solid #d1d5db',
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        background: grammarAnswers[round.id] === option ? '#dcfce7' : '#fff',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {option}
+                    </button>
                   ))}
                 </div>
-              </div>
-              <div style={{ ...panel, padding: 18 }}>
-                <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#78716c', fontWeight: 800 }}>Focus Vocabulary</div>
-                <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-                  {FOCUS_WORDS.map((item) => (
-                    <div key={item.word} style={{ padding: 14, borderRadius: 16, background: '#fff', border: '1px solid rgba(28,25,23,0.08)' }}>
-                      <div style={{ fontSize: 16, fontWeight: 800 }}>{item.word}</div>
-                      <div style={{ marginTop: 4, color: '#57534e', lineHeight: 1.7 }}>{item.meaning}</div>
-                    </div>
+              </article>
+            ))}
+          </section>
+        )}
+
+        {tab === 'dialogue' && (
+          <section style={{ ...card, display: 'grid', gap: 14 }}>
+            <h2 style={{ margin: 0 }}>Dialogue Battle</h2>
+            {DIALOGUE_ROUNDS.map((round) => (
+              <article key={round.id} style={{ borderTop: '1px dashed #d1d5db', paddingTop: 12 }}>
+                <p style={{ margin: '0 0 8px', color: '#1d4ed8' }}>{round.situation}</p>
+                <p style={{ margin: '0 0 10px', fontWeight: 700 }}>{round.line}</p>
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {round.options.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => setDialogueAnswers((prev) => ({ ...prev, [round.id]: option }))}
+                      style={{
+                        textAlign: 'left',
+                        border: '1px solid #d1d5db',
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        background: dialogueAnswers[round.id] === option ? '#fef3c7' : '#fff',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {option}
+                    </button>
                   ))}
                 </div>
-              </div>
+              </article>
+            ))}
+          </section>
+        )}
+
+        {tab === 'review' && (
+          <section style={{ ...card, display: 'grid', gap: 12 }}>
+            <h2 style={{ margin: 0 }}>Review Room</h2>
+            <p style={{ margin: 0, color: '#374151' }}>
+              Write a short reflection after each run. This improves retention and active recall.
+            </p>
+            <textarea
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              placeholder="What mistakes did you make today? What will you fix in tomorrow's session?"
+              style={{ minHeight: 120, borderRadius: 12, border: '1px solid #d1d5db', padding: 12 }}
+            />
+            <div style={{ display: 'grid', gap: 6 }}>
+              <strong>Daily Missions</strong>
+              {DAILY_MISSIONS.map((mission) => (
+                <span key={mission}>• {mission}</span>
+              ))}
             </div>
+          </section>
+        )}
+
+        <section style={{ ...card, display: 'grid', gap: 10 }}>
+          <h2 style={{ margin: 0 }}>Finish Run</h2>
+          <p style={{ margin: 0 }}>Current score: {totalScore}/{totalQuestions}</p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={completeRun}
+              style={{ border: 'none', borderRadius: 12, background: '#111827', color: '#fff', padding: '10px 14px', cursor: 'pointer' }}
+            >
+              Submit Adventure
+            </button>
+            <button
+              onClick={resetRun}
+              style={{ border: '1px solid #d1d5db', borderRadius: 12, background: '#fff', padding: '10px 14px', cursor: 'pointer' }}
+            >
+              Reset Answers
+            </button>
           </div>
+
+          {showResults && (
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 12, display: 'grid', gap: 8 }}>
+              <strong>Run Summary</strong>
+              <span>Vocabulary: {vocabScore}/{VOCAB_ROUNDS.length}</span>
+              <span>Grammar: {grammarScore}/{GRAMMAR_ROUNDS.length}</span>
+              <span>Dialogue: {dialogueScore}/{DIALOGUE_ROUNDS.length}</span>
+              <span>XP earned this run: +{totalScore * 15}</span>
+              <p style={{ margin: 0, color: '#4b5563' }}>
+                Tips: Review every wrong question and say the corrected sentence aloud twice for better fluency.
+              </p>
+            </div>
+          )}
+        </section>
+
+        {showResults && (
+          <section style={{ ...card, display: 'grid', gap: 10 }}>
+            <h3 style={{ margin: 0 }}>Correction Feed</h3>
+            {VOCAB_ROUNDS.filter((round) => vocabAnswers[round.id] !== round.answer).map((round) => (
+              <div key={`vocab-${round.id}`}>
+                <strong>{round.word}</strong>: {round.answer}. <span style={{ color: '#4b5563' }}>{round.example}</span>
+              </div>
+            ))}
+            {GRAMMAR_ROUNDS.filter((round) => grammarAnswers[round.id] !== round.answer).map((round) => (
+              <div key={`grammar-${round.id}`}>
+                <strong>{round.prompt}</strong> → {round.answer}. <span style={{ color: '#4b5563' }}>{round.explanation}</span>
+              </div>
+            ))}
+            {DIALOGUE_ROUNDS.filter((round) => dialogueAnswers[round.id] !== round.answer).map((round) => (
+              <div key={`dialogue-${round.id}`}>
+                <strong>{round.situation}</strong> → {round.answer}. <span style={{ color: '#4b5563' }}>{round.reason}</span>
+              </div>
+            ))}
+            {totalScore === totalQuestions && <p style={{ margin: 0 }}>Perfect run. Great clarity and control 👏</p>}
+          </section>
         )}
       </div>
+    </main>
+  )
+}
 
-      <style>{`
-        * { box-sizing: border-box; }
-        button, textarea { font: inherit; }
-        @media (max-width: 960px) {
-          div[style*="grid-template-columns: 1.2fr 0.8fr"],
-          div[style*="grid-template-columns: 0.95fr 1.05fr"] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ border: '1px solid #e5e7eb', borderRadius: 14, padding: 12, background: '#fff' }}>
+      <div style={{ color: '#6b7280', fontSize: 12 }}>{label}</div>
+      <strong>{value}</strong>
     </div>
   )
 }
