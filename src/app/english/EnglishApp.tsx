@@ -330,6 +330,36 @@ function clampPercent(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)))
 }
 
+function stableIndex(seed: string, modulo: number) {
+  if (modulo <= 0) {
+    return 0
+  }
+
+  let hash = 0
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) % 9973
+  }
+  return hash % modulo
+}
+
+function orderedQuestOptions(quest: Quest) {
+  const distractors = quest.options.filter((option) => option !== quest.answer)
+
+  if (quest.options.length < 2 || distractors.length === quest.options.length) {
+    return quest.options
+  }
+
+  const offset = stableIndex(quest.id, distractors.length)
+  const rotatedDistractors = [...distractors.slice(offset), ...distractors.slice(0, offset)]
+  const answerIndex = stableIndex(`${quest.id}-answer`, rotatedDistractors.length) + 1
+
+  return [
+    ...rotatedDistractors.slice(0, answerIndex),
+    quest.answer,
+    ...rotatedDistractors.slice(answerIndex),
+  ]
+}
+
 function safeProfile(value: unknown): EnglishProfile {
   if (!value || typeof value !== 'object') {
     return DEFAULT_PROFILE
@@ -391,6 +421,7 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
     () => QUESTS.find((quest) => quest.id === selectedQuestId) ?? QUESTS[0],
     [selectedQuestId],
   )
+  const activeOptions = useMemo(() => orderedQuestOptions(activeQuest), [activeQuest])
 
   const activeLane = laneFor(activeQuest.lane)
   const completedCount = profile.completedQuestIds.length
@@ -776,7 +807,7 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
                 <div className="question-block">
                   <h3>{activeQuest.prompt}</h3>
                   <div className="option-grid">
-                    {activeQuest.options.map((option) => {
+                    {activeOptions.map((option) => {
                       const isSelected = selectedAnswer === option
                       const showCorrect = selectedAnswer && option === activeQuest.answer
                       const showWrong = selectedAnswer === option && option !== activeQuest.answer
