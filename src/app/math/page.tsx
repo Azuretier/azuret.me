@@ -110,8 +110,6 @@ export default function MathPage() {
     } catch {
       setMessage('Fullscreen is blocked here, but focus mode is still active.')
     }
-
-    window.setTimeout(focusAnswer, 80)
   }
 
   const exitFocusMode = async () => {
@@ -182,11 +180,6 @@ export default function MathPage() {
             <kbd>Enter</kbd>
           </button>
 
-          <button className={styles.navFocusButton} type="button" onClick={enterFocusMode}>
-            <span aria-hidden="true">⛶</span>
-            Fullscreen
-          </button>
-
           <div className={styles.navStatus} aria-label={`Current level ${level}`}>
             Lv.{level}
           </div>
@@ -214,9 +207,6 @@ export default function MathPage() {
             <a className={styles.heroSecondary} href="#progress">
               View progress
             </a>
-            <button className={styles.heroSecondary} type="button" onClick={enterFocusMode}>
-              Fullscreen mode
-            </button>
           </div>
         </div>
       </section>

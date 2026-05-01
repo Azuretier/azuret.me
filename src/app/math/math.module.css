@@ -83,7 +83,6 @@
 }
 
 .searchPill:focus-visible,
-.navFocusButton:focus-visible,
 .macFullscreenButton:focus-visible,
 .heroPrimary:focus-visible,
 .heroSecondary:focus-visible,
@@ -136,30 +135,6 @@
   font-size: 13px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-}
-
-.navFocusButton {
-  min-height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 1px solid var(--math-border);
-  border-radius: 999px;
-  background: var(--math-surface);
-  color: var(--math-text);
-  padding: 0 13px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform 150ms ease, border-color 160ms ease, background 160ms ease;
-}
-
-.navFocusButton:hover {
-  border-color: rgba(0, 114, 245, 0.38);
-  background: var(--math-primary-soft);
-  transform: translateY(-1px);
 }
 
 .hero {
@@ -870,19 +845,6 @@
     display: none;
   }
 
-  .navFocusButton {
-    min-width: 40px;
-    padding: 0 12px;
-  }
-
-  .navFocusButton {
-    font-size: 0;
-  }
-
-  .navFocusButton span {
-    font-size: 16px;
-  }
-
   .focusTopbar {
     padding: 0 14px;
   }
@@ -943,7 +905,6 @@
     background: rgba(26, 32, 43, 0.78);
   }
 
-  .navFocusButton,
   .focusTopbar button {
     background: var(--math-surface);
   }
