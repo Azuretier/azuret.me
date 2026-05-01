@@ -84,29 +84,6 @@ const TRAINING_LINKS: Array<{
   },
 ]
 
-const PAGE_META: Record<GameTab, { kicker: string; title: string; description: string }> = {
-  quests: {
-    kicker: 'Focused page: quest map',
-    title: 'Clear one quest at a time.',
-    description: 'Choose a skill node, answer it, read the coach feedback, then transfer it into speaking or writing.',
-  },
-  speaking: {
-    kicker: 'Focused page: speaking lab',
-    title: 'Practice output without the noise.',
-    description: 'Use the current quest as a speaking seed, rehearse aloud, and log a short reflection.',
-  },
-  writing: {
-    kicker: 'Focused page: writing forge',
-    title: 'Write smaller, sharper reps.',
-    description: 'Draft a useful paragraph, check structure signals, and build IELTS-friendly clarity day by day.',
-  },
-  review: {
-    kicker: 'Focused page: review room',
-    title: 'Replay progress instead of guessing.',
-    description: 'See what you have cleared, where each skill lane stands, and jump back into weak practice nodes.',
-  },
-}
-
 const SKILL_LANES: SkillLane[] = [
   {
     id: 'vocabulary',
@@ -409,7 +386,6 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
 
   const activeTab: GameTab = page === 'home' ? 'quests' : page
   const isHome = page === 'home'
-  const focusedMeta = page === 'home' ? null : PAGE_META[page]
 
   const activeQuest = useMemo(
     () => QUESTS.find((quest) => quest.id === selectedQuestId) ?? QUESTS[0],
@@ -584,7 +560,7 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
 
         </nav>
 
-        {isHome ? (
+        {isHome && (
         <div className="hero-grid">
           <div className="hero-copy">
             <p className="eyebrow">English learning, but it finally has a game loop.</p>
@@ -654,14 +630,6 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
             </div>
           </div>
         </div>
-        ) : (
-          <div className="page-hero">
-            <div>
-              <p className="eyebrow">{focusedMeta?.kicker}</p>
-              <h1>{focusedMeta?.title}</h1>
-              <p>{focusedMeta?.description}</p>
-            </div>
-          </div>
         )}
       </section>
 
@@ -1051,7 +1019,7 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
         }
 
         .hero-shell.is-compact {
-          padding-bottom: 34px;
+          padding-bottom: 18px;
         }
 
         .hero-shell::before {
@@ -1155,37 +1123,6 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
           gap: 48px;
           align-items: center;
           padding-top: 74px;
-        }
-
-        .page-hero {
-          position: relative;
-          z-index: 1;
-          display: flex;
-          align-items: end;
-          justify-content: space-between;
-          gap: 28px;
-          margin-top: 34px;
-          padding: 34px;
-          border: 1px solid rgba(255, 255, 255, 0.78);
-          border-radius: 34px;
-          background: rgba(255, 255, 255, 0.74);
-          box-shadow: 0 22px 60px rgba(15, 23, 42, 0.1);
-          backdrop-filter: blur(22px);
-        }
-
-        .page-hero h1 {
-          max-width: 780px;
-          margin: 10px 0 12px;
-          font-size: clamp(2.4rem, 5vw, 4.8rem);
-          line-height: 0.95;
-          letter-spacing: -0.07em;
-        }
-
-        .page-hero p:not(.eyebrow) {
-          max-width: 660px;
-          color: var(--muted);
-          font-size: 1rem;
-          line-height: 1.75;
         }
 
         .hero-copy h1 {
@@ -2156,16 +2093,10 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
           }
 
           .hero-grid,
-          .page-hero,
           .trainer-shell,
           .quest-layout,
           .lab-grid {
             grid-template-columns: 1fr;
-          }
-
-          .page-hero {
-            display: grid;
-            align-items: start;
           }
 
           .dashboard-preview {
