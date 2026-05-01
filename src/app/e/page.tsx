@@ -3,5 +3,5 @@
 import EnglishApp from '../english/EnglishApp'
 
 export default function EPage() {
-  return <EnglishApp />
+  return <EnglishApp page="home" />
 }

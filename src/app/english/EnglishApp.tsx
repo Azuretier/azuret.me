@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 
 type GameTab = 'quests' | 'speaking' | 'writing' | 'review'
+type EnglishPageMode = 'home' | GameTab
 type SkillLaneId = 'vocabulary' | 'grammar' | 'reading' | 'conversation'
 
 type SkillLane = {
@@ -50,6 +51,61 @@ type EnglishProfile = {
 
 const STORAGE_KEY = 'english-quest-campus-v1'
 const LEVEL_SIZE = 180
+
+const TRAINING_LINKS: Array<{
+  id: GameTab
+  label: string
+  href: string
+  description: string
+}> = [
+  {
+    id: 'quests',
+    label: 'Quest map',
+    href: '/e/quests',
+    description: 'Focused multiple-choice quests with instant feedback and transfer prompts.',
+  },
+  {
+    id: 'speaking',
+    label: 'Speaking lab',
+    href: '/e/speaking',
+    description: 'One prompt, useful repair phrases, and a quick reflection loop.',
+  },
+  {
+    id: 'writing',
+    label: 'Writing forge',
+    href: '/e/writing',
+    description: 'Short writing reps with simple checks for clarity and structure.',
+  },
+  {
+    id: 'review',
+    label: 'Review room',
+    href: '/e/review',
+    description: 'Progress, mastery by skill lane, and replay links for weak nodes.',
+  },
+]
+
+const PAGE_META: Record<GameTab, { kicker: string; title: string; description: string }> = {
+  quests: {
+    kicker: 'Focused page: quest map',
+    title: 'Clear one quest at a time.',
+    description: 'Choose a skill node, answer it, read the coach feedback, then transfer it into speaking or writing.',
+  },
+  speaking: {
+    kicker: 'Focused page: speaking lab',
+    title: 'Practice output without the noise.',
+    description: 'Use the current quest as a speaking seed, rehearse aloud, and log a short reflection.',
+  },
+  writing: {
+    kicker: 'Focused page: writing forge',
+    title: 'Write smaller, sharper reps.',
+    description: 'Draft a useful paragraph, check structure signals, and build IELTS-friendly clarity day by day.',
+  },
+  review: {
+    kicker: 'Focused page: review room',
+    title: 'Replay progress instead of guessing.',
+    description: 'See what you have cleared, where each skill lane stands, and jump back into weak practice nodes.',
+  },
+}
 
 const SKILL_LANES: SkillLane[] = [
   {
@@ -345,12 +401,15 @@ function speakText(text: string) {
   window.speechSynthesis.speak(utterance)
 }
 
-export default function EnglishApp() {
+export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }) {
   const [profile, setProfile] = useState<EnglishProfile>(DEFAULT_PROFILE)
   const [hydrated, setHydrated] = useState(false)
-  const [activeTab, setActiveTab] = useState<GameTab>('quests')
   const [selectedQuestId, setSelectedQuestId] = useState(QUESTS[0].id)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+
+  const activeTab: GameTab = page === 'home' ? 'quests' : page
+  const isHome = page === 'home'
+  const focusedMeta = page === 'home' ? null : PAGE_META[page]
 
   const activeQuest = useMemo(
     () => QUESTS.find((quest) => quest.id === selectedQuestId) ?? QUESTS[0],
@@ -396,6 +455,13 @@ export default function EnglishApp() {
       setProfile(DEFAULT_PROFILE)
     } finally {
       setHydrated(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    const questId = new URLSearchParams(window.location.search).get('quest')
+    if (questId && QUESTS.some((quest) => quest.id === questId)) {
+      setSelectedQuestId(questId)
     }
   }, [])
 
@@ -483,16 +549,22 @@ export default function EnglishApp() {
     })
   }
 
+  function questHref(id: string) {
+    return `/e/quests?quest=${encodeURIComponent(id)}`
+  }
+
   function jumpToQuest(id: string) {
     setSelectedQuestId(id)
-    setActiveTab('quests')
+    if (page !== 'quests') {
+      window.location.href = questHref(id)
+    }
   }
 
   return (
     <main className="english-campus">
-      <section className="hero-shell">
+      <section className={`hero-shell ${isHome ? '' : 'is-compact'}`}>
         <nav className="top-nav" aria-label="English app navigation">
-          <a className="brand-mark" href="/">
+          <a className="brand-mark" href="/e">
             <span className="brand-icon">EQ</span>
             <span>
               <strong>English Quest</strong>
@@ -501,17 +573,21 @@ export default function EnglishApp() {
           </a>
 
           <div className="nav-links">
-            <a href="#features">Features</a>
-            <a href="#trainer">Trainer</a>
-            <a href="#faq">FAQ</a>
+            <a className={isHome ? 'is-active' : ''} href="/e">Overview</a>
+            {TRAINING_LINKS.map((link) => (
+              <a className={activeTab === link.id && !isHome ? 'is-active' : ''} href={link.href} key={link.id}>
+                {link.label.replace(' map', '').replace(' lab', '').replace(' forge', '').replace(' room', '')}
+              </a>
+            ))}
           </div>
 
-          <button className="command-pill" type="button" onClick={() => jumpToQuest(nextQuest.id)}>
+          <a className="command-pill" href={questHref(nextQuest.id)}>
             <span>Next quest</span>
             <kbd>{nextQuest.label}</kbd>
-          </button>
+          </a>
         </nav>
 
+        {isHome ? (
         <div className="hero-grid">
           <div className="hero-copy">
             <p className="eyebrow">English learning, but it finally has a game loop.</p>
@@ -522,7 +598,7 @@ export default function EnglishApp() {
             </p>
 
             <div className="hero-actions">
-              <a className="primary-action" href="#trainer">
+              <a className="primary-action" href={questHref(nextQuest.id)}>
                 Start training
               </a>
               <button className="secondary-action" type="button" onClick={claimDailyFocus}>
@@ -581,8 +657,27 @@ export default function EnglishApp() {
             </div>
           </div>
         </div>
+        ) : (
+          <div className="page-hero">
+            <div>
+              <p className="eyebrow">{focusedMeta?.kicker}</p>
+              <h1>{focusedMeta?.title}</h1>
+              <p>{focusedMeta?.description}</p>
+            </div>
+            <div className="page-hero-actions">
+              <a className="secondary-action compact" href="/e">
+                Back to overview
+              </a>
+              <a className="primary-action compact" href={questHref(nextQuest.id)}>
+                Next quest
+              </a>
+            </div>
+          </div>
+        )}
       </section>
 
+      {isHome && (
+      <>
       <section className="feature-section" id="features">
         <div className="section-heading">
           <p className="eyebrow">Designed like a learning product, not a worksheet.</p>
@@ -600,6 +695,26 @@ export default function EnglishApp() {
         </div>
       </section>
 
+      <section className="route-section" id="pages">
+        <div className="section-heading">
+          <p className="eyebrow">Split into focused pages</p>
+          <h2>Pick one room and keep your brain on one job.</h2>
+        </div>
+
+        <div className="route-grid">
+          {TRAINING_LINKS.map((link, index) => (
+            <a className="route-card" href={link.href} key={link.id}>
+              <span>0{index + 1}</span>
+              <h3>{link.label}</h3>
+              <p>{link.description}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+      </>
+      )}
+
+      {!isHome && (
       <section className="trainer-shell" id="trainer">
         <aside className="player-panel">
           <div className="player-card">
@@ -624,20 +739,14 @@ export default function EnglishApp() {
 
           <div className="tab-card">
             <p className="panel-title">Training deck</p>
-            {[
-              ['quests', 'Quest map'],
-              ['speaking', 'Speaking lab'],
-              ['writing', 'Writing forge'],
-              ['review', 'Review room'],
-            ].map(([id, label]) => (
-              <button
-                className={activeTab === id ? 'is-active' : ''}
-                key={id}
-                type="button"
-                onClick={() => setActiveTab(id as GameTab)}
+            {TRAINING_LINKS.map((link) => (
+              <a
+                className={activeTab === link.id ? 'is-active' : ''}
+                href={link.href}
+                key={link.id}
               >
-                {label}
-              </button>
+                {link.label}
+              </a>
             ))}
           </div>
 
@@ -882,7 +991,9 @@ export default function EnglishApp() {
           )}
         </section>
       </section>
+      )}
 
+      {isHome && (
       <section className="faq-section" id="faq">
         <div className="section-heading">
           <p className="eyebrow">FAQ</p>
@@ -901,11 +1012,12 @@ export default function EnglishApp() {
         <div className="bottom-cta">
           <p className="eyebrow">Ready when you are.</p>
           <h2>Clear one tiny quest today. Let tomorrow-you inherit momentum.</h2>
-          <a className="primary-action" href="#trainer">
+          <a className="primary-action" href={questHref(nextQuest.id)}>
             Open the trainer
           </a>
         </div>
       </section>
+      )}
 
       <style jsx>{`
         .english-campus {
@@ -931,6 +1043,7 @@ export default function EnglishApp() {
 
         .hero-shell,
         .feature-section,
+        .route-section,
         .trainer-shell,
         .faq-section {
           width: min(1180px, calc(100% - 32px));
@@ -940,6 +1053,10 @@ export default function EnglishApp() {
         .hero-shell {
           position: relative;
           padding: 24px 0 76px;
+        }
+
+        .hero-shell.is-compact {
+          padding-bottom: 34px;
         }
 
         .hero-shell::before {
@@ -1030,7 +1147,8 @@ export default function EnglishApp() {
           border-radius: 999px;
         }
 
-        .nav-links a:hover {
+        .nav-links a:hover,
+        .nav-links a.is-active {
           color: var(--ink);
           background: #ffffff;
         }
@@ -1045,6 +1163,7 @@ export default function EnglishApp() {
           cursor: pointer;
           background: #ffffff;
           box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+          text-decoration: none;
         }
 
         .command-pill kbd {
@@ -1064,6 +1183,45 @@ export default function EnglishApp() {
           gap: 48px;
           align-items: center;
           padding-top: 74px;
+        }
+
+        .page-hero {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          align-items: end;
+          justify-content: space-between;
+          gap: 28px;
+          margin-top: 34px;
+          padding: 34px;
+          border: 1px solid rgba(255, 255, 255, 0.78);
+          border-radius: 34px;
+          background: rgba(255, 255, 255, 0.74);
+          box-shadow: 0 22px 60px rgba(15, 23, 42, 0.1);
+          backdrop-filter: blur(22px);
+        }
+
+        .page-hero h1 {
+          max-width: 780px;
+          margin: 10px 0 12px;
+          font-size: clamp(2.4rem, 5vw, 4.8rem);
+          line-height: 0.95;
+          letter-spacing: -0.07em;
+        }
+
+        .page-hero p:not(.eyebrow) {
+          max-width: 660px;
+          color: var(--muted);
+          font-size: 1rem;
+          line-height: 1.75;
+        }
+
+        .page-hero-actions {
+          display: flex;
+          flex: 0 0 auto;
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: flex-end;
         }
 
         .hero-copy h1 {
@@ -1345,6 +1503,7 @@ export default function EnglishApp() {
         }
 
         .feature-section,
+        .route-section,
         .faq-section {
           padding: 74px 0;
         }
@@ -1364,6 +1523,7 @@ export default function EnglishApp() {
         }
 
         .feature-grid,
+        .route-grid,
         .faq-grid,
         .review-grid,
         .stat-grid {
@@ -1375,7 +1535,12 @@ export default function EnglishApp() {
           grid-template-columns: repeat(4, 1fr);
         }
 
+        .route-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+
         .feature-card,
+        .route-card,
         .player-card,
         .tab-card,
         .mission-card,
@@ -1396,6 +1561,40 @@ export default function EnglishApp() {
           min-height: 220px;
           padding: 24px;
           box-shadow: 0 18px 46px rgba(15, 23, 42, 0.09);
+        }
+
+        .route-card {
+          display: grid;
+          min-height: 230px;
+          align-content: space-between;
+          gap: 18px;
+          padding: 24px;
+          color: inherit;
+          text-decoration: none;
+          box-shadow: 0 18px 46px rgba(15, 23, 42, 0.09);
+          transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .route-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 26px 60px rgba(15, 23, 42, 0.14);
+        }
+
+        .route-card span {
+          color: #2563eb;
+          font-size: 0.82rem;
+          font-weight: 950;
+          letter-spacing: 0.12em;
+        }
+
+        .route-card h3 {
+          font-size: 1.5rem;
+          letter-spacing: -0.05em;
+        }
+
+        .route-card p {
+          color: var(--muted);
+          line-height: 1.7;
         }
 
         .feature-card span {
@@ -1528,7 +1727,7 @@ export default function EnglishApp() {
           gap: 8px;
         }
 
-        .tab-card button,
+        .tab-card a,
         .mission-row,
         .quest-node,
         .history-item {
@@ -1541,14 +1740,15 @@ export default function EnglishApp() {
           background: #ffffff;
         }
 
-        .tab-card button {
+        .tab-card a {
           padding: 12px 14px;
           border-radius: 16px;
           font-size: 0.86rem;
           font-weight: 900;
+          text-decoration: none;
         }
 
-        .tab-card button.is-active {
+        .tab-card a.is-active {
           color: #ffffff;
           border-color: transparent;
           background: #0f172a;
@@ -1957,10 +2157,16 @@ export default function EnglishApp() {
           }
 
           .hero-grid,
+          .page-hero,
           .trainer-shell,
           .quest-layout,
           .lab-grid {
             grid-template-columns: 1fr;
+          }
+
+          .page-hero {
+            display: grid;
+            align-items: start;
           }
 
           .dashboard-preview {
@@ -1976,6 +2182,7 @@ export default function EnglishApp() {
           }
 
           .feature-grid,
+          .route-grid,
           .review-grid {
             grid-template-columns: repeat(2, 1fr);
           }
@@ -1988,6 +2195,7 @@ export default function EnglishApp() {
 
           .hero-shell,
           .feature-section,
+          .route-section,
           .trainer-shell,
           .faq-section {
             width: min(100% - 20px, 1180px);
@@ -2013,6 +2221,7 @@ export default function EnglishApp() {
 
           .preview-grid,
           .feature-grid,
+          .route-grid,
           .faq-grid,
           .review-grid,
           .checklist-grid,
