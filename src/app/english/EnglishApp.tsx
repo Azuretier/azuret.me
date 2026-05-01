@@ -444,6 +444,7 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
   const nextQuest = useMemo(() => {
     return QUESTS.find((quest) => !profile.completedQuestIds.includes(quest.id)) ?? QUESTS[0]
   }, [profile.completedQuestIds])
+  const nextQuestCta = completedCount >= QUESTS.length ? 'Replay first quest' : 'Next open quest'
 
   useEffect(() => {
     try {
@@ -581,10 +582,6 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
             ))}
           </div>
 
-          <a className="command-pill" href={questHref(nextQuest.id)}>
-            <span>Next quest</span>
-            <kbd>{nextQuest.label}</kbd>
-          </a>
         </nav>
 
         {isHome ? (
@@ -663,14 +660,6 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
               <p className="eyebrow">{focusedMeta?.kicker}</p>
               <h1>{focusedMeta?.title}</h1>
               <p>{focusedMeta?.description}</p>
-            </div>
-            <div className="page-hero-actions">
-              <a className="secondary-action compact" href="/e">
-                Back to overview
-              </a>
-              <a className="primary-action compact" href={questHref(nextQuest.id)}>
-                Next quest
-              </a>
             </div>
           </div>
         )}
@@ -802,7 +791,13 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
                     <h2>{activeQuest.title}</h2>
                     <p>{activeQuest.subtitle}</p>
                   </div>
-                  <span>{activeQuest.difficulty}</span>
+                  <div className="challenge-actions">
+                    <span>{activeQuest.difficulty}</span>
+                    <a className="quest-next-link" href={questHref(nextQuest.id)}>
+                      {nextQuestCta}
+                      <strong>{nextQuest.label}</strong>
+                    </a>
+                  </div>
                 </div>
 
                 <div className="context-box">
@@ -1132,8 +1127,7 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
           background: rgba(15, 23, 42, 0.05);
         }
 
-        .nav-links a,
-        .command-pill {
+        .nav-links a {
           border: 0;
           color: #334155;
           font: inherit;
@@ -1151,28 +1145,6 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
         .nav-links a.is-active {
           color: var(--ink);
           background: #ffffff;
-        }
-
-        .command-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          padding: 10px 12px 10px 16px;
-          border: 1px solid var(--line);
-          border-radius: 999px;
-          cursor: pointer;
-          background: #ffffff;
-          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-          text-decoration: none;
-        }
-
-        .command-pill kbd {
-          padding: 6px 9px;
-          border-radius: 10px;
-          color: #0f172a;
-          background: #edf8ff;
-          font-size: 0.74rem;
-          font-weight: 900;
         }
 
         .hero-grid {
@@ -1214,14 +1186,6 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
           color: var(--muted);
           font-size: 1rem;
           line-height: 1.75;
-        }
-
-        .page-hero-actions {
-          display: flex;
-          flex: 0 0 auto;
-          flex-wrap: wrap;
-          gap: 10px;
-          justify-content: flex-end;
         }
 
         .hero-copy h1 {
@@ -1290,8 +1254,7 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
         }
 
         .primary-action:hover,
-        .secondary-action:hover,
-        .command-pill:hover {
+        .secondary-action:hover {
           transform: translateY(-2px);
         }
 
@@ -1882,7 +1845,15 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
           letter-spacing: -0.07em;
         }
 
-        .challenge-head > span {
+        .challenge-actions {
+          display: grid;
+          flex: 0 0 auto;
+          gap: 10px;
+          justify-items: end;
+        }
+
+        .challenge-actions > span {
+          width: fit-content;
           flex: 0 0 auto;
           padding: 8px 12px;
           border-radius: 999px;
@@ -1890,6 +1861,34 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
           font-size: 0.78rem;
           font-weight: 950;
           background: color-mix(in srgb, var(--lane-color) 18%, #ffffff);
+        }
+
+        .quest-next-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          width: fit-content;
+          padding: 10px 12px 10px 16px;
+          border-radius: 999px;
+          color: #ffffff;
+          font-size: 0.82rem;
+          font-weight: 950;
+          text-decoration: none;
+          background: linear-gradient(135deg, #0f172a, color-mix(in srgb, var(--lane-color) 72%, #2563eb));
+          box-shadow: 0 16px 34px color-mix(in srgb, var(--lane-color) 24%, transparent);
+          transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .quest-next-link:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 20px 42px color-mix(in srgb, var(--lane-color) 32%, transparent);
+        }
+
+        .quest-next-link strong {
+          padding: 5px 8px;
+          border-radius: 999px;
+          color: #0f172a;
+          background: rgba(255, 255, 255, 0.86);
         }
 
         .context-box,
@@ -2204,10 +2203,6 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
           .top-nav {
             align-items: stretch;
             border-radius: 22px;
-          }
-
-          .command-pill {
-            display: none;
           }
 
           .hero-grid {

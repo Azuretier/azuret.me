@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import styles from './math.module.css'
 
 interface Challenge {
@@ -62,6 +62,7 @@ function makeChallenge(level: number): Challenge {
 }
 
 export default function MathPage() {
+  const gameRef = useRef<HTMLElement | null>(null)
   const [xp, setXp] = useState(0)
   const [coins, setCoins] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -69,6 +70,7 @@ export default function MathPage() {
   const [answerInput, setAnswerInput] = useState('')
   const [challenge, setChallenge] = useState<Challenge>(INITIAL_CHALLENGE)
   const [pulse, setPulse] = useState(false)
+  const [isFocusMode, setIsFocusMode] = useState(false)
   const [message, setMessage] = useState('Solve the first prompt to start your combo.')
 
   const level = levelForXp(xp)
@@ -84,6 +86,44 @@ export default function MathPage() {
 
   const focusAnswer = () => {
     document.getElementById('math-answer')?.focus()
+  }
+
+  useEffect(() => {
+    const syncFullscreenState = () => {
+      if (!document.fullscreenElement) {
+        setIsFocusMode(false)
+        return
+      }
+
+      setIsFocusMode(document.fullscreenElement === gameRef.current)
+    }
+
+    document.addEventListener('fullscreenchange', syncFullscreenState)
+    return () => document.removeEventListener('fullscreenchange', syncFullscreenState)
+  }, [])
+
+  const enterFocusMode = async () => {
+    setIsFocusMode(true)
+
+    try {
+      await gameRef.current?.requestFullscreen?.()
+    } catch {
+      setMessage('Fullscreen is blocked here, but focus mode is still active.')
+    }
+
+    window.setTimeout(focusAnswer, 80)
+  }
+
+  const exitFocusMode = async () => {
+    setIsFocusMode(false)
+
+    if (document.fullscreenElement) {
+      try {
+        await document.exitFullscreen()
+      } catch {
+        setMessage('Press Esc to leave browser fullscreen.')
+      }
+    }
   }
 
   const submit = () => {
@@ -128,7 +168,7 @@ export default function MathPage() {
   }
 
   return (
-    <main className={styles.mathArena} data-ui-system="ui-pro-max">
+    <main className={`${styles.mathArena} ${isFocusMode ? styles.focusMode : ''}`} data-ui-system="ui-pro-max">
       <nav className={styles.mathNav} aria-label="Math app navigation">
         <div className={styles.navInner}>
           <a className={styles.brand} href="/">
@@ -140,6 +180,11 @@ export default function MathPage() {
             <span className={styles.searchIcon} aria-hidden="true" />
             Quick answer
             <kbd>Enter</kbd>
+          </button>
+
+          <button className={styles.navFocusButton} type="button" onClick={enterFocusMode}>
+            <span aria-hidden="true">⛶</span>
+            Fullscreen
           </button>
 
           <div className={styles.navStatus} aria-label={`Current level ${level}`}>
@@ -169,21 +214,43 @@ export default function MathPage() {
             <a className={styles.heroSecondary} href="#progress">
               View progress
             </a>
+            <button className={styles.heroSecondary} type="button" onClick={enterFocusMode}>
+              Fullscreen mode
+            </button>
           </div>
         </div>
       </section>
 
-      <section id="practice" className={`${styles.browserShell} ${pulse ? styles.pulse : ''}`} aria-label="Math practice dashboard">
-        <div className={styles.browserChrome} aria-hidden="true">
-          <div className={styles.trafficLights}>
+      <section
+        ref={gameRef}
+        id="practice"
+        className={`${styles.browserShell} ${isFocusMode ? styles.fullscreenShell : ''} ${pulse ? styles.pulse : ''}`}
+        aria-label="Math practice dashboard"
+      >
+        <div className={styles.focusTopbar}>
+          <div>
+            <span>Math Quest</span>
+            <strong>Focus run</strong>
+          </div>
+          <button type="button" onClick={exitFocusMode}>
+            Exit fullscreen
+          </button>
+        </div>
+
+        <div className={styles.browserChrome}>
+          <div className={styles.trafficLights} aria-hidden="true">
             <span />
             <span />
             <span />
           </div>
-          <div className={styles.addressBar}>
+          <div className={styles.addressBar} aria-hidden="true">
             <span className={styles.lockIcon} />
             math.azuret.me/session
           </div>
+          <button className={styles.chromeFocusButton} type="button" onClick={enterFocusMode} aria-label="Open fullscreen mode">
+            <span aria-hidden="true">⛶</span>
+            Fullscreen
+          </button>
         </div>
 
         <div className={styles.dashboardBody}>

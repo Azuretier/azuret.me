@@ -83,11 +83,14 @@
 }
 
 .searchPill:focus-visible,
+.navFocusButton:focus-visible,
+.chromeFocusButton:focus-visible,
 .heroPrimary:focus-visible,
 .heroSecondary:focus-visible,
 .answerForm input:focus-visible,
 .answerForm button:focus-visible,
-.hintButton:focus-visible {
+.hintButton:focus-visible,
+.focusTopbar button:focus-visible {
   outline: 3px solid rgba(0, 114, 245, 0.24);
   outline-offset: 2px;
 }
@@ -133,6 +136,32 @@
   font-size: 13px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+}
+
+.navFocusButton,
+.chromeFocusButton {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--math-border);
+  border-radius: 999px;
+  background: var(--math-surface);
+  color: var(--math-text);
+  padding: 0 13px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.navFocusButton:hover,
+.chromeFocusButton:hover {
+  border-color: rgba(0, 114, 245, 0.38);
+  background: var(--math-primary-soft);
+  transform: translateY(-1px);
 }
 
 .hero {
@@ -245,6 +274,96 @@
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
 }
 
+.focusMode {
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--math-bg);
+}
+
+.focusMode .mathNav,
+.focusMode .hero,
+.focusMode .featureSection {
+  display: none;
+}
+
+.fullscreenShell {
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.fullscreenShell:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  background: var(--math-bg);
+}
+
+.focusTopbar {
+  min-height: 64px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid var(--math-border);
+  background: rgba(255, 255, 255, 0.86);
+  padding: 0 clamp(18px, 4vw, 42px);
+  backdrop-filter: blur(18px);
+}
+
+.focusTopbar div {
+  min-width: 0;
+}
+
+.focusTopbar span {
+  display: block;
+  color: var(--math-primary);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.focusTopbar strong {
+  display: block;
+  color: var(--math-text);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.focusTopbar button {
+  min-height: 38px;
+  border: 1px solid var(--math-border);
+  border-radius: 999px;
+  background: var(--math-surface);
+  color: var(--math-text);
+  padding: 0 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.focusTopbar button:hover {
+  border-color: rgba(0, 114, 245, 0.38);
+  background: var(--math-primary-soft);
+  transform: translateY(-1px);
+}
+
+.fullscreenShell .focusTopbar,
+.fullscreenShell:fullscreen .focusTopbar {
+  display: flex;
+}
+
+.fullscreenShell .browserChrome,
+.fullscreenShell:fullscreen .browserChrome {
+  display: none;
+}
+
 .browserChrome {
   height: 52px;
   display: grid;
@@ -311,6 +430,12 @@
   background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
 }
 
+.fullscreenShell .dashboardBody,
+.fullscreenShell:fullscreen .dashboardBody {
+  min-height: calc(100dvh - 64px);
+  grid-template-columns: minmax(0, 1.36fr) minmax(320px, 0.64fr);
+}
+
 .solvePane,
 .progressPane {
   padding: 38px;
@@ -318,6 +443,22 @@
 
 .solvePane {
   border-right: 1px solid var(--math-border);
+}
+
+.fullscreenShell .solvePane,
+.fullscreenShell:fullscreen .solvePane {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(28px, 5vw, 72px);
+}
+
+.fullscreenShell .progressPane,
+.fullscreenShell:fullscreen .progressPane {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(24px, 3.8vw, 54px);
 }
 
 .sectionLabel {
@@ -358,6 +499,18 @@
   line-height: 1;
   font-weight: 850;
   font-variant-numeric: tabular-nums;
+}
+
+.fullscreenShell .equation,
+.fullscreenShell:fullscreen .equation {
+  font-size: clamp(70px, 8vw, 128px);
+  gap: clamp(14px, 2vw, 32px);
+}
+
+.fullscreenShell .equationPanel,
+.fullscreenShell:fullscreen .equationPanel {
+  margin: 34px 0 26px;
+  padding: clamp(36px, 6vw, 80px) clamp(18px, 4vw, 48px);
 }
 
 .equation strong {
@@ -624,6 +777,10 @@
     padding: 0 12px;
   }
 
+  .chromeFocusButton {
+    display: none;
+  }
+
   .trafficLights span {
     width: 9px;
     height: 9px;
@@ -641,6 +798,12 @@
     grid-template-columns: 1fr;
   }
 
+  .fullscreenShell .dashboardBody,
+  .fullscreenShell:fullscreen .dashboardBody {
+    min-height: calc(100dvh - 64px);
+    grid-template-columns: 1fr;
+  }
+
   .solvePane,
   .progressPane {
     padding: 26px 18px;
@@ -649,6 +812,18 @@
   .solvePane {
     border-right: 0;
     border-bottom: 1px solid var(--math-border);
+  }
+
+  .fullscreenShell .solvePane,
+  .fullscreenShell:fullscreen .solvePane {
+    justify-content: flex-start;
+    padding: 26px 18px;
+  }
+
+  .fullscreenShell .progressPane,
+  .fullscreenShell:fullscreen .progressPane {
+    justify-content: flex-start;
+    padding: 22px 18px 28px;
   }
 
   .paneTitle {
@@ -664,6 +839,11 @@
     font-size: 46px;
   }
 
+  .fullscreenShell .equation,
+  .fullscreenShell:fullscreen .equation {
+    font-size: clamp(48px, 16vw, 70px);
+  }
+
   .featureSection {
     grid-template-columns: 1fr;
     gap: 28px;
@@ -674,6 +854,31 @@
 @media (max-width: 480px) {
   .brandText {
     display: none;
+  }
+
+  .navFocusButton {
+    min-width: 40px;
+    padding: 0 12px;
+  }
+
+  .navFocusButton {
+    font-size: 0;
+  }
+
+  .navFocusButton span {
+    font-size: 16px;
+  }
+
+  .focusTopbar {
+    padding: 0 14px;
+  }
+
+  .focusTopbar strong {
+    font-size: 16px;
+  }
+
+  .focusTopbar button {
+    padding: 0 12px;
   }
 
   .heroTitle {
@@ -722,6 +927,16 @@
 
   .searchPill {
     background: rgba(26, 32, 43, 0.78);
+  }
+
+  .navFocusButton,
+  .chromeFocusButton,
+  .focusTopbar button {
+    background: var(--math-surface);
+  }
+
+  .focusTopbar {
+    background: rgba(11, 13, 18, 0.86);
   }
 
   .browserShell {
