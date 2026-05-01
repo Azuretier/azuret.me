@@ -453,6 +453,189 @@
   padding: clamp(24px, 3.8vw, 54px);
 }
 
+.encounterStage {
+  position: relative;
+  min-height: 214px;
+  display: grid;
+  grid-template-columns: minmax(150px, 0.72fr) minmax(220px, 1fr);
+  align-items: end;
+  gap: 22px;
+  margin: 0 0 28px;
+  border: 1px solid var(--math-border);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(0, 114, 245, 0.08), rgba(15, 23, 42, 0.02) 58%, rgba(15, 23, 42, 0.05)),
+    linear-gradient(90deg, rgba(0, 114, 245, 0.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(0, 114, 245, 0.04) 1px, transparent 1px),
+    var(--math-surface);
+  background-size: auto, 24px 24px, 24px 24px, auto;
+  padding: 22px 24px;
+  overflow: hidden;
+}
+
+.encounterStage::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  background: linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.08));
+}
+
+.depthMarker {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  z-index: 2;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(0, 114, 245, 0.22);
+  border-radius: 999px;
+  background: var(--math-primary-soft);
+  color: var(--math-primary);
+  padding: 0 11px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.enemySpriteWrap {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  width: 190px;
+  height: 158px;
+  transform-origin: 50% 100%;
+}
+
+.enemySprite {
+  --enemy-primary: #38bdf8;
+  --enemy-accent: #0ea5e9;
+  --enemy-shade: #0284c7;
+  --enemy-dark: #075985;
+  --enemy-eye: #0f172a;
+  --enemy-shine: #e0f2fe;
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(8, 10px);
+  grid-auto-rows: 10px;
+  gap: 0;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 14px 0 rgba(15, 23, 42, 0.08)) drop-shadow(0 20px 18px rgba(15, 23, 42, 0.18));
+  transform: translateY(-6px) scale(2);
+}
+
+.spritePixel {
+  width: 10px;
+  height: 10px;
+  background: transparent;
+}
+
+.pixelPrimary {
+  background: var(--enemy-primary);
+}
+
+.pixelAccent {
+  background: var(--enemy-accent);
+}
+
+.pixelShade {
+  background: var(--enemy-shade);
+}
+
+.pixelDark {
+  background: var(--enemy-dark);
+}
+
+.pixelEye {
+  background: var(--enemy-eye);
+}
+
+.pixelShine {
+  background: var(--enemy-shine);
+}
+
+.enemyShadow {
+  position: absolute;
+  bottom: 8px;
+  width: 116px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.16);
+  filter: blur(1px);
+}
+
+.enemyHit {
+  animation: enemyHit 240ms ease;
+}
+
+@keyframes enemyHit {
+  0% { transform: translateX(0) scale(1); }
+  35% { transform: translateX(8px) scale(0.98); }
+  70% { transform: translateX(-5px) scale(1.02); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+.enemyHud {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  border: 1px solid var(--math-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.enemyNameLine {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.enemyNameLine span {
+  color: var(--math-primary);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.enemyNameLine strong {
+  color: var(--math-text);
+  font-size: 18px;
+  line-height: 1.1;
+  text-align: right;
+}
+
+.enemyHpText {
+  margin-bottom: 8px;
+  color: var(--math-muted);
+  font-size: 12px;
+  font-weight: 850;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.enemyHpTrack {
+  height: 11px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.enemyHpFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #fb7185, #f97316);
+  transition: width 220ms ease;
+}
+
 .sectionLabel {
   margin: 0 0 8px;
   color: var(--math-primary);
@@ -798,6 +981,23 @@
     padding: 26px 18px;
   }
 
+  .encounterStage {
+    min-height: 310px;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: 26px;
+    margin-bottom: 24px;
+    padding: 54px 18px 18px;
+  }
+
+  .enemySprite {
+    transform: translateY(-4px) scale(1.9);
+  }
+
+  .enemyHud {
+    width: 100%;
+  }
+
   .solvePane {
     border-right: 0;
     border-bottom: 1px solid var(--math-border);
@@ -855,6 +1055,26 @@
 
   .focusTopbar button {
     padding: 0 12px;
+  }
+
+  .encounterStage {
+    min-height: 290px;
+    padding-inline: 14px;
+  }
+
+  .enemySprite {
+    transform: translateY(-4px) scale(1.72);
+  }
+
+  .enemyNameLine {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .enemyNameLine strong,
+  .enemyHpText {
+    text-align: left;
   }
 
   .heroTitle {
@@ -926,6 +1146,26 @@
       linear-gradient(90deg, rgba(0, 114, 245, 0.08) 1px, transparent 1px),
       linear-gradient(0deg, rgba(0, 114, 245, 0.08) 1px, transparent 1px),
       #11151d;
+  }
+
+  .encounterStage {
+    background:
+      linear-gradient(180deg, rgba(0, 114, 245, 0.12), rgba(15, 23, 42, 0.12) 58%, rgba(15, 23, 42, 0.16)),
+      linear-gradient(90deg, rgba(0, 114, 245, 0.08) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(0, 114, 245, 0.08) 1px, transparent 1px),
+      var(--math-surface);
+  }
+
+  .enemyHud {
+    background: rgba(17, 21, 29, 0.78);
+  }
+
+  .enemyShadow {
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  .enemyHpTrack {
+    background: #252d3a;
   }
 
   .xpTrack {

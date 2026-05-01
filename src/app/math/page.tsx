@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { type CSSProperties, useEffect, useRef, useState } from 'react'
 import styles from './math.module.css'
 
 interface Challenge {
@@ -10,6 +10,23 @@ interface Challenge {
   answer: number
 }
 
+interface EnemyState {
+  name: string
+  title: string
+  depth: number
+  hp: number
+  maxHp: number
+  sprite: string[]
+  palette: {
+    primary: string
+    accent: string
+    shade: string
+    dark: string
+    eye: string
+    shine: string
+  }
+}
+
 const OPS: Challenge['op'][] = ['+', '-', '×']
 
 const INITIAL_CHALLENGE: Challenge = {
@@ -17,6 +34,84 @@ const INITIAL_CHALLENGE: Challenge = {
   right: 4,
   op: '+',
   answer: 12,
+}
+
+const ENEMY_ARCHETYPES = [
+  {
+    name: 'Cave Slime',
+    title: 'Depth scout',
+    sprite: [
+      '........',
+      '...hh...',
+      '..pppp..',
+      '.ppsspp.',
+      '.peppep.',
+      '.ppsspp.',
+      '..dddd..',
+      '.d....d.',
+    ],
+    palette: {
+      primary: '#38bdf8',
+      accent: '#0ea5e9',
+      shade: '#0284c7',
+      dark: '#075985',
+      eye: '#0f172a',
+      shine: '#e0f2fe',
+    },
+  },
+  {
+    name: 'Number Imp',
+    title: 'Gate trickster',
+    sprite: [
+      '..d..d..',
+      '.dpaapd.',
+      '.appppa.',
+      '.peppep.',
+      '.apsspa.',
+      '..pddp..',
+      '.dpsspd.',
+      'd......d',
+    ],
+    palette: {
+      primary: '#fb7185',
+      accent: '#f97316',
+      shade: '#e11d48',
+      dark: '#7f1d1d',
+      eye: '#111827',
+      shine: '#ffe4e6',
+    },
+  },
+  {
+    name: 'Rune Golem',
+    title: 'Deep guard',
+    sprite: [
+      '..dddd..',
+      '.dppppd.',
+      'dppssppd',
+      'dpeddepd',
+      'dppssppd',
+      '..dppd..',
+      '.dd..dd.',
+      'd......d',
+    ],
+    palette: {
+      primary: '#a78bfa',
+      accent: '#7c3aed',
+      shade: '#5b21b6',
+      dark: '#2e1065',
+      eye: '#fef3c7',
+      shine: '#ede9fe',
+    },
+  },
+]
+
+const PIXEL_CLASS: Record<string, string> = {
+  p: styles.pixelPrimary,
+  a: styles.pixelAccent,
+  s: styles.pixelShade,
+  d: styles.pixelDark,
+  e: styles.pixelEye,
+  h: styles.pixelShine,
 }
 
 const FEATURE_ITEMS = [
@@ -39,9 +134,23 @@ const FEATURE_ITEMS = [
 
 const levelForXp = (xp: number) => Math.floor(xp / 120) + 1
 
-function makeChallenge(level: number): Challenge {
-  const op = OPS[Math.floor(Math.random() * OPS.length)]
-  const cap = Math.min(10 + level * 4, 120)
+function makeEnemy(depth: number): EnemyState {
+  const archetype = ENEMY_ARCHETYPES[(depth - 1) % ENEMY_ARCHETYPES.length]
+  const maxHp = 34 + depth * 18 + Math.floor(depth / 3) * 16
+
+  return {
+    ...archetype,
+    depth,
+    hp: maxHp,
+    maxHp,
+  }
+}
+
+function makeChallenge(level: number, depth = 1): Challenge {
+  const difficulty = level + Math.floor(depth * 0.8)
+  const opPool: Challenge['op'][] = depth >= 4 ? ['+', '-', '×', '×'] : OPS
+  const op = opPool[Math.floor(Math.random() * opPool.length)]
+  const cap = Math.min(10 + difficulty * 5, 180)
 
   if (op === '+') {
     const left = Math.floor(Math.random() * cap) + 1
@@ -55,7 +164,7 @@ function makeChallenge(level: number): Challenge {
     return { left, right, op, answer: left - right }
   }
 
-  const multiCap = Math.min(4 + level, 14)
+  const multiCap = Math.min(4 + difficulty, 20)
   const left = Math.floor(Math.random() * multiCap) + 2
   const right = Math.floor(Math.random() * multiCap) + 2
   return { left, right, op, answer: left * right }
@@ -69,19 +178,33 @@ export default function MathPage() {
   const [bestStreak, setBestStreak] = useState(0)
   const [answerInput, setAnswerInput] = useState('')
   const [challenge, setChallenge] = useState<Challenge>(INITIAL_CHALLENGE)
+  const [depth, setDepth] = useState(1)
+  const [enemy, setEnemy] = useState<EnemyState>(() => makeEnemy(1))
+  const [enemyHit, setEnemyHit] = useState(false)
   const [pulse, setPulse] = useState(false)
   const [isFocusMode, setIsFocusMode] = useState(false)
-  const [message, setMessage] = useState('Solve the first prompt to start your combo.')
+  const [message, setMessage] = useState('A Cave Slime blocks the path. Solve to strike.')
 
   const level = levelForXp(xp)
   const xpInLevel = xp % 120
   const progress = (xpInLevel / 120) * 100
+  const enemyHpRatio = enemy.hp / enemy.maxHp
+  const enemyStyle = {
+    '--enemy-primary': enemy.palette.primary,
+    '--enemy-accent': enemy.palette.accent,
+    '--enemy-shade': enemy.palette.shade,
+    '--enemy-dark': enemy.palette.dark,
+    '--enemy-eye': enemy.palette.eye,
+    '--enemy-shine': enemy.palette.shine,
+  } as CSSProperties
 
   const metrics = [
     { label: 'Level', value: level },
+    { label: 'Depth', value: depth },
     { label: 'Combo', value: streak },
     { label: 'Best', value: bestStreak },
     { label: 'Coins', value: coins },
+    { label: 'Enemy HP', value: `${enemy.hp}/${enemy.maxHp}` },
   ]
 
   const focusAnswer = () => {
@@ -137,19 +260,38 @@ export default function MathPage() {
       const nextStreak = streak + 1
       const nextXp = xp + gainedXp
       const nextLevel = levelForXp(nextXp)
+      const damage = 16 + level * 4 + Math.min(streak * 3, 18)
+      const remainingHp = Math.max(0, enemy.hp - damage)
 
       setXp(nextXp)
       setCoins((v) => v + gainedCoins)
       setStreak(nextStreak)
       setBestStreak((v) => Math.max(v, nextStreak))
-      setMessage(`Perfect. +${gainedXp} XP and +${gainedCoins} coins added.`)
-      setChallenge(makeChallenge(nextLevel))
+      setEnemyHit(true)
+      setTimeout(() => setEnemyHit(false), 240)
+
+      if (remainingHp === 0) {
+        const nextDepth = depth + 1
+        const nextEnemy = makeEnemy(nextDepth)
+        const clearBonus = 8 + depth * 2
+
+        setDepth(nextDepth)
+        setEnemy(nextEnemy)
+        setCoins((v) => v + clearBonus)
+        setMessage(`${enemy.name} shattered. Depth ${nextDepth} opens. +${gainedXp} XP, +${gainedCoins + clearBonus} coins.`)
+        setChallenge(makeChallenge(nextLevel, nextDepth))
+      } else {
+        setEnemy((current) => ({ ...current, hp: remainingHp }))
+        setMessage(`Hit ${enemy.name} for ${damage}. +${gainedXp} XP, +${gainedCoins} coins.`)
+        setChallenge(makeChallenge(nextLevel, depth))
+      }
+
       setPulse(true)
       setTimeout(() => setPulse(false), 280)
     } else {
-      setMessage(`Correct answer: ${challenge.answer}. Combo reset, new prompt loaded.`)
+      setMessage(`${enemy.name} guarded the path. Correct answer: ${challenge.answer}. Combo reset.`)
       setStreak(0)
-      setChallenge(makeChallenge(level))
+      setChallenge(makeChallenge(level, depth))
     }
 
     setAnswerInput('')
@@ -247,6 +389,33 @@ export default function MathPage() {
 
         <div className={styles.dashboardBody}>
           <section className={styles.solvePane} aria-labelledby="challenge-title">
+            <div className={styles.encounterStage} aria-label={`${enemy.name}, ${enemy.hp} of ${enemy.maxHp} HP remaining`}>
+              <div className={styles.depthMarker}>Depth {depth}</div>
+              <div className={`${styles.enemySpriteWrap} ${enemyHit ? styles.enemyHit : ''}`}>
+                <div className={styles.enemySprite} style={enemyStyle} aria-hidden="true">
+                  {enemy.sprite.map((row, rowIndex) =>
+                    [...row].map((pixel, colIndex) => (
+                      <span
+                        className={`${styles.spritePixel} ${PIXEL_CLASS[pixel] ?? ''}`}
+                        key={`${rowIndex}-${colIndex}`}
+                      />
+                    )),
+                  )}
+                </div>
+                <div className={styles.enemyShadow} aria-hidden="true" />
+              </div>
+              <div className={styles.enemyHud}>
+                <div className={styles.enemyNameLine}>
+                  <span>{enemy.title}</span>
+                  <strong>{enemy.name}</strong>
+                </div>
+                <div className={styles.enemyHpText}>{enemy.hp}/{enemy.maxHp} HP</div>
+                <div className={styles.enemyHpTrack} aria-hidden="true">
+                  <div className={styles.enemyHpFill} style={{ width: `${enemyHpRatio * 100}%` }} />
+                </div>
+              </div>
+            </div>
+
             <p className={styles.sectionLabel}>Current challenge</p>
             <h2 className={styles.paneTitle} id="challenge-title">Sprint prompt</h2>
 
