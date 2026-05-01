@@ -34,6 +34,15 @@ type Quest = {
   writingPrompt: string
 }
 
+type QuestProgress = {
+  selectedAnswer: string | null
+  attempts: number
+  correctAttempts: number
+  completed: boolean
+  completedAt: string | null
+  lastAnsweredAt: string | null
+}
+
 type EnglishProfile = {
   xp: number
   streak: number
@@ -41,6 +50,8 @@ type EnglishProfile = {
   dailyFocusDay: string | null
   writingLoggedDay: string | null
   speakingLoggedDay: string | null
+  activeQuestId: string
+  questProgress: Record<string, QuestProgress>
   completedQuestIds: string[]
   attempts: number
   correct: number
@@ -603,6 +614,8 @@ const DEFAULT_PROFILE: EnglishProfile = {
   dailyFocusDay: null,
   writingLoggedDay: null,
   speakingLoggedDay: null,
+  activeQuestId: QUESTS[0].id,
+  questProgress: {},
   completedQuestIds: [],
   attempts: 0,
   correct: 0,
@@ -662,16 +675,68 @@ function orderedQuestOptions(quest: Quest) {
   ]
 }
 
+function blankQuestProgress(): QuestProgress {
+  return {
+    selectedAnswer: null,
+    attempts: 0,
+    correctAttempts: 0,
+    completed: false,
+    completedAt: null,
+    lastAnsweredAt: null,
+  }
+}
+
+function questExists(id: string) {
+  return QUESTS.some((quest) => quest.id === id)
+}
+
+function normalizeQuestProgress(
+  savedProgress: Partial<Record<string, Partial<QuestProgress>>> | undefined,
+  completedQuestIds: string[],
+) {
+  return QUESTS.reduce<Record<string, QuestProgress>>((progress, quest) => {
+    const saved = savedProgress?.[quest.id]
+    const completed = Boolean(saved?.completed || completedQuestIds.includes(quest.id))
+    const selectedAnswer = typeof saved?.selectedAnswer === 'string' ? saved.selectedAnswer : null
+
+    progress[quest.id] = {
+      ...blankQuestProgress(),
+      selectedAnswer,
+      attempts: typeof saved?.attempts === 'number' ? saved.attempts : 0,
+      correctAttempts: typeof saved?.correctAttempts === 'number' ? saved.correctAttempts : 0,
+      completed,
+      completedAt: typeof saved?.completedAt === 'string' ? saved.completedAt : null,
+      lastAnsweredAt: typeof saved?.lastAnsweredAt === 'string' ? saved.lastAnsweredAt : null,
+    }
+
+    return progress
+  }, {})
+}
+
 function safeProfile(value: unknown): EnglishProfile {
   if (!value || typeof value !== 'object') {
     return DEFAULT_PROFILE
   }
 
   const saved = value as Partial<EnglishProfile>
+  const savedCompletedQuestIds = Array.isArray(saved.completedQuestIds)
+    ? saved.completedQuestIds.filter((id) => typeof id === 'string' && questExists(id))
+    : []
+  const progressCompletedQuestIds = Object.entries(saved.questProgress ?? {})
+    .filter(([, progress]) => progress?.completed)
+    .map(([id]) => id)
+    .filter(questExists)
+  const completedQuestIds = Array.from(new Set([...savedCompletedQuestIds, ...progressCompletedQuestIds]))
+  const savedActiveQuestId = typeof saved.activeQuestId === 'string' && questExists(saved.activeQuestId)
+    ? saved.activeQuestId
+    : null
+
   return {
     ...DEFAULT_PROFILE,
     ...saved,
-    completedQuestIds: Array.isArray(saved.completedQuestIds) ? saved.completedQuestIds : [],
+    activeQuestId: savedActiveQuestId ?? completedQuestIds[0] ?? DEFAULT_PROFILE.activeQuestId,
+    questProgress: normalizeQuestProgress(saved.questProgress, completedQuestIds),
+    completedQuestIds,
     xp: typeof saved.xp === 'number' ? saved.xp : DEFAULT_PROFILE.xp,
     streak: typeof saved.streak === 'number' ? saved.streak : DEFAULT_PROFILE.streak,
     attempts: typeof saved.attempts === 'number' ? saved.attempts : DEFAULT_PROFILE.attempts,
@@ -714,7 +779,6 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
   const [profile, setProfile] = useState<EnglishProfile>(DEFAULT_PROFILE)
   const [hydrated, setHydrated] = useState(false)
   const [selectedQuestId, setSelectedQuestId] = useState(QUESTS[0].id)
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
 
   const activeTab: GameTab = page === 'home' ? 'quests' : page
   const isHome = page === 'home'
@@ -732,7 +796,9 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
   const levelBase = (level - 1) * LEVEL_SIZE
   const levelProgress = clampPercent(((profile.xp - levelBase) / LEVEL_SIZE) * 100)
   const today = dayKey()
-  const alreadyCompleted = profile.completedQuestIds.includes(activeQuest.id)
+  const activeProgress = profile.questProgress[activeQuest.id] ?? blankQuestProgress()
+  const selectedAnswer = activeProgress.selectedAnswer
+  const alreadyCompleted = activeProgress.completed || profile.completedQuestIds.includes(activeQuest.id)
   const answeredCorrectly = selectedAnswer === activeQuest.answer
   const writingWords = countWords(profile.writingDraft)
   const speakingWords = countWords(profile.speakingDraft)
@@ -758,20 +824,18 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY)
+      const queryQuestId = new URLSearchParams(window.location.search).get('quest')
       if (saved) {
-        setProfile(safeProfile(JSON.parse(saved)))
+        const normalizedProfile = safeProfile(JSON.parse(saved))
+        setProfile(normalizedProfile)
+        setSelectedQuestId(queryQuestId && questExists(queryQuestId) ? queryQuestId : normalizedProfile.activeQuestId)
+      } else if (queryQuestId && questExists(queryQuestId)) {
+        setSelectedQuestId(queryQuestId)
       }
     } catch {
       setProfile(DEFAULT_PROFILE)
     } finally {
       setHydrated(true)
-    }
-  }, [])
-
-  useEffect(() => {
-    const questId = new URLSearchParams(window.location.search).get('quest')
-    if (questId && QUESTS.some((quest) => quest.id === questId)) {
-      setSelectedQuestId(questId)
     }
   }, [])
 
@@ -784,11 +848,41 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
   }, [hydrated, profile])
 
   useEffect(() => {
-    setSelectedAnswer(null)
-  }, [selectedQuestId])
+    if (!hydrated) {
+      return
+    }
+
+    setProfile((current) => current.activeQuestId === selectedQuestId
+      ? current
+      : { ...current, activeQuestId: selectedQuestId })
+  }, [hydrated, selectedQuestId])
 
   function updateDraft(field: 'writingDraft' | 'speakingDraft', value: string) {
     setProfile((current) => ({ ...current, [field]: value }))
+  }
+
+  function selectQuest(id: string) {
+    setSelectedQuestId(id)
+    setProfile((current) => ({ ...current, activeQuestId: id }))
+  }
+
+  function chooseAnswer(option: string) {
+    setProfile((current) => {
+      const currentProgress = current.questProgress[activeQuest.id] ?? blankQuestProgress()
+
+      return {
+        ...current,
+        activeQuestId: activeQuest.id,
+        questProgress: {
+          ...current.questProgress,
+          [activeQuest.id]: {
+            ...currentProgress,
+            selectedAnswer: option,
+            lastAnsweredAt: new Date().toISOString(),
+          },
+        },
+      }
+    })
   }
 
   function claimDailyFocus() {
@@ -811,17 +905,32 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
     }
 
     setProfile((current) => {
-      const hasCompleted = current.completedQuestIds.includes(activeQuest.id)
+      const currentProgress = current.questProgress[activeQuest.id] ?? blankQuestProgress()
+      const hasCompleted = currentProgress.completed || current.completedQuestIds.includes(activeQuest.id)
       const studyDay = markStudyDay(current)
+      const completedAt = new Date().toISOString()
       const xpGain = hasCompleted ? (answeredCorrectly ? 12 : 5) : activeQuest.xp + (answeredCorrectly ? 20 : 8)
 
       return {
         ...current,
         ...studyDay,
+        activeQuestId: activeQuest.id,
         xp: current.xp + xpGain,
         attempts: current.attempts + 1,
         correct: current.correct + (answeredCorrectly ? 1 : 0),
         focusMinutes: current.focusMinutes + activeQuest.minutes,
+        questProgress: {
+          ...current.questProgress,
+          [activeQuest.id]: {
+            ...currentProgress,
+            selectedAnswer,
+            attempts: currentProgress.attempts + 1,
+            correctAttempts: currentProgress.correctAttempts + (answeredCorrectly ? 1 : 0),
+            completed: true,
+            completedAt: currentProgress.completedAt ?? completedAt,
+            lastAnsweredAt: completedAt,
+          },
+        },
         completedQuestIds: hasCompleted
           ? current.completedQuestIds
           : [...current.completedQuestIds, activeQuest.id],
@@ -864,7 +973,7 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
   }
 
   function jumpToQuest(id: string) {
-    setSelectedQuestId(id)
+    selectQuest(id)
     if (page !== 'quests') {
       window.location.href = questHref(id)
     }
@@ -1066,7 +1175,9 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
                   {QUESTS.map((quest) => {
                     const lane = laneFor(quest.lane)
                     const isActive = quest.id === activeQuest.id
-                    const isDone = profile.completedQuestIds.includes(quest.id)
+                    const questProgress = profile.questProgress[quest.id]
+                    const isDone = Boolean(questProgress?.completed || profile.completedQuestIds.includes(quest.id))
+                    const hasSavedAnswer = Boolean(questProgress?.selectedAnswer)
 
                     return (
                       <button
@@ -1074,11 +1185,14 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
                         key={quest.id}
                         style={{ '--lane-color': lane.color } as CSSProperties}
                         type="button"
-                        onClick={() => setSelectedQuestId(quest.id)}
+                        onClick={() => selectQuest(quest.id)}
                       >
                         <span>{quest.label}</span>
                         <strong>{quest.title}</strong>
-                        <small>{quest.minutes} min - {quest.xp} XP - {lane.title}</small>
+                        <small>
+                          {quest.minutes} min - {quest.xp} XP - {lane.title}
+                          {isDone ? ' - cleared' : hasSavedAnswer ? ' - answer saved' : ''}
+                        </small>
                       </button>
                     )
                   })}
@@ -1119,7 +1233,7 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
                           className={`answer-option ${isSelected ? 'is-selected' : ''} ${showCorrect ? 'is-correct' : ''} ${showWrong ? 'is-wrong' : ''}`}
                           key={option}
                           type="button"
-                          onClick={() => setSelectedAnswer(option)}
+                          onClick={() => chooseAnswer(option)}
                         >
                           {option}
                         </button>
@@ -1273,12 +1387,17 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
 
               <div className="history-list">
                 {QUESTS.map((quest) => {
-                  const done = profile.completedQuestIds.includes(quest.id)
+                  const questProgress = profile.questProgress[quest.id]
+                  const done = Boolean(questProgress?.completed || profile.completedQuestIds.includes(quest.id))
+                  const answered = Boolean(questProgress?.selectedAnswer)
+                  const attemptLabel = questProgress?.attempts
+                    ? `${questProgress.attempts} attempt${questProgress.attempts === 1 ? '' : 's'} - `
+                    : ''
                   return (
                     <button className={done ? 'history-item is-done' : 'history-item'} key={quest.id} type="button" onClick={() => jumpToQuest(quest.id)}>
-                      <span>{done ? 'Cleared' : 'Open'}</span>
+                      <span>{done ? 'Cleared' : answered ? 'Saved' : 'Open'}</span>
                       <strong>{quest.title}</strong>
-                      <small>{quest.transferTip}</small>
+                      <small>{attemptLabel}{quest.transferTip}</small>
                     </button>
                   )
                 })}
