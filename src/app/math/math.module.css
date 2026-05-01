@@ -745,21 +745,50 @@
   opacity: 0.52;
 }
 
-.metricGrid {
+.gameHud {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
   margin-top: 16px;
 }
 
-.metric {
+.hudCard {
+  position: relative;
+  min-height: 108px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
   border: 1px solid var(--math-border);
-  border-radius: 14px;
-  background: var(--math-surface);
-  padding: 14px;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(242, 245, 249, 0.72)),
+    var(--math-surface);
+  padding: 15px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
 }
 
-.metric span,
+.hudCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(90deg, transparent, #000 28%, #000 72%, transparent);
+  opacity: 0.55;
+}
+
+.hudCopy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.hudCopy span,
+.enemyMiniTop span,
 .xpTopline span,
 .feedPanel span {
   display: block;
@@ -768,12 +797,282 @@
   font-weight: 800;
 }
 
-.metric strong {
+.hudCopy strong {
   display: block;
-  margin-top: 2px;
-  font-size: 26px;
+  margin-top: 3px;
+  font-size: 30px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+
+.hudCopy small {
+  display: block;
+  margin-top: 5px;
+  color: var(--math-muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.levelHud {
+  flex-wrap: wrap;
+  align-content: center;
+}
+
+.levelBadge {
+  position: relative;
+  z-index: 1;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(0, 114, 245, 0.22);
+  border-radius: 14px;
+  background: var(--math-primary);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 950;
+  box-shadow: 0 12px 22px rgba(0, 114, 245, 0.22);
+}
+
+.hudTrack {
+  position: relative;
+  z-index: 1;
+  flex-basis: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e7edf6;
+}
+
+.hudTrackFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--math-primary), var(--math-success));
+  transition: width 220ms ease;
+}
+
+.coinHud {
+  border-color: rgba(217, 119, 6, 0.24);
+  background:
+    linear-gradient(135deg, rgba(255, 248, 237, 0.98), rgba(255, 255, 255, 0.76)),
+    var(--math-surface);
+}
+
+.coinStack {
+  position: relative;
+  z-index: 1;
+  width: 66px;
+  height: 54px;
+  flex: 0 0 66px;
+}
+
+.coinPiece {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #cbd5e1;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.78), transparent 18%),
+    linear-gradient(135deg, #f1f5f9, #cbd5e1);
+  box-shadow: inset -3px -4px 0 rgba(15, 23, 42, 0.08), 0 6px 12px rgba(15, 23, 42, 0.08);
+  opacity: 0.56;
+  transform: translateY(2px);
+  transition: background 180ms ease, border-color 180ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+.coinPiece:nth-child(1) {
+  left: 0;
+  bottom: 0;
+}
+
+.coinPiece:nth-child(2) {
+  left: 9px;
+  bottom: 8px;
+}
+
+.coinPiece:nth-child(3) {
+  left: 20px;
+  bottom: 16px;
+}
+
+.coinPiece:nth-child(4) {
+  left: 31px;
+  bottom: 8px;
+}
+
+.coinPiece:nth-child(5) {
+  left: 38px;
+  bottom: 0;
+}
+
+.coinPieceLit {
+  border-color: #d97706;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.88), transparent 18%),
+    linear-gradient(135deg, #fde68a, #f59e0b 58%, #b45309);
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.coinPieceLit::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2px solid rgba(146, 64, 14, 0.4);
+  border-radius: inherit;
+}
+
+.depthHud {
+  border-color: rgba(15, 159, 110, 0.22);
+}
+
+.depthPath {
+  position: relative;
+  z-index: 1;
+  width: 62px;
+  height: 52px;
+  flex: 0 0 62px;
+}
+
+.depthPath::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 6px;
+  top: 12px;
+  height: 24px;
+  border-top: 3px solid rgba(100, 116, 139, 0.28);
+  border-right: 3px solid rgba(100, 116, 139, 0.28);
+  transform: skewX(-18deg);
+}
+
+.depthPath span {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #cbd5e1;
+  border-radius: 5px;
+  background: #f8fafc;
+  box-shadow: 0 5px 10px rgba(15, 23, 42, 0.08);
+}
+
+.depthPath span:nth-child(1) {
+  left: 2px;
+  bottom: 4px;
+}
+
+.depthPath span:nth-child(2) {
+  left: 18px;
+  bottom: 15px;
+}
+
+.depthPath span:nth-child(3) {
+  left: 34px;
+  bottom: 26px;
+}
+
+.depthPath span:nth-child(4) {
+  left: 48px;
+  bottom: 37px;
+}
+
+.depthStepLit {
+  border-color: #0f9f6e !important;
+  background: linear-gradient(135deg, #bbf7d0, #0f9f6e) !important;
+}
+
+.comboHud {
+  border-color: rgba(225, 29, 72, 0.18);
+}
+
+.comboPips {
+  position: relative;
+  z-index: 1;
+  width: 58px;
+  height: 48px;
+  flex: 0 0 58px;
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.comboPips span {
+  width: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f1f5f9;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.comboPips span:nth-child(1) {
+  height: 16px;
+}
+
+.comboPips span:nth-child(2) {
+  height: 22px;
+}
+
+.comboPips span:nth-child(3) {
+  height: 28px;
+}
+
+.comboPips span:nth-child(4) {
+  height: 34px;
+}
+
+.comboPips span:nth-child(5) {
+  height: 40px;
+}
+
+.comboPipLit {
+  border-color: #e11d48 !important;
+  background: linear-gradient(180deg, #fda4af, #e11d48 60%, #9f1239) !important;
+  box-shadow: 0 7px 16px rgba(225, 29, 72, 0.18) !important;
+}
+
+.enemyMiniHud {
+  grid-column: 1 / -1;
+  min-height: 94px;
+  display: block;
+}
+
+.enemyMiniTop {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.enemyMiniTop strong {
+  color: #e11d48;
+  font-size: 14px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.enemyMiniTrack {
+  position: relative;
+  z-index: 1;
+  height: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(225, 29, 72, 0.2);
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.09) 0 1px, transparent 1px 16px),
+    #ffe4e6;
+}
+
+.enemyMiniFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #e11d48, #fb7185, #f97316);
+  box-shadow: inset 0 -5px 0 rgba(127, 29, 29, 0.14);
+  transition: width 220ms ease;
 }
 
 .xpPanel {
@@ -1040,7 +1339,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 560px) {
   .brandText {
     display: none;
   }
@@ -1078,7 +1377,8 @@
   }
 
   .heroTitle {
-    font-size: 34px;
+    font-size: 32px;
+    overflow-wrap: anywhere;
   }
 
   .heroActions {
@@ -1099,7 +1399,7 @@
     width: 100%;
   }
 
-  .metricGrid {
+  .gameHud {
     grid-template-columns: 1fr;
   }
 }
@@ -1168,8 +1468,50 @@
     background: #252d3a;
   }
 
+  .hudCard {
+    background:
+      linear-gradient(135deg, rgba(17, 21, 29, 0.92), rgba(26, 32, 43, 0.72)),
+      var(--math-surface);
+  }
+
+  .hudCard::after {
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  }
+
+  .hudTrack,
   .xpTrack {
     background: #252d3a;
+  }
+
+  .coinHud {
+    background:
+      linear-gradient(135deg, rgba(120, 53, 15, 0.24), rgba(17, 21, 29, 0.78)),
+      var(--math-surface);
+  }
+
+  .coinPiece {
+    border-color: #475569;
+    background:
+      radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.22), transparent 18%),
+      linear-gradient(135deg, #334155, #1e293b);
+  }
+
+  .depthPath::before {
+    border-color: rgba(148, 163, 184, 0.28);
+  }
+
+  .depthPath span,
+  .comboPips span {
+    border-color: #475569;
+    background: #1a202b;
+  }
+
+  .enemyMiniTrack {
+    background:
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 16px),
+      rgba(127, 29, 29, 0.28);
   }
 
   .hintButton {

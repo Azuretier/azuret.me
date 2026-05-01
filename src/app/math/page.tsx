@@ -189,6 +189,12 @@ export default function MathPage() {
   const xpInLevel = xp % 120
   const progress = (xpInLevel / 120) * 100
   const enemyHpRatio = enemy.hp / enemy.maxHp
+  const coinSlots = Array.from({ length: 5 }, (_, index) => index)
+  const litCoinSlots = Math.min(coinSlots.length, Math.ceil(coins / 12))
+  const comboSlots = Array.from({ length: 5 }, (_, index) => index)
+  const litComboSlots = Math.min(comboSlots.length, streak)
+  const depthSlots = Array.from({ length: 4 }, (_, index) => index)
+  const litDepthSlots = Math.min(depthSlots.length, depth)
   const enemyStyle = {
     '--enemy-primary': enemy.palette.primary,
     '--enemy-accent': enemy.palette.accent,
@@ -197,15 +203,6 @@ export default function MathPage() {
     '--enemy-eye': enemy.palette.eye,
     '--enemy-shine': enemy.palette.shine,
   } as CSSProperties
-
-  const metrics = [
-    { label: 'Level', value: level },
-    { label: 'Depth', value: depth },
-    { label: 'Combo', value: streak },
-    { label: 'Best', value: bestStreak },
-    { label: 'Coins', value: coins },
-    { label: 'Enemy HP', value: `${enemy.hp}/${enemy.maxHp}` },
-  ]
 
   const focusAnswer = () => {
     document.getElementById('math-answer')?.focus()
@@ -454,13 +451,73 @@ export default function MathPage() {
 
           <aside id="progress" className={styles.progressPane} aria-label="Progress and actions">
             <p className={styles.sectionLabel}>Session status</p>
-            <div className={styles.metricGrid}>
-              {metrics.map((metric) => (
-                <div className={styles.metric} key={metric.label}>
-                  <span>{metric.label}</span>
-                  <strong>{metric.value}</strong>
+            <div className={styles.gameHud}>
+              <article className={`${styles.hudCard} ${styles.levelHud}`} aria-label={`Level ${level}, ${xpInLevel} XP of 120`}>
+                <div className={styles.levelBadge} aria-hidden="true">LV</div>
+                <div className={styles.hudCopy}>
+                  <span>Level</span>
+                  <strong>{level}</strong>
                 </div>
-              ))}
+                <div className={styles.hudTrack} aria-hidden="true">
+                  <div className={styles.hudTrackFill} style={{ width: `${progress}%` }} />
+                </div>
+              </article>
+
+              <article className={`${styles.hudCard} ${styles.coinHud}`} aria-label={`${coins} coins`}>
+                <div className={styles.coinStack} aria-hidden="true">
+                  {coinSlots.map((slot) => (
+                    <span
+                      className={`${styles.coinPiece} ${slot < litCoinSlots ? styles.coinPieceLit : ''}`}
+                      key={slot}
+                    />
+                  ))}
+                </div>
+                <div className={styles.hudCopy}>
+                  <span>Coins</span>
+                  <strong>{coins}</strong>
+                </div>
+              </article>
+
+              <article className={`${styles.hudCard} ${styles.depthHud}`} aria-label={`Dungeon depth ${depth}`}>
+                <div className={styles.depthPath} aria-hidden="true">
+                  {depthSlots.map((slot) => (
+                    <span
+                      className={slot < litDepthSlots ? styles.depthStepLit : undefined}
+                      key={slot}
+                    />
+                  ))}
+                </div>
+                <div className={styles.hudCopy}>
+                  <span>Depth</span>
+                  <strong>{depth}</strong>
+                </div>
+              </article>
+
+              <article className={`${styles.hudCard} ${styles.comboHud}`} aria-label={`Combo ${streak}, best combo ${bestStreak}`}>
+                <div className={styles.comboPips} aria-hidden="true">
+                  {comboSlots.map((slot) => (
+                    <span
+                      className={slot < litComboSlots ? styles.comboPipLit : undefined}
+                      key={slot}
+                    />
+                  ))}
+                </div>
+                <div className={styles.hudCopy}>
+                  <span>Combo</span>
+                  <strong>{streak}</strong>
+                  <small>Best {bestStreak}</small>
+                </div>
+              </article>
+
+              <article className={`${styles.hudCard} ${styles.enemyMiniHud}`} aria-label={`${enemy.name} has ${enemy.hp} of ${enemy.maxHp} HP`}>
+                <div className={styles.enemyMiniTop}>
+                  <span>Enemy HP</span>
+                  <strong>{enemy.hp}/{enemy.maxHp}</strong>
+                </div>
+                <div className={styles.enemyMiniTrack} aria-hidden="true">
+                  <div className={styles.enemyMiniFill} style={{ width: `${enemyHpRatio * 100}%` }} />
+                </div>
+              </article>
             </div>
 
             <div className={styles.xpPanel}>
