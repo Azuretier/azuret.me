@@ -238,19 +238,21 @@ export default function MathPage() {
         </div>
 
         <div className={styles.browserChrome}>
-          <div className={styles.trafficLights} aria-hidden="true">
-            <span />
-            <span />
-            <span />
+          <div className={styles.trafficLights} role="group" aria-label="Window controls">
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
+            <button
+              className={styles.macFullscreenButton}
+              type="button"
+              onClick={enterFocusMode}
+              aria-label="Open fullscreen mode"
+              title="Open fullscreen mode"
+            />
           </div>
           <div className={styles.addressBar} aria-hidden="true">
             <span className={styles.lockIcon} />
             math.azuret.me/session
           </div>
-          <button className={styles.chromeFocusButton} type="button" onClick={enterFocusMode} aria-label="Open fullscreen mode">
-            <span aria-hidden="true">⛶</span>
-            Fullscreen
-          </button>
         </div>
 
         <div className={styles.dashboardBody}>
