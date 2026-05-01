@@ -16,6 +16,11 @@
   line-height: 1.5;
 }
 
+.mathArena,
+.mathArena * {
+  box-sizing: border-box;
+}
+
 .mathNav {
   position: sticky;
   top: 0;
@@ -89,6 +94,7 @@
 .answerForm input:focus-visible,
 .answerForm button:focus-visible,
 .hintButton:focus-visible,
+.difficultyButton:focus-visible,
 .focusTopbar button:focus-visible {
   outline: 3px solid rgba(0, 114, 245, 0.24);
   outline-offset: 2px;
@@ -455,11 +461,8 @@
 
 .encounterStage {
   position: relative;
-  min-height: 214px;
-  display: grid;
-  grid-template-columns: minmax(150px, 0.72fr) minmax(220px, 1fr);
-  align-items: end;
-  gap: 22px;
+  min-height: 292px;
+  display: block;
   margin: 0 0 28px;
   border: 1px solid var(--math-border);
   border-radius: 18px;
@@ -500,6 +503,54 @@
   font-weight: 850;
 }
 
+.battleLine {
+  position: relative;
+  z-index: 1;
+  min-height: 236px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+  align-items: end;
+  gap: 16px;
+  padding-top: 28px;
+}
+
+.combatant {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: 156px auto;
+  align-items: end;
+  justify-items: center;
+  gap: 12px;
+}
+
+.playerCombatant {
+  justify-self: stretch;
+}
+
+.enemyCombatant {
+  justify-self: stretch;
+}
+
+.battleDivider {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  padding-bottom: 78px;
+}
+
+.battleDivider span {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(0, 114, 245, 0.22);
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, transparent 45%, var(--math-primary) 45% 55%, transparent 55%),
+    linear-gradient(0deg, transparent 45%, var(--math-primary) 45% 55%, transparent 55%),
+    var(--math-primary-soft);
+  box-shadow: 0 0 0 8px rgba(0, 114, 245, 0.06);
+}
+
+.playerSpriteWrap,
 .enemySpriteWrap {
   position: relative;
   z-index: 1;
@@ -509,6 +560,10 @@
   width: 190px;
   height: 158px;
   transform-origin: 50% 100%;
+}
+
+.playerSpriteWrap {
+  width: 178px;
 }
 
 .enemySprite {
@@ -527,6 +582,10 @@
   image-rendering: pixelated;
   filter: drop-shadow(0 14px 0 rgba(15, 23, 42, 0.08)) drop-shadow(0 20px 18px rgba(15, 23, 42, 0.18));
   transform: translateY(-6px) scale(2);
+}
+
+.playerSprite {
+  transform: translateY(-8px) scale(1.9);
 }
 
 .spritePixel {
@@ -573,10 +632,96 @@
   animation: enemyHit 240ms ease;
 }
 
+.playerAttack {
+  animation: playerAttack 260ms ease;
+}
+
+.playerHit {
+  animation: playerHit 260ms ease;
+}
+
 @keyframes enemyHit {
   0% { transform: translateX(0) scale(1); }
   35% { transform: translateX(8px) scale(0.98); }
   70% { transform: translateX(-5px) scale(1.02); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+.combatantHud {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 98px;
+  border: 1px solid var(--math-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 14px;
+  backdrop-filter: blur(10px);
+}
+
+.playerCombatHud {
+  border-color: rgba(0, 114, 245, 0.2);
+}
+
+.enemyCombatHud {
+  border-color: rgba(225, 29, 72, 0.18);
+}
+
+.combatantNameLine {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.combatantNameLine span {
+  color: var(--math-primary);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.combatantNameLine strong {
+  color: var(--math-text);
+  font-size: 18px;
+  line-height: 1.1;
+  text-align: right;
+}
+
+.playerHpText {
+  margin-bottom: 8px;
+  color: var(--math-muted);
+  font-size: 12px;
+  font-weight: 850;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.playerHpTrack {
+  height: 11px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.playerHpFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--math-success), #22c55e, #38bdf8);
+  transition: width 220ms ease;
+}
+
+@keyframes playerAttack {
+  0% { transform: translateX(0) scale(1); }
+  42% { transform: translateX(18px) translateY(-3px) scale(1.03); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes playerHit {
+  0% { transform: translateX(0) scale(1); }
+  35% { transform: translateX(-8px) scale(0.98); }
+  70% { transform: translateX(5px) scale(1.02); }
   100% { transform: translateX(0) scale(1); }
 }
 
@@ -663,7 +808,8 @@
   padding: 34px 24px;
 }
 
-.equation {
+.equation,
+.challengeExpression {
   display: flex;
   align-items: baseline;
   justify-content: center;
@@ -676,10 +822,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+.challengeExpression {
+  font-size: clamp(34px, 5vw, 60px);
+}
+
+.challengeExpression span {
+  min-width: 0;
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
 .fullscreenShell .equation,
+.fullscreenShell .challengeExpression,
+.fullscreenShell:fullscreen .challengeExpression,
 .fullscreenShell:fullscreen .equation {
   font-size: clamp(70px, 8vw, 128px);
   gap: clamp(14px, 2vw, 32px);
+}
+
+.fullscreenShell .challengeExpression,
+.fullscreenShell:fullscreen .challengeExpression {
+  font-size: clamp(42px, 6vw, 86px);
 }
 
 .fullscreenShell .equationPanel,
@@ -692,7 +856,8 @@
   color: var(--math-primary);
 }
 
-.equation em {
+.equation em,
+.challengeExpression em {
   color: var(--math-muted);
   font-style: normal;
   font-weight: 750;
@@ -745,6 +910,111 @@
   opacity: 0.52;
 }
 
+.difficultyPanel {
+  margin-top: 16px;
+  border: 1px solid rgba(0, 114, 245, 0.18);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(0, 114, 245, 0.08), rgba(15, 159, 110, 0.06)),
+    var(--math-surface);
+  padding: 15px;
+}
+
+.difficultyTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.difficultyTopline span {
+  min-width: 0;
+  color: var(--math-muted);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.difficultyTopline strong {
+  min-width: 0;
+  color: var(--math-text);
+  font-size: 14px;
+  font-weight: 900;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.difficultyRail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.difficultyButton {
+  min-width: 0;
+  min-height: 70px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 5px;
+  border: 1px solid var(--math-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--math-muted);
+  padding: 8px 6px;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.difficultyButton:hover {
+  border-color: rgba(0, 114, 245, 0.34);
+  background: var(--math-primary-soft);
+  color: var(--math-text);
+  transform: translateY(-1px);
+}
+
+.difficultyButton span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--math-surface-soft);
+  color: currentColor;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.difficultyButton strong {
+  max-width: 100%;
+  color: currentColor;
+  font-size: 10px;
+  line-height: 1.1;
+  font-weight: 900;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.difficultyButtonActive {
+  border-color: rgba(0, 114, 245, 0.58);
+  background: var(--math-primary);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(0, 114, 245, 0.18);
+}
+
+.difficultyButtonActive span {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.difficultyPanel p {
+  margin: 12px 0 0;
+  color: var(--math-muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
 .gameHud {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -788,6 +1058,7 @@
 }
 
 .hudCopy span,
+.playerMiniTop span,
 .enemyMiniTop span,
 .xpTopline span,
 .feedPanel span {
@@ -1032,6 +1303,105 @@
   box-shadow: 0 7px 16px rgba(225, 29, 72, 0.18) !important;
 }
 
+.playerMiniHud {
+  grid-column: 1 / -1;
+  min-height: 94px;
+  border-color: rgba(15, 159, 110, 0.22);
+}
+
+.playerMiniAvatar {
+  position: relative;
+  z-index: 1;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 1px solid rgba(0, 114, 245, 0.26);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, #dbeafe 0 22%, #2563eb 22% 68%, #172554 68%),
+    var(--math-primary-soft);
+  box-shadow: 0 12px 22px rgba(0, 114, 245, 0.18);
+}
+
+.playerMiniAvatar::before,
+.playerMiniAvatar::after,
+.playerMiniAvatar span {
+  content: '';
+  position: absolute;
+  background: #172554;
+}
+
+.playerMiniAvatar::before {
+  left: 15px;
+  top: 14px;
+  width: 6px;
+  height: 5px;
+}
+
+.playerMiniAvatar::after {
+  right: 15px;
+  top: 14px;
+  width: 6px;
+  height: 5px;
+}
+
+.playerMiniAvatar span {
+  left: 18px;
+  bottom: 7px;
+  width: 12px;
+  height: 5px;
+  border-radius: 999px;
+  background: #fbbf24;
+}
+
+.playerMiniStats {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  flex: 1;
+}
+
+.playerMiniTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.playerMiniTop span,
+.enemyMiniTop span,
+.playerMiniTop strong,
+.enemyMiniTop strong {
+  min-width: 0;
+}
+
+.playerMiniTop strong {
+  flex-shrink: 0;
+  color: var(--math-success);
+  font-size: 14px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.playerMiniTrack {
+  height: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 159, 110, 0.2);
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.08) 0 1px, transparent 1px 16px),
+    #dcfce7;
+}
+
+.playerMiniFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--math-success), #22c55e, #38bdf8);
+  box-shadow: inset 0 -5px 0 rgba(20, 83, 45, 0.14);
+  transition: width 220ms ease;
+}
+
 .enemyMiniHud {
   grid-column: 1 / -1;
   min-height: 94px;
@@ -1049,6 +1419,7 @@
 }
 
 .enemyMiniTop strong {
+  flex-shrink: 0;
   color: #e11d48;
   font-size: 14px;
   font-weight: 900;
@@ -1281,18 +1652,35 @@
   }
 
   .encounterStage {
-    min-height: 310px;
-    grid-template-columns: 1fr;
-    align-items: center;
-    gap: 26px;
+    min-height: auto;
     margin-bottom: 24px;
     padding: 54px 18px 18px;
+  }
+
+  .battleLine {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding-top: 18px;
+  }
+
+  .battleDivider {
+    display: none;
+  }
+
+  .combatant {
+    grid-template-rows: 150px auto;
+  }
+
+  .playerSprite {
+    transform: translateY(-5px) scale(1.78);
   }
 
   .enemySprite {
     transform: translateY(-4px) scale(1.9);
   }
 
+  .combatantHud,
   .enemyHud {
     width: 100%;
   }
@@ -1332,6 +1720,13 @@
     font-size: clamp(48px, 16vw, 70px);
   }
 
+  .challengeExpression,
+  .fullscreenShell .challengeExpression,
+  .fullscreenShell:fullscreen .challengeExpression {
+    gap: 10px;
+    font-size: clamp(30px, 9vw, 46px);
+  }
+
   .featureSection {
     grid-template-columns: 1fr;
     gap: 28px;
@@ -1365,20 +1760,39 @@
     transform: translateY(-4px) scale(1.72);
   }
 
+  .playerSprite {
+    transform: translateY(-4px) scale(1.66);
+  }
+
+  .combatantNameLine,
   .enemyNameLine {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
 
+  .combatantNameLine strong,
+  .playerHpText,
   .enemyNameLine strong,
   .enemyHpText {
     text-align: left;
   }
 
   .heroTitle {
-    font-size: 32px;
+    max-width: 330px;
+    margin-inline: auto;
+    font-size: 29px;
     overflow-wrap: anywhere;
+    word-break: break-word;
+    text-wrap: wrap;
+  }
+
+  .heroTitle br {
+    display: none;
+  }
+
+  .heroText {
+    max-width: 320px;
   }
 
   .heroActions {
@@ -1397,6 +1811,36 @@
 
   .answerForm button {
     width: 100%;
+  }
+
+  .difficultyRail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .difficultyTopline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .difficultyTopline strong {
+    text-align: left;
+  }
+
+  .playerMiniHud {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .playerMiniStats {
+    flex-basis: 100%;
+  }
+
+  .playerMiniTop,
+  .enemyMiniTop {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
   }
 
   .gameHud {
@@ -1456,6 +1900,7 @@
       var(--math-surface);
   }
 
+  .combatantHud,
   .enemyHud {
     background: rgba(17, 21, 29, 0.78);
   }
@@ -1464,6 +1909,7 @@
     background: rgba(0, 0, 0, 0.28);
   }
 
+  .playerHpTrack,
   .enemyHpTrack {
     background: #252d3a;
   }
@@ -1483,6 +1929,24 @@
   .hudTrack,
   .xpTrack {
     background: #252d3a;
+  }
+
+  .difficultyPanel {
+    background:
+      linear-gradient(135deg, rgba(0, 114, 245, 0.14), rgba(15, 159, 110, 0.08)),
+      var(--math-surface);
+  }
+
+  .difficultyButton {
+    background: rgba(26, 32, 43, 0.72);
+  }
+
+  .difficultyButton span {
+    background: #252d3a;
+  }
+
+  .difficultyButtonActive {
+    background: var(--math-primary);
   }
 
   .coinHud {
@@ -1506,6 +1970,12 @@
   .comboPips span {
     border-color: #475569;
     background: #1a202b;
+  }
+
+  .playerMiniTrack {
+    background:
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 16px),
+      rgba(20, 83, 45, 0.28);
   }
 
   .enemyMiniTrack {
