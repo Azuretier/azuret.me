@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 
-type GameTab = 'quests' | 'speaking' | 'writing' | 'review'
+type GameTab = 'quests' | 'vocab' | 'speaking' | 'writing' | 'review'
 type EnglishPageMode = 'home' | GameTab
 type SkillLaneId = 'vocabulary' | 'grammar' | 'reading' | 'conversation'
 
@@ -34,6 +34,18 @@ type Quest = {
   writingPrompt: string
 }
 
+type VocabCard = {
+  id: string
+  word: string
+  ipa: string
+  category: 'IELTS' | 'Speaking' | 'Writing' | 'Everyday'
+  meaningJa: string
+  meaningEn: string
+  example: string
+  collocations: string[]
+  miniPrompt: string
+}
+
 type QuestProgress = {
   selectedAnswer: string | null
   attempts: number
@@ -52,6 +64,9 @@ type EnglishProfile = {
   speakingLoggedDay: string | null
   activeQuestId: string
   questProgress: Record<string, QuestProgress>
+  activeVocabId: string
+  knownVocabIds: string[]
+  reviewVocabIds: string[]
   completedQuestIds: string[]
   attempts: number
   correct: number
@@ -74,6 +89,12 @@ const TRAINING_LINKS: Array<{
     label: 'Quest map',
     href: '/e/quests',
     description: 'Focused multiple-choice quests with instant feedback and transfer prompts.',
+  },
+  {
+    id: 'vocab',
+    label: '単語帳',
+    href: '/e/vocab',
+    description: 'A clean math-page-style wordbook for meaning, examples, and review status.',
   },
   {
     id: 'speaking',
@@ -584,6 +605,143 @@ const QUESTS: Quest[] = [
   },
 ]
 
+const VOCAB_CARDS: VocabCard[] = [
+  {
+    id: 'resilient',
+    word: 'resilient',
+    ipa: '/rɪˈzɪliənt/',
+    category: 'IELTS',
+    meaningJa: '困難から回復できる、しなやかに立ち直る',
+    meaningEn: 'Able to recover after stress, failure, or difficulty.',
+    example: 'A resilient learner uses mistakes as feedback instead of quitting.',
+    collocations: ['resilient person', 'resilient community', 'remain resilient'],
+    miniPrompt: 'When did you need to be resilient?',
+  },
+  {
+    id: 'evaluate',
+    word: 'evaluate',
+    ipa: '/ɪˈvæljueɪt/',
+    category: 'Writing',
+    meaningJa: '評価する、よく考えて判断する',
+    meaningEn: 'To judge the value, quality, or importance of something carefully.',
+    example: 'Students should evaluate online information before trusting it.',
+    collocations: ['evaluate evidence', 'evaluate performance', 'carefully evaluate'],
+    miniPrompt: 'What do you evaluate before making a decision?',
+  },
+  {
+    id: 'maintain',
+    word: 'maintain',
+    ipa: '/meɪnˈteɪn/',
+    category: 'Everyday',
+    meaningJa: '維持する、保つ',
+    meaningEn: 'To keep something at the same level or in good condition.',
+    example: 'It is easier to improve when you maintain a small daily routine.',
+    collocations: ['maintain focus', 'maintain balance', 'maintain a habit'],
+    miniPrompt: 'What habit do you want to maintain?',
+  },
+  {
+    id: 'subtle',
+    word: 'subtle',
+    ipa: '/ˈsʌtl/',
+    category: 'IELTS',
+    meaningJa: 'わずかな、目立たないが重要な',
+    meaningEn: 'Not obvious, but still important or noticeable with attention.',
+    example: 'There is a subtle difference between being direct and being rude.',
+    collocations: ['subtle difference', 'subtle change', 'subtle signal'],
+    miniPrompt: 'Describe a subtle change you noticed recently.',
+  },
+  {
+    id: 'clarify',
+    word: 'clarify',
+    ipa: '/ˈklærəfaɪ/',
+    category: 'Speaking',
+    meaningJa: '明確にする、はっきりさせる',
+    meaningEn: 'To make an idea, instruction, or meaning easier to understand.',
+    example: 'Could you clarify whether the deadline is Friday or Monday?',
+    collocations: ['clarify a point', 'clarify meaning', 'ask to clarify'],
+    miniPrompt: 'What question can you ask to clarify an assignment?',
+  },
+  {
+    id: 'predictable',
+    word: 'predictable',
+    ipa: '/prɪˈdɪktəbl/',
+    category: 'Everyday',
+    meaningJa: '予測できる、見通しが立つ',
+    meaningEn: 'Easy to know or guess before it happens.',
+    example: 'Predictable bus times can matter more than raw speed.',
+    collocations: ['predictable routine', 'predictable result', 'predictable schedule'],
+    miniPrompt: 'What part of your day is predictable?',
+  },
+  {
+    id: 'perspective',
+    word: 'perspective',
+    ipa: '/pərˈspektɪv/',
+    category: 'Writing',
+    meaningJa: '視点、考え方',
+    meaningEn: 'A way of thinking about a situation or topic.',
+    example: 'A balanced essay considers more than one perspective.',
+    collocations: ['different perspective', 'broader perspective', 'from my perspective'],
+    miniPrompt: 'Name one topic where your perspective changed.',
+  },
+  {
+    id: 'efficient',
+    word: 'efficient',
+    ipa: '/ɪˈfɪʃnt/',
+    category: 'IELTS',
+    meaningJa: '効率的な、無駄が少ない',
+    meaningEn: 'Working well without wasting time, energy, or resources.',
+    example: 'An efficient study session has a clear target and quick feedback.',
+    collocations: ['efficient method', 'efficient system', 'highly efficient'],
+    miniPrompt: 'What makes your English study efficient?',
+  },
+  {
+    id: 'hesitate',
+    word: 'hesitate',
+    ipa: '/ˈhezɪteɪt/',
+    category: 'Speaking',
+    meaningJa: 'ためらう、少し迷う',
+    meaningEn: 'To pause before doing or saying something because you are unsure.',
+    example: 'If you hesitate, use a repair phrase and continue speaking.',
+    collocations: ['hesitate to answer', 'do not hesitate', 'briefly hesitate'],
+    miniPrompt: 'What makes you hesitate when speaking English?',
+  },
+  {
+    id: 'evidence',
+    word: 'evidence',
+    ipa: '/ˈevɪdəns/',
+    category: 'Writing',
+    meaningJa: '証拠、根拠',
+    meaningEn: 'Information that supports a claim or helps prove something.',
+    example: 'Strong writing needs clear evidence, not only opinion.',
+    collocations: ['strong evidence', 'supporting evidence', 'provide evidence'],
+    miniPrompt: 'What evidence would support a claim about online learning?',
+  },
+  {
+    id: 'adapt',
+    word: 'adapt',
+    ipa: '/əˈdæpt/',
+    category: 'IELTS',
+    meaningJa: '適応する、合わせて変える',
+    meaningEn: 'To change so that you can deal with a new situation.',
+    example: 'Students adapt faster when they get specific feedback.',
+    collocations: ['adapt quickly', 'adapt to change', 'adapt a plan'],
+    miniPrompt: 'When did you have to adapt to a new situation?',
+  },
+  {
+    id: 'specific',
+    word: 'specific',
+    ipa: '/spəˈsɪfɪk/',
+    category: 'Everyday',
+    meaningJa: '具体的な、はっきりした',
+    meaningEn: 'Clear, exact, and not general.',
+    example: 'Specific feedback is easier to use than vague advice.',
+    collocations: ['specific example', 'specific reason', 'be specific'],
+    miniPrompt: 'Give a specific reason why vocabulary matters.',
+  },
+]
+
+const VOCAB_CATEGORIES: Array<'All' | VocabCard['category']> = ['All', 'IELTS', 'Speaking', 'Writing', 'Everyday']
+
 const FAQ_ITEMS = [
   {
     question: 'Is this still useful for IELTS?',
@@ -616,6 +774,9 @@ const DEFAULT_PROFILE: EnglishProfile = {
   speakingLoggedDay: null,
   activeQuestId: QUESTS[0].id,
   questProgress: {},
+  activeVocabId: VOCAB_CARDS[0].id,
+  knownVocabIds: [],
+  reviewVocabIds: [],
   completedQuestIds: [],
   attempts: 0,
   correct: 0,
@@ -690,6 +851,10 @@ function questExists(id: string) {
   return QUESTS.some((quest) => quest.id === id)
 }
 
+function vocabExists(id: string) {
+  return VOCAB_CARDS.some((card) => card.id === id)
+}
+
 function normalizeQuestProgress(
   savedProgress: Partial<Record<string, Partial<QuestProgress>>> | undefined,
   completedQuestIds: string[],
@@ -730,12 +895,22 @@ function safeProfile(value: unknown): EnglishProfile {
   const savedActiveQuestId = typeof saved.activeQuestId === 'string' && questExists(saved.activeQuestId)
     ? saved.activeQuestId
     : null
+  const savedActiveVocabId = typeof saved.activeVocabId === 'string' && vocabExists(saved.activeVocabId)
+    ? saved.activeVocabId
+    : null
 
   return {
     ...DEFAULT_PROFILE,
     ...saved,
     activeQuestId: savedActiveQuestId ?? completedQuestIds[0] ?? DEFAULT_PROFILE.activeQuestId,
     questProgress: normalizeQuestProgress(saved.questProgress, completedQuestIds),
+    activeVocabId: savedActiveVocabId ?? DEFAULT_PROFILE.activeVocabId,
+    knownVocabIds: Array.isArray(saved.knownVocabIds)
+      ? saved.knownVocabIds.filter((id) => typeof id === 'string' && vocabExists(id))
+      : [],
+    reviewVocabIds: Array.isArray(saved.reviewVocabIds)
+      ? saved.reviewVocabIds.filter((id) => typeof id === 'string' && vocabExists(id))
+      : [],
     completedQuestIds,
     xp: typeof saved.xp === 'number' ? saved.xp : DEFAULT_PROFILE.xp,
     streak: typeof saved.streak === 'number' ? saved.streak : DEFAULT_PROFILE.streak,
@@ -779,6 +954,8 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
   const [profile, setProfile] = useState<EnglishProfile>(DEFAULT_PROFILE)
   const [hydrated, setHydrated] = useState(false)
   const [selectedQuestId, setSelectedQuestId] = useState(QUESTS[0].id)
+  const [vocabSearch, setVocabSearch] = useState('')
+  const [vocabCategory, setVocabCategory] = useState<'All' | VocabCard['category']>('All')
 
   const activeTab: GameTab = page === 'home' ? 'quests' : page
   const isHome = page === 'home'
@@ -802,6 +979,22 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
   const answeredCorrectly = selectedAnswer === activeQuest.answer
   const writingWords = countWords(profile.writingDraft)
   const speakingWords = countWords(profile.speakingDraft)
+  const activeVocab = VOCAB_CARDS.find((card) => card.id === profile.activeVocabId) ?? VOCAB_CARDS[0]
+  const knownVocabCount = profile.knownVocabIds.length
+  const reviewVocabCount = profile.reviewVocabIds.length
+  const filteredVocabCards = useMemo(() => {
+    const query = vocabSearch.trim().toLowerCase()
+
+    return VOCAB_CARDS.filter((card) => {
+      const matchesCategory = vocabCategory === 'All' || card.category === vocabCategory
+      const matchesQuery = !query
+        || card.word.toLowerCase().includes(query)
+        || card.meaningJa.toLowerCase().includes(query)
+        || card.meaningEn.toLowerCase().includes(query)
+
+      return matchesCategory && matchesQuery
+    })
+  }, [vocabCategory, vocabSearch])
 
   const laneMastery = useMemo(() => {
     return SKILL_LANES.map((lane) => {
@@ -881,6 +1074,42 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
             lastAnsweredAt: new Date().toISOString(),
           },
         },
+      }
+    })
+  }
+
+  function selectVocab(id: string) {
+    setProfile((current) => ({ ...current, activeVocabId: id }))
+  }
+
+  function markVocabKnown(id: string) {
+    setProfile((current) => {
+      const known = new Set(current.knownVocabIds)
+      const review = new Set(current.reviewVocabIds)
+      known.add(id)
+      review.delete(id)
+
+      return {
+        ...current,
+        activeVocabId: id,
+        knownVocabIds: Array.from(known),
+        reviewVocabIds: Array.from(review),
+      }
+    })
+  }
+
+  function markVocabReview(id: string) {
+    setProfile((current) => {
+      const known = new Set(current.knownVocabIds)
+      const review = new Set(current.reviewVocabIds)
+      known.delete(id)
+      review.add(id)
+
+      return {
+        ...current,
+        activeVocabId: id,
+        knownVocabIds: Array.from(known),
+        reviewVocabIds: Array.from(review),
       }
     })
   }
@@ -1264,6 +1493,133 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
                   <p>{activeQuest.transferTip}</p>
                 </div>
               </article>
+            </div>
+          )}
+
+          {activeTab === 'vocab' && (
+            <div className="vocab-book-shell">
+              <div className="vocab-browser-shell">
+                <div className="vocab-toolbar">
+                  <div className="browser-dots" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <strong>english.quest/tango-book</strong>
+                  <div className="vocab-toolbar-status">
+                    <span>{knownVocabCount} known</span>
+                    <span>{reviewVocabCount} review</span>
+                  </div>
+                </div>
+
+                <div className="vocab-hero-row">
+                  <div>
+                    <p className="vocab-eyebrow">Math page style wordbook</p>
+                    <h2>単語帳</h2>
+                    <p>
+                      Clean cards for meaning, example, collocations, and quick review status.
+                      Pick a word, listen, then mark it as known or review.
+                    </p>
+                  </div>
+                  <div className="vocab-progress-card">
+                    <span>Word progress</span>
+                    <strong>{knownVocabCount}/{VOCAB_CARDS.length}</strong>
+                    <div className="vocab-meter">
+                      <span style={{ width: `${clampPercent((knownVocabCount / VOCAB_CARDS.length) * 100)}%` }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="vocab-controls">
+                  <label className="vocab-search">
+                    <span>Search</span>
+                    <input
+                      value={vocabSearch}
+                      onChange={(event) => setVocabSearch(event.target.value)}
+                      placeholder="word, meaning, or example"
+                    />
+                  </label>
+                  <div className="vocab-filter-group" aria-label="Vocabulary category filter">
+                    {VOCAB_CATEGORIES.map((category) => (
+                      <button
+                        className={vocabCategory === category ? 'is-active' : ''}
+                        key={category}
+                        type="button"
+                        onClick={() => setVocabCategory(category)}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="vocab-layout">
+                  <div className="vocab-card-list">
+                    {filteredVocabCards.map((card) => {
+                      const isKnown = profile.knownVocabIds.includes(card.id)
+                      const isReview = profile.reviewVocabIds.includes(card.id)
+                      const isActive = activeVocab.id === card.id
+
+                      return (
+                        <button
+                          className={`vocab-list-card ${isActive ? 'is-active' : ''} ${isKnown ? 'is-known' : ''} ${isReview ? 'is-review' : ''}`}
+                          key={card.id}
+                          type="button"
+                          onClick={() => selectVocab(card.id)}
+                        >
+                          <span>{card.category}</span>
+                          <strong>{card.word}</strong>
+                          <small>{isKnown ? 'Known' : isReview ? 'Review' : card.meaningJa}</small>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <article className="vocab-focus-card">
+                    <div className="vocab-card-top">
+                      <span>{activeVocab.category}</span>
+                      <button type="button" onClick={() => speakText(activeVocab.word)}>
+                        Listen
+                      </button>
+                    </div>
+                    <h2>{activeVocab.word}</h2>
+                    <p className="vocab-ipa">{activeVocab.ipa}</p>
+                    <div className="vocab-meaning-grid">
+                      <div>
+                        <span>JP meaning</span>
+                        <p>{activeVocab.meaningJa}</p>
+                      </div>
+                      <div>
+                        <span>EN meaning</span>
+                        <p>{activeVocab.meaningEn}</p>
+                      </div>
+                    </div>
+                    <div className="vocab-example">
+                      <span>Example</span>
+                      <p>{activeVocab.example}</p>
+                    </div>
+                    <div className="vocab-chip-row">
+                      {activeVocab.collocations.map((collocation) => (
+                        <button key={collocation} type="button" onClick={() => speakText(collocation)}>
+                          {collocation}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="vocab-mini-prompt">
+                      <span>Mini output</span>
+                      <p>{activeVocab.miniPrompt}</p>
+                    </div>
+                    <div className="vocab-actions">
+                      <button type="button" onClick={() => markVocabReview(activeVocab.id)}>
+                        Need review
+                      </button>
+                      <button type="button" onClick={() => markVocabKnown(activeVocab.id)}>
+                        I know this
+                      </button>
+                    </div>
+                  </article>
+                </div>
+              </div>
             </div>
           )}
 
@@ -2361,6 +2717,359 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
           line-height: 1.65;
         }
 
+        .vocab-book-shell {
+          min-height: 100%;
+          border-radius: 28px;
+          background: #f7f9fc;
+          color: #0f172a;
+          font-family: "Inter", "Noto Sans JP", "Segoe UI", sans-serif;
+        }
+
+        .vocab-browser-shell {
+          overflow: hidden;
+          border: 1px solid #dbe3ef;
+          border-radius: 22px;
+          background: #ffffff;
+          box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+        }
+
+        .vocab-toolbar {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          min-height: 56px;
+          padding: 0 18px;
+          border-bottom: 1px solid rgba(219, 227, 239, 0.86);
+          background: rgba(255, 255, 255, 0.84);
+          backdrop-filter: blur(18px);
+        }
+
+        .browser-dots {
+          display: inline-flex;
+          gap: 6px;
+        }
+
+        .browser-dots span {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          background: #fb7185;
+        }
+
+        .browser-dots span:nth-child(2) {
+          background: #fbbf24;
+        }
+
+        .browser-dots span:nth-child(3) {
+          background: #34d399;
+        }
+
+        .vocab-toolbar strong {
+          color: #0f172a;
+          font-size: 0.88rem;
+        }
+
+        .vocab-toolbar-status {
+          display: flex;
+          gap: 8px;
+          margin-left: auto;
+        }
+
+        .vocab-toolbar-status span,
+        .vocab-progress-card span,
+        .vocab-search span,
+        .vocab-card-top span,
+        .vocab-meaning-grid span,
+        .vocab-example span,
+        .vocab-mini-prompt span {
+          color: #64748b;
+          font-size: 0.78rem;
+          font-weight: 850;
+        }
+
+        .vocab-toolbar-status span {
+          padding: 7px 10px;
+          border: 1px solid #dbe3ef;
+          border-radius: 999px;
+          background: #ffffff;
+          color: #0f172a;
+        }
+
+        .vocab-hero-row {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 220px;
+          gap: 24px;
+          align-items: end;
+          padding: 34px;
+          background:
+            radial-gradient(circle at 14% 10%, rgba(0, 114, 245, 0.12), transparent 20rem),
+            linear-gradient(180deg, #ffffff, #f7f9fc);
+        }
+
+        .vocab-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          min-height: 32px;
+          margin: 0 0 16px;
+          border: 1px solid rgba(0, 114, 245, 0.18);
+          border-radius: 999px;
+          background: #e7f1ff;
+          color: #0072f5;
+          padding: 0 13px;
+          font-size: 0.78rem;
+          font-weight: 900;
+        }
+
+        .vocab-hero-row h2 {
+          margin: 0;
+          color: #0f172a;
+          font-size: clamp(2.8rem, 7vw, 5.2rem);
+          line-height: 1;
+          letter-spacing: -0.06em;
+        }
+
+        .vocab-hero-row p {
+          max-width: 680px;
+          margin-top: 16px;
+          color: #64748b;
+          font-size: 1rem;
+          line-height: 1.75;
+        }
+
+        .vocab-progress-card {
+          padding: 18px;
+          border: 1px solid #dbe3ef;
+          border-radius: 18px;
+          background: #ffffff;
+          box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+        }
+
+        .vocab-progress-card strong {
+          display: block;
+          margin: 8px 0 12px;
+          font-size: 2rem;
+          letter-spacing: -0.05em;
+        }
+
+        .vocab-meter {
+          height: 10px;
+          overflow: hidden;
+          border-radius: 999px;
+          background: #e2e8f0;
+        }
+
+        .vocab-meter span {
+          display: block;
+          height: 100%;
+          border-radius: inherit;
+          background: #0072f5;
+        }
+
+        .vocab-controls {
+          display: grid;
+          grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+          gap: 14px;
+          align-items: end;
+          padding: 0 34px 24px;
+        }
+
+        .vocab-search {
+          display: grid;
+          gap: 7px;
+        }
+
+        .vocab-search input {
+          width: 100%;
+          min-height: 42px;
+          border: 1px solid #dbe3ef;
+          border-radius: 12px;
+          background: #ffffff;
+          color: #0f172a;
+          padding: 0 14px;
+          font: inherit;
+          outline: none;
+        }
+
+        .vocab-search input:focus {
+          border-color: rgba(0, 114, 245, 0.42);
+          box-shadow: 0 0 0 4px rgba(0, 114, 245, 0.12);
+        }
+
+        .vocab-filter-group {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .vocab-filter-group button,
+        .vocab-chip-row button,
+        .vocab-card-top button,
+        .vocab-actions button {
+          border: 1px solid #dbe3ef;
+          border-radius: 999px;
+          background: #ffffff;
+          color: #0f172a;
+          cursor: pointer;
+          font: inherit;
+          font-size: 0.84rem;
+          font-weight: 850;
+        }
+
+        .vocab-filter-group button {
+          min-height: 38px;
+          padding: 0 13px;
+        }
+
+        .vocab-filter-group button.is-active {
+          border-color: #0072f5;
+          background: #0072f5;
+          color: #ffffff;
+        }
+
+        .vocab-layout {
+          display: grid;
+          grid-template-columns: minmax(240px, 0.78fr) minmax(0, 1.22fr);
+          gap: 18px;
+          padding: 0 34px 34px;
+        }
+
+        .vocab-card-list {
+          display: grid;
+          align-content: start;
+          gap: 10px;
+          max-height: 690px;
+          overflow: auto;
+          padding-right: 4px;
+        }
+
+        .vocab-list-card {
+          display: grid;
+          gap: 5px;
+          width: 100%;
+          border: 1px solid #dbe3ef;
+          border-radius: 16px;
+          background: #ffffff;
+          color: #0f172a;
+          cursor: pointer;
+          padding: 14px;
+          text-align: left;
+          font: inherit;
+          transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+        }
+
+        .vocab-list-card:hover,
+        .vocab-list-card.is-active {
+          border-color: rgba(0, 114, 245, 0.42);
+          background: #e7f1ff;
+          transform: translateY(-1px);
+        }
+
+        .vocab-list-card.is-known {
+          border-color: rgba(15, 159, 110, 0.32);
+        }
+
+        .vocab-list-card.is-review {
+          border-color: rgba(217, 119, 6, 0.32);
+        }
+
+        .vocab-list-card span {
+          color: #0072f5;
+          font-size: 0.72rem;
+          font-weight: 950;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+
+        .vocab-list-card strong {
+          font-size: 1.08rem;
+        }
+
+        .vocab-list-card small {
+          color: #64748b;
+          line-height: 1.5;
+        }
+
+        .vocab-focus-card {
+          display: grid;
+          gap: 18px;
+          border: 1px solid #dbe3ef;
+          border-radius: 22px;
+          background: #ffffff;
+          padding: 26px;
+          box-shadow: 0 20px 58px rgba(15, 23, 42, 0.1);
+        }
+
+        .vocab-card-top,
+        .vocab-actions {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .vocab-card-top button,
+        .vocab-actions button {
+          min-height: 38px;
+          padding: 0 14px;
+        }
+
+        .vocab-actions button:last-child {
+          border-color: #0072f5;
+          background: #0072f5;
+          color: #ffffff;
+        }
+
+        .vocab-focus-card h2 {
+          margin: 0;
+          color: #0f172a;
+          font-size: clamp(3rem, 8vw, 5.8rem);
+          line-height: 0.94;
+          letter-spacing: -0.07em;
+        }
+
+        .vocab-ipa {
+          margin: -8px 0 0;
+          color: #0072f5;
+          font-size: 1.1rem;
+          font-weight: 900;
+        }
+
+        .vocab-meaning-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+
+        .vocab-meaning-grid div,
+        .vocab-example,
+        .vocab-mini-prompt {
+          border: 1px solid #dbe3ef;
+          border-radius: 16px;
+          background: #f7f9fc;
+          padding: 15px;
+        }
+
+        .vocab-meaning-grid p,
+        .vocab-example p,
+        .vocab-mini-prompt p {
+          margin-top: 6px;
+          color: #0f172a;
+          line-height: 1.7;
+        }
+
+        .vocab-chip-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .vocab-chip-row button {
+          min-height: 34px;
+          padding: 0 12px;
+          background: #f2f5f9;
+        }
+
         .lab-grid {
           display: grid;
           grid-template-columns: minmax(0, 1fr) 280px;
@@ -2547,6 +3256,9 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
           .hero-grid,
           .trainer-shell,
           .quest-layout,
+          .vocab-hero-row,
+          .vocab-controls,
+          .vocab-layout,
           .lab-grid {
             grid-template-columns: 1fr;
           }
@@ -2618,10 +3330,25 @@ export default function EnglishApp({ page = 'home' }: { page?: EnglishPageMode }
 
           .workspace-panel,
           .challenge-card,
+          .vocab-hero-row,
+          .vocab-focus-card,
           .lab-card,
           .coach-card {
             padding: 16px;
             border-radius: 24px;
+          }
+
+          .vocab-browser-shell {
+            border-radius: 20px;
+          }
+
+          .vocab-controls,
+          .vocab-layout {
+            padding-inline: 16px;
+          }
+
+          .vocab-meaning-grid {
+            grid-template-columns: 1fr;
           }
 
           .challenge-head {
