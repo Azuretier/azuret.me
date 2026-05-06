@@ -9,6 +9,7 @@ A personal philosophy gallery built with Next.js 15 and React 19, featuring inte
 - User profile creation and listing / ユーザープロフィール作成・一覧
 - Advancement widget showing community level / コミュニティレベルを表示する進捗ウィジェット
 - Auto-rotating media slideshow / 自動回転メディアスライドショー
+- PC trouble technical blog powered by Markdown / Markdown管理のPCトラブル技術ブログ
 - Dark theme with staggered entrance animations / スタガードアニメーション付きダークテーマ
 - Fully responsive layout / 完全レスポンシブレイアウト
 - SEO sitemap and Google Analytics integration / SEOサイトマップとGoogle Analytics統合
@@ -32,6 +33,11 @@ A personal philosophy gallery built with Next.js 15 and React 19, featuring inte
 azuret.me/
 ├── src/
 │   ├── app/
+│   │   ├── pc-trouble/
+│   │   │   ├── page.tsx             # PC trouble blog top / ブログトップ
+│   │   │   ├── [slug]/page.tsx      # Markdown article page / 記事ページ
+│   │   │   ├── category/[category]/page.tsx
+│   │   │   └── pc-trouble.module.css
 │   │   ├── layout.tsx              # Root layout with metadata / ルートレイアウト
 │   │   ├── page.tsx                # Home page / メインページ
 │   │   ├── globals.css             # Global styles and theme / グローバルスタイル
@@ -61,9 +67,12 @@ azuret.me/
 │   │   ├── VoxelTerrainCanvas.tsx  # 3D voxel terrain visualization
 │   │   └── GoogleAnalytics.tsx     # GA tracking component
 │   ├── lib/
+│   │   ├── pcTroubleBlog.ts         # Markdown loader and blog metadata
 │   │   └── db.ts                   # SQLite database utilities
 │   └── config/
 │       └── siteConfig.ts           # Centralized site configuration
+├── content/
+│   └── pc-trouble/                 # Markdown blog articles
 ├── public/
 │   ├── shaders/
 │   │   └── rain.frag               # GLSL fragment shader
@@ -80,8 +89,59 @@ azuret.me/
 | Route | Description |
 |-------|-------------|
 | `/` | Home page with hero, about cards, comment wall, and media slideshow |
+| `/pc-trouble` | PCトラブル実験記 blog top with latest posts, categories, and profile |
+| `/pc-trouble/[slug]` | Markdown article page with metadata, table of contents, callouts, and code blocks |
+| `/pc-trouble/category/[category]` | Category archive page |
 | `/links` | Social media links (X, GitHub, Discord, azuretier.net) |
 | `/profiles` | Community profile creation and listing |
+
+## PC Trouble Blog / PCトラブル実験記
+
+The PC trouble blog lives under `/pc-trouble` and is designed for static generation with simple Markdown files.
+
+PCトラブル実験記は `/pc-trouble` 配下にあります。記事は `content/pc-trouble/*.md` にMarkdownで追加します。
+
+### Article frontmatter / 記事メタデータ
+
+```md
+---
+title: "LiveKernelEvent 141とは何か"
+date: "2026-05-07"
+updated: "2026-05-07"
+category: "Windowsログ"
+tags:
+  - "GPU"
+  - "HWiNFO"
+description: "記事一覧とSEOに使う概要文。"
+---
+```
+
+Supported categories / 対応カテゴリ:
+
+- GPU
+- SSD
+- CPU
+- 電源ユニット
+- Windowsログ
+- HWiNFO
+- ゲーム設定
+- 作業記録
+
+### Callouts / 注意喚起ブロック
+
+```md
+:::notice
+PC内部を触る時は、電源OFF、コンセント抜き、静電気対策をします。
+:::
+
+:::warning
+電源ユニットの分解は危険なため推奨しません。
+:::
+
+:::conclusion
+ログだけで故障を断定せず、可能性として切り分けます。
+:::
+```
 
 ## API Routes / APIルート
 
@@ -107,6 +167,14 @@ Tables are auto-created on first run.
 ```bash
 npm install
 npm run dev
+```
+
+Available scripts / 利用できるスクリプト:
+
+```bash
+npm run dev
+npm run build
+npm run lint
 ```
 
 ## Building for Production / 本番ビルド

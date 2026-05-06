@@ -8,7 +8,7 @@
     "build": "next build",
     "postbuild": "next-sitemap",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "electron": "electron .",
     "electron:dev": "node electron/dev-runner.cjs"
   },
@@ -27,12 +27,15 @@
     "three": "^0.182.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.182.0",
     "electron": "^41.2.0",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.5",
     "typescript": "^5"
   }
 }
